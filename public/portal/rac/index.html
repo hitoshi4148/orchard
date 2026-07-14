@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="芝管理者向けRACコード検索ツール。農薬名・メーカー名・適用対象から検索し、同一グループの確認やローテーション設計を支援します。FAMIC公開情報を基に再構成。">
+  <title>果実園しごと・楽RAC農薬ローテ</title>
+  <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
+  <link rel="stylesheet" href="../portal.css?v=20250629v102">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="rac-page">
+    <p class="portal-back"><a href="/portal/">← ツールポータルに戻る</a></p>
+
+    <header class="rac-header">
+      <h1>果実園しごと・楽RAC農薬ローテ</h1>
+      <p class="rac-brand-line">
+        グロウアンドプログレス ｜ <a href="https://www.turf-tools.jp" target="_blank" rel="noopener noreferrer">www.turf-tools.jp</a>
+        <span class="rac-version-tag">v1.1.1</span>
+      </p>
+      <p class="rac-lead">
+        農薬名や病害虫・雑草名の一部から必要な芝生用農薬を探し、
+        RACコードをもとに耐性を避けたローテーション候補を確認できます。
+      </p>
+    </header>
+
+    <div id="loadingStatus" class="rac-message rac-message--loading">農薬データを読み込んでいます…</div>
+
+    <section class="rac-search-panel" aria-label="農薬検索">
+      <h2 class="rac-panel-title">農薬検索</h2>
+      <div class="rac-search-row">
+        <input type="text" id="pesticideKeyword" class="rac-input" placeholder="農薬名・メーカー名" autocomplete="off">
+        <span class="rac-and-label">かつ</span>
+        <input type="text" id="targetKeyword" class="rac-input" placeholder="病害名・害虫名・雑草名" autocomplete="off">
+        <button type="button" id="searchBtn" class="btn-primary rac-search-btn">検索</button>
+      </div>
+    </section>
+
+    <div id="results" class="rac-results"></div>
+
+    <footer class="rac-site-footer">
+      <h2 class="rac-footer-title">【ご利用にあたっての注意】</h2>
+      <p>
+        本サービスの農薬情報は、農林水産消費安全技術センター（FAMIC）公開情報を基に、
+        グリーンキーパー向けに再編集した参考情報です。
+      </p>
+      <p>
+        実際の施薬にあたっては、必ず各製品の最新ラベル表示・登録内容・使用方法をご確認のうえ、
+        メーカーが指定する使用量・使用回数・使用方法を厳守してください。
+      </p>
+      <p>
+        本サービスの情報利用によって生じたいかなる損害についても、
+        グロウアンドプログレスは責任を負いかねます。
+        施薬判断および実施は、使用者ご自身の責任にて行ってください。
+      </p>
+      <p>
+        最新かつ正確な登録情報は、
+        <a href="https://www.famic.go.jp/" target="_blank" rel="noopener noreferrer">FAMIC公式サイト</a>
+        をご確認ください。
+      </p>
+      <p class="rac-footer-version">Version 1.1.1 ｜ 2026.07</p>
+    </footer>
+  </div>
+
+  <script src="rac-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

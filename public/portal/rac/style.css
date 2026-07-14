@@ -1,0 +1,456 @@
+body {
+  background: #f3f4f6;
+  min-height: 100vh;
+  padding: 10px;
+  color: #333;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.rac-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.portal-back {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
+.portal-back a {
+  color: #336699;
+  text-decoration: none;
+}
+
+.portal-back a:hover {
+  text-decoration: underline;
+}
+
+.rac-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.rac-header h1 {
+  color: #1e40af;
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.rac-brand-line {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  color: #6c757d;
+}
+
+.rac-brand-line a {
+  color: #5d6f82;
+  text-decoration: none;
+}
+
+.rac-brand-line a:hover {
+  text-decoration: underline;
+}
+
+.rac-version-tag {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: #8a939c;
+}
+
+.rac-lead {
+  margin: 0 auto;
+  max-width: 40rem;
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.rac-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.rac-message--loading {
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.rac-message--warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.rac-message--error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.rac-message--info {
+  background: #e7f3ff;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.rac-search-panel,
+.rac-panel {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.rac-panel-title,
+.rac-section-heading {
+  margin: 0 0 12px 0;
+  color: #1e40af;
+  font-size: 1.05em;
+  font-weight: bold;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 6px;
+}
+
+.rac-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.95em;
+}
+
+.rac-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 12px;
+}
+
+.rac-input {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.92em;
+  font-family: inherit;
+}
+
+.rac-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.rac-and-label {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.rac-search-row .btn-primary.rac-search-btn {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 8px 20px;
+  font-size: 0.9em;
+}
+
+.rac-results {
+  min-height: 0;
+}
+
+.rac-result-count {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.rac-muted {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.rac-table-wrap {
+  overflow-x: auto;
+}
+
+.rac-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.rac-table th,
+.rac-table td {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+.rac-table thead th {
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rac-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.rac-table--compact {
+  font-size: 0.85rem;
+}
+
+.rac-table--compact th,
+.rac-table--compact td {
+  padding: 6px 8px;
+}
+
+.rac-table--kv th {
+  width: 180px;
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.rac-table .btn-primary.rac-btn-sm {
+  width: auto;
+  padding: 4px 12px;
+  font-size: 0.85em;
+}
+
+.rac-detail-panel {
+  margin-top: 0;
+}
+
+.rac-back-btn {
+  margin-bottom: 12px;
+}
+
+.rac-detail-title {
+  margin: 0 0 8px;
+  color: #1e40af;
+  font-size: 1.15em;
+  font-weight: 600;
+}
+
+.rac-detail-meta {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.rac-detail-label {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rac-detail-block {
+  margin-bottom: 12px;
+}
+
+.rac-subsection-title {
+  margin: 16px 0 8px;
+  color: #374151;
+  font-size: 0.95em;
+  font-weight: 600;
+}
+
+.rac-divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 16px 0;
+}
+
+.rac-kv-block {
+  margin-bottom: 10px;
+}
+
+.btn-secondary.rac-btn-sm {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 0.85em;
+}
+
+.btn-analysis {
+  width: auto;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-analysis:hover {
+  opacity: 0.92;
+}
+
+.rotation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  scroll-margin-top: 12px;
+}
+
+.rac-rotation-panel {
+  margin-bottom: 0;
+}
+
+.rac-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.rac-list-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.rac-list-item:last-child {
+  border-bottom: none;
+}
+
+.detail-expand {
+  cursor: pointer;
+}
+
+.detail-expand:hover {
+  background: #f3f4f6;
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.rac-badge {
+  display: inline-block;
+  padding: 0.18rem 0.5rem;
+  margin-right: 0.25rem;
+  margin-bottom: 0.2rem;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1.1;
+}
+
+.rac-frac {
+  background-color: #1e88e5;
+}
+
+.rac-irac {
+  background-color: #e53935;
+}
+
+.rac-hrac {
+  background-color: #43a047;
+}
+
+.rac-match {
+  box-shadow: 0 0 0 2px #ffca28 inset;
+  transform: translateY(-1px);
+}
+
+.rac-dup-count {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.remarks-high {
+  color: #dc3545;
+}
+
+.remarks-medium {
+  color: #fd7e14;
+}
+
+.remarks-low {
+  color: #198754;
+}
+
+.remarks-mihassei {
+  color: #1e40af;
+}
+
+.rac-site-footer {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-top: none;
+  text-align: left;
+  color: #4f5b66;
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.rac-footer-title {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #44515c;
+}
+
+.rac-site-footer a {
+  color: #336699;
+}
+
+.rac-footer-version {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: #7a8591;
+}
+
+@media (max-width: 768px) {
+  .rac-page {
+    padding: 12px;
+  }
+
+  .rac-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rac-input {
+    max-width: none;
+  }
+
+  .rac-search-row .btn-primary.rac-search-btn {
+    align-self: center;
+    width: 25%;
+    min-width: 72px;
+  }
+
+  .rotation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rac-lead {
+    font-size: 0.92rem;
+  }
+
+  .rac-site-footer {
+    font-size: 0.84rem;
+  }
+}

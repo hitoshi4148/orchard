@@ -1,0 +1,14 @@
+{
+  "name": "tool-portal",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public",
+    "deploy:router": "wrangler deploy --config workers/turf-tools-router/wrangler.toml"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250204.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.109.2"
+  }
+}
