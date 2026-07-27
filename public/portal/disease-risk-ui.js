@@ -31,116 +31,111 @@ const DiseaseRiskUI = (() => {
   }
 
   const DISEASE_ITEMS = [
-    { key: "dollarSpot", name: "黒星病" },
-    { key: "brownPatch", name: "腐らん病" },
-    { key: "pythium", name: "かいよう病" },
-    { key: "anthracnose", name: "輪紋病" },
-    { key: "largePatch", name: "赤星病" },
+    { key: "dollarSpot", name: "黒星病", implemented: true },
+    { key: "brownPatch", name: "腐らん病", implemented: true },
+    { key: "pythium", name: "かいよう病", implemented: true },
+    { key: "anthracnose", name: "輪紋病", implemented: false },
+    { key: "largePatch", name: "赤星病", implemented: false },
   ];
 
   const DISEASE_LOGIC = {
     dollarSpot: {
       title: "黒星病",
-      subtitle: "",
-      description: "日次データを使用した5日移動平均による評価",
-      formula: "移動平均(5日) = Σ(気温・湿度) / 5",
+      subtitle: "Venturia inaequalis（Mills 法）",
+      description:
+        "時間別データから葉面濡れ期間を推定し、Mills 法（改訂版）で一次感染リスクを評価",
+      formula: "感染 = 連続濡れ時間 ≥ Mills必要時間(平均気温)",
       conditions: [
-        "気温: 15-30℃でリスク上昇",
-        "湿度: 60%以上でリスク上昇",
-        "気温30℃以上で減衰",
-        "リスク = 気温リスク(50%) + 湿度リスク(50%)",
+        "評価期間: 直近7日（予測時点まで）",
+        "葉面濡れ: 降水量≥0.1mm/h または 湿度≥90%",
+        "気温範囲: 5–32℃（Mills 表適用）",
+        "21℃以上: 最低6時間の連続濡れで感染",
+        "進行中の濡れ期間は閾値50%超で部分リスク加算",
       ],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>気温リスク:</div>
-      <div>15-25℃: 線形上昇 (0→50%)</div>
-      <div>25-30℃: 線形減少 (50%→0%)</div>
-      <div class="disease-logic-calc-gap">湿度リスク:</div>
-      <div>60-100%: 線形上昇 (0→50%)</div>
-      <div class="disease-logic-calc-gap">減衰係数:</div>
-      <div>30℃超: (40-気温)/10倍</div>
+      <div>1. 葉面濡れ期間の抽出</div>
+      <div>降水または RH≥90% の連続時間</div>
+      <div>1時間以内の乾燥は同一期間として結合</div>
+      <div class="disease-logic-calc-gap">2. Mills 必要濡れ時間</div>
+      <div>濡れ期間の平均気温 → 表から補間</div>
+      <div>例: 10℃→22h, 15℃→12h, 20℃→7h, 21℃+→6h</div>
+      <div class="disease-logic-calc-gap">3. リスク集計</div>
+      <div>感染イベントごとに重症度×新しさで加点</div>
+      <div>24h以内: weight 1.0 / 48h: 0.75 / 7日: 0.45</div>
     </div>`,
     },
     brownPatch: {
       title: "腐らん病",
-      subtitle: "",
-      description: "時間単位データによる夜間条件評価",
-      formula: "リスク比 = 該当時間数 / 夜間総時間数",
+      subtitle: "Valsa ceratosperma（枝幹腐らん病）",
+      description:
+        "降雨による胞子飛散と、低温期の湿潤時間から枝幹腐らん病の感染リスクを評価",
+      formula: "リスク = 季節係数 × Σ(湿潤時間スコア + 降雨ボーナス)",
       conditions: [
-        "評価時間: 20:00-翌6:00",
-        "条件: 気温≥20℃ かつ 湿度≥90%",
-        "リスク = 該当時間の割合×2",
-        "50%以上で最大リスク",
+        "評価期間: 直近7日（予測時点まで）",
+        "感染適温: 5–22℃（傷口治癒が遅い温度帯）",
+        "湿潤: 降水量≥0.1mm/h または 湿度≥85%",
+        "降雨時間: 柄胞子飛散ボーナスを加算",
+        "季節係数: 11–6月=1.0 / 10・7月=0.55 / 8–9月=0.25",
       ],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>夜間時間を抽出</div>
-      <div>条件該当時間をカウント</div>
-      <div class="disease-logic-calc-gap">リスク計算:</div>
-      <div>割合 = 該当/夜間総数</div>
-      <div>リスク% = 割合×100 ×2</div>
-      <div class="disease-logic-calc-gap">上限: 100%</div>
+      <div>1. 感染適温・湿潤時間</div>
+      <div>5–22℃ かつ 降水または RH≥85%</div>
+      <div>該当1時間ごとに基本スコア加点</div>
+      <div class="disease-logic-calc-gap">2. 降雨ボーナス</div>
+      <div>降水量≥0.1mm/h の時間に追加加点</div>
+      <div>（柄胞子の飛散盛期を反映）</div>
+      <div class="disease-logic-calc-gap">3. 季節係数</div>
+      <div>11–6月: ×1.0（飛散盛期）</div>
+      <div>10・7月: ×0.55 / 8–9月: ×0.25</div>
+      <div class="disease-logic-calc-gap">4. 新しさ weight</div>
+      <div>24h以内: 1.0 / 48h: 0.75 / 7日: 0.45</div>
     </div>`,
     },
     pythium: {
       title: "かいよう病",
-      subtitle: "",
-      description: "直近7日間の条件該当日数による指数評価",
-      formula: "リスク = 100 × (1 - e^(-0.3×日数))",
+      subtitle: "Phytophthora 属（リンゴ・ナシ疫病）",
+      description:
+        "降雨・多湿・適温時間から、遊走子飛沫感染（果実・新梢）のリスクを評価",
+      formula: "リスク = 季節係数 × Σ(多湿スコア + 降雨 + 強雨ボーナス)",
       conditions: [
-        "評価期間: 直近7日",
-        "条件: 気温≥25℃ かつ 湿度≥85%",
-        "該当日数を指数関数で評価",
-        "7日間で最大リスク",
+        "評価期間: 直近7日（予測時点まで）",
+        "感染適温: 10–28℃（遊走子活動域）",
+        "多湿: 降水量≥0.1mm/h または 湿度≥88%",
+        "強雨: 降水量≥1.0mm/h で泥はね・飛沫ボーナス",
+        "季節係数: 5–9月=1.0 / 4・10月=0.7 / 3・11月=0.4 / 12–2月=0.15",
       ],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>条件該当日数をカウント</div>
-      <div class="disease-logic-calc-gap">指数関数:</div>
-      <div>risk = 100×(1-e^(-0.3×days))</div>
-      <div class="disease-logic-calc-gap">例:</div>
-      <div>1日: ~26%</div>
-      <div>3日: ~59%</div>
-      <div>7日: ~88%</div>
+      <div>1. 多湿・適温時間</div>
+      <div>10–28℃ かつ 降水または RH≥88%</div>
+      <div>該当1時間ごとに基本スコア加点</div>
+      <div class="disease-logic-calc-gap">2. 降雨ボーナス</div>
+      <div>≥0.1mm/h: 追加加点</div>
+      <div>≥1.0mm/h: 強雨（飛沫・泥はね）ボーナス</div>
+      <div class="disease-logic-calc-gap">3. 季節係数</div>
+      <div>5–9月: ×1.0（梅雨・台風期）</div>
+      <div>4・10月: ×0.7 / 3・11月: ×0.4</div>
+      <div class="disease-logic-calc-gap">4. 新しさ weight</div>
+      <div>24h以内: 1.0 / 48h: 0.75 / 7日: 0.45</div>
     </div>`,
     },
     anthracnose: {
       title: "輪紋病",
-      subtitle: "",
-      description: "日次データによる気温・高温継続評価",
-      formula: "リスク = 気温リスク + 高温継続リスク + 湿度補助",
-      conditions: [
-        "評価期間: 直近10日",
-        "気温: 15-30℃でリスク上昇",
-        "高温: 25℃超が5日以上継続で高リスク",
-        "湿度: 70%以上で補助",
-      ],
+      subtitle: "順次実装予定",
+      description: "プロ向け生理モデルは現在開発中です",
+      formula: "—",
+      conditions: ["モデル実装後に判定条件を公開します"],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>1. 気温リスク:</div>
-      <div>15-25℃: 線形 (0→10点/日)</div>
-      <div>25-30℃: 線形 (10→0点/日)</div>
-      <div class="disease-logic-calc-gap">2. 高温継続:</div>
-      <div>5日以上: +(日数-5)×10点</div>
-      <div class="disease-logic-calc-gap">3. 湿度補助:</div>
-      <div>70%以上: +(湿度-70)/3%</div>
+      <div>この病害は順次対応予定です。</div>
     </div>`,
     },
     largePatch: {
       title: "赤星病",
-      subtitle: "",
-      description: "直近8-10日間の気温積算評価",
-      formula: "リスク = Σ(日リスク) / (評価日数×10) × 100",
-      conditions: [
-        "評価期間: 直近8-10日",
-        "気温: 10-20℃でリスク上昇",
-        "リセット: 25℃超 または 8℃未満",
-        "積算値で評価",
-      ],
+      subtitle: "順次実装予定",
+      description: "プロ向け生理モデルは現在開発中です",
+      formula: "—",
+      conditions: ["モデル実装後に判定条件を公開します"],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>日リスク計算:</div>
-      <div>10-15℃: 線形 (0→10点)</div>
-      <div>15-20℃: 線形 (10→0点)</div>
-      <div class="disease-logic-calc-gap">リセット条件:</div>
-      <div>25℃超 または 8℃未満</div>
-      <div class="disease-logic-calc-gap">リスク =</div>
-      <div>積算値 / (日数×10) ×100%</div>
+      <div>この病害は順次対応予定です。</div>
     </div>`,
     },
   };
@@ -183,13 +178,22 @@ const DiseaseRiskUI = (() => {
     document.body.classList.remove("modal-open");
   }
 
-  function buildRiskValueHtml(risk) {
+  function buildRiskValueHtml(risk, implemented = true) {
     const riskValue =
       risk !== null && risk !== undefined && !Number.isNaN(risk) ? Math.round(risk) : null;
     const color = getRiskColor(risk);
-    return `<div class="disease-risk-item-value" style="background-color: ${color}">
-    ${riskValue !== null ? `${riskValue}%` : "?"}
+
+    if (riskValue !== null) {
+      return `<div class="disease-risk-item-value" style="background-color: ${color}">
+    ${riskValue}%
   </div>`;
+    }
+
+    if (!implemented) {
+      return `<div class="disease-risk-item-value disease-risk-item-value--pending" title="プロ向けモデルは順次実装予定です">—</div>`;
+    }
+
+    return `<div class="disease-risk-item-value disease-risk-item-value--unknown" title="気象データが不足しているため算出できませんでした">?</div>`;
   }
 
   function buildCombinedDiseaseRiskPanelHtml(
@@ -210,15 +214,15 @@ const DiseaseRiskUI = (() => {
       </div>
       <div class="disease-risk-list">`;
 
-    DISEASE_ITEMS.forEach(({ key, name }) => {
+    DISEASE_ITEMS.forEach(({ key, name, implemented }) => {
       html += `<div class="disease-risk-item">
       <div class="disease-risk-item-name">
         <span class="disease-risk-item-label">${name}</span>
         <button type="button" class="disease-logic-btn" data-disease-key="${key}">判定ロジック</button>
       </div>
       <div class="disease-risk-item-values">
-        ${buildRiskValueHtml(firstRisks[key])}
-        ${buildRiskValueHtml(secondRisks[key])}
+        ${buildRiskValueHtml(firstRisks[key], implemented)}
+        ${buildRiskValueHtml(secondRisks[key], implemented)}
       </div>
     </div>`;
     });
@@ -226,6 +230,7 @@ const DiseaseRiskUI = (() => {
     html += `</div>
     </div>
     <p class="disease-risk-footer">${footerLabel}</p>
+    <p class="disease-risk-footer disease-risk-footer-note">— はモデル未実装（順次対応予定）。? は気象データ不足です。黒星病・腐らん病・かいよう病は 0–100% で表示されます。</p>
   </div>`;
 
     return html;

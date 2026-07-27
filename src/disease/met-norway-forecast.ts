@@ -1,19 +1,21 @@
-import { fetchMet, MetResponse } from "../spray/met";
+import { fetchMet, MetResponse, MetTimeseriesEntry } from "../spray/met";
 import { jstIsoString, toJst, utcToJst } from "../spray/timezone";
 import { HourlyWeatherRecord } from "./nasa-power";
 
+function getPrecipitationAmount(entry: MetTimeseriesEntry): number | null {
+  if (entry.data.next_1_hours) {
+    const amount = entry.data.next_1_hours.details.precipitation_amount;
+    return amount != null ? Number(amount) : 0;
+  }
+  if (entry.data.next_6_hours) {
+    const amount = entry.data.next_6_hours.details.precipitation_amount;
+    return amount != null ? Number(amount) / 6 : 0;
+  }
+  return 0;
+}
+
 export function normalizeMetNorwayForecast(
-  timeseries: Array<{
-    time: string;
-    data?: {
-      instant?: {
-        details?: {
-          air_temperature?: number;
-          relative_humidity?: number;
-        };
-      };
-    };
-  }>,
+  timeseries: MetTimeseriesEntry[],
   startDateTime: string,
   endDateTime: string
 ): HourlyWeatherRecord[] {
@@ -46,6 +48,7 @@ export function normalizeMetNorwayForecast(
       datetime,
       temperature: Number(temperature),
       humidity: Number(humidity),
+      precipitation_mm: getPrecipitationAmount(entry),
     });
   }
 

@@ -4,12 +4,14 @@ export interface DailyWeatherRecord {
   humidity_avg: number | null;
   temperature_max: number | null;
   temperature_min: number | null;
+  precipitation_mm: number | null;
 }
 
 export interface HourlyWeatherRecord {
   datetime: string;
   temperature: number | null;
   humidity: number | null;
+  precipitation_mm: number | null;
 }
 
 function formatDateForNasa(date: string): string {
@@ -28,6 +30,7 @@ function normalizeDaily(rawData: {
   const rh2m = parameter.RH2M ?? {};
   const t2mMax = parameter.T2M_MAX ?? {};
   const t2mMin = parameter.T2M_MIN ?? {};
+  const prectot = parameter.PRECTOTCORR ?? {};
 
   return Object.keys(t2m)
     .sort()
@@ -44,6 +47,7 @@ function normalizeDaily(rawData: {
         humidity_avg: toNumber(rh2m[dateKey]),
         temperature_max: toNumber(t2mMax[dateKey]),
         temperature_min: toNumber(t2mMin[dateKey]),
+        precipitation_mm: toNumber(prectot[dateKey]),
       };
     });
 }
@@ -58,6 +62,7 @@ function normalizeHourly(rawData: {
 
   const t2m = parameter.T2M ?? {};
   const rh2m = parameter.RH2M ?? {};
+  const prectot = parameter.PRECTOTCORR ?? {};
 
   return Object.keys(t2m)
     .sort()
@@ -79,6 +84,7 @@ function normalizeHourly(rawData: {
         datetime: `${jstYear}-${jstMonth}-${jstDay}T${jstHour}:00:00+09:00`,
         temperature: toNumber(t2m[timestamp]),
         humidity: toNumber(rh2m[timestamp]),
+        precipitation_mm: toNumber(prectot[timestamp]),
       };
     });
 }
@@ -114,7 +120,7 @@ export async function fetchNasaPowerDaily(
   endDate: string
 ): Promise<DailyWeatherRecord[]> {
   const params = new URLSearchParams({
-    parameters: "T2M,RH2M,T2M_MAX,T2M_MIN",
+    parameters: "T2M,RH2M,T2M_MAX,T2M_MIN,PRECTOTCORR",
     community: "AG",
     longitude: String(longitude),
     latitude: String(latitude),
@@ -136,7 +142,7 @@ export async function fetchNasaPowerHourly(
   endDate: string
 ): Promise<HourlyWeatherRecord[]> {
   const params = new URLSearchParams({
-    parameters: "T2M,RH2M",
+    parameters: "T2M,RH2M,PRECTOTCORR",
     community: "AG",
     longitude: String(longitude),
     latitude: String(latitude),

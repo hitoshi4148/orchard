@@ -27,12 +27,15 @@ function average(values: number[]): number {
 function aggregateHourlyToDaily(
   hourly: HourlyWeatherRecord[]
 ): DailyWeatherRecord[] {
-  const byDate = new Map<string, { temps: number[]; humids: number[] }>();
+  const byDate = new Map<
+    string,
+    { temps: number[]; humids: number[]; precips: number[] }
+  >();
 
   for (const row of hourly) {
     const date = row.datetime.split("T")[0];
     if (!byDate.has(date)) {
-      byDate.set(date, { temps: [], humids: [] });
+      byDate.set(date, { temps: [], humids: [], precips: [] });
     }
 
     const bucket = byDate.get(date)!;
@@ -42,6 +45,9 @@ function aggregateHourlyToDaily(
     if (row.humidity != null && !Number.isNaN(row.humidity)) {
       bucket.humids.push(row.humidity);
     }
+    if (row.precipitation_mm != null && !Number.isNaN(row.precipitation_mm)) {
+      bucket.precips.push(row.precipitation_mm);
+    }
   }
 
   return Array.from(byDate.entries()).map(([date, bucket]) => ({
@@ -50,6 +56,9 @@ function aggregateHourlyToDaily(
     humidity_avg: bucket.humids.length ? average(bucket.humids) : null,
     temperature_max: bucket.temps.length ? Math.max(...bucket.temps) : null,
     temperature_min: bucket.temps.length ? Math.min(...bucket.temps) : null,
+    precipitation_mm: bucket.precips.length
+      ? bucket.precips.reduce((sum, value) => sum + value, 0)
+      : null,
   }));
 }
 
@@ -104,7 +113,7 @@ function prepareWeatherAtTarget(
     a.date.localeCompare(b.date)
   );
 
-  return { daily, hourly };
+  return { daily, hourly, targetDateTime };
 }
 
 export function computeDiseaseRiskForecast(

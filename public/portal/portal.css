@@ -1382,6 +1382,20 @@ section h2 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.disease-risk-item-value--pending,
+.disease-risk-item-value--unknown {
+    background-color: #9CA3AF !important;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+.disease-risk-footer-note {
+    margin-top: 4px;
+    font-size: 9px;
+    line-height: 1.4;
+    color: #9CA3AF;
+}
+
 .disease-risk-footer {
     margin-top: 8px;
     font-size: 10px;
