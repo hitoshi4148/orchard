@@ -9,6 +9,8 @@ export type { DiseaseRiskResult, DiseaseWeatherInput } from "./types";
 export { calculateAppleScabRisk } from "./models/apple-scab";
 export { calculateValsaCankerRisk } from "./models/valsa-canker";
 export { calculatePhytophthoraRisk } from "./models/phytophthora-rot";
+export { calculateAppleRingRotRisk } from "./models/apple-ring-rot";
+export { calculateAppleCedarRustRisk } from "./models/apple-cedar-rust";
 export { DISEASE_MODELS, DISEASE_MODEL_BY_KEY } from "./models/registry";
 export { millsRequiredWetnessHours } from "./mills-table";
 export { findWetPeriods, isHourWet } from "./wetness";

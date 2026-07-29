@@ -1,19 +1,9 @@
 import { DiseaseModelDefinition, DiseaseRiskKey } from "../types";
+import { appleCedarRustModel } from "./apple-cedar-rust";
+import { appleRingRotModel } from "./apple-ring-rot";
 import { appleScabModel } from "./apple-scab";
 import { phytophthoraModel } from "./phytophthora-rot";
 import { valsaCankerModel } from "./valsa-canker";
-
-function createPendingModel(
-  key: DiseaseRiskKey,
-  displayName: string
-): DiseaseModelDefinition {
-  return {
-    key,
-    displayName,
-    description: `${displayName}モデルは順次実装予定です。`,
-    calculate: () => null,
-  };
-}
 
 /**
  * 病害モデルレジストリ。
@@ -23,8 +13,8 @@ export const DISEASE_MODELS: DiseaseModelDefinition[] = [
   appleScabModel,
   valsaCankerModel,
   phytophthoraModel,
-  createPendingModel("anthracnose", "輪紋病"),
-  createPendingModel("largePatch", "赤星病"),
+  appleRingRotModel,
+  appleCedarRustModel,
 ];
 
 export const DISEASE_MODEL_BY_KEY = Object.fromEntries(

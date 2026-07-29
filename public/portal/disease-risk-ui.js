@@ -34,8 +34,8 @@ const DiseaseRiskUI = (() => {
     { key: "dollarSpot", name: "黒星病", implemented: true },
     { key: "brownPatch", name: "腐らん病", implemented: true },
     { key: "pythium", name: "かいよう病", implemented: true },
-    { key: "anthracnose", name: "輪紋病", implemented: false },
-    { key: "largePatch", name: "赤星病", implemented: false },
+    { key: "anthracnose", name: "輪紋病", implemented: true },
+    { key: "largePatch", name: "赤星病", implemented: true },
   ];
 
   const DISEASE_LOGIC = {
@@ -120,22 +120,60 @@ const DiseaseRiskUI = (() => {
     },
     anthracnose: {
       title: "輪紋病",
-      subtitle: "順次実装予定",
-      description: "プロ向け生理モデルは現在開発中です",
-      formula: "—",
-      conditions: ["モデル実装後に判定条件を公開します"],
+      subtitle: "Botryosphaeria dothidea（リンゴ・ナシ輪紋病）",
+      description:
+        "降雨による柄胞子飛散と、高温・高湿時間から果実・枝幹の輪紋病感染リスクを評価",
+      formula: "リスク = 季節係数 × Σ(降雨飛散スコア + 高湿ボーナス)",
+      conditions: [
+        "評価期間: 直近7日（予測時点まで）",
+        "感染適温: 16–32℃（最低気温16℃以上の条件を時間気温で代理）",
+        "柄胞子飛散: 降水量≥0.1mm/h（降雨がないと飛散しない）",
+        "飛散増加: 降水量≥0.5mm/h で追加加点",
+        "高湿感染: 湿度≥90% で付着胞子の発芽・侵入を反映",
+        "季節係数: 6–8月=1.0 / 5・9月=0.75 / 4・10月=0.45 / 11–3月=0.2",
+      ],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>この病害は順次対応予定です。</div>
+      <div>1. 降雨・適温時間</div>
+      <div>16–32℃ かつ 降水量≥0.1mm/h</div>
+      <div>該当1時間ごとに基本スコア加点</div>
+      <div class="disease-logic-calc-gap">2. 飛散・感染ボーナス</div>
+      <div>≥0.5mm/h: 柄胞子大量飛散ボーナス</div>
+      <div>RH≥90%: 果実表面の高湿感染ボーナス</div>
+      <div class="disease-logic-calc-gap">3. 季節係数</div>
+      <div>6–8月: ×1.0（飛散盛期）</div>
+      <div>5・9月: ×0.75 / 4・10月: ×0.45</div>
+      <div class="disease-logic-calc-gap">4. 新しさ weight</div>
+      <div>24h以内: 1.0 / 48h: 0.75 / 7日: 0.45</div>
     </div>`,
     },
     largePatch: {
       title: "赤星病",
-      subtitle: "順次実装予定",
-      description: "プロ向け生理モデルは現在開発中です",
-      formula: "—",
-      conditions: ["モデル実装後に判定条件を公開します"],
+      subtitle: "Gymnosporangium yamadae（リンゴ赤星病・さび病）",
+      description:
+        "春季の降雨による小生子飛散と、降雨後の高湿継続時間から展葉～落花期の感染リスクを評価",
+      formula: "リスク = 季節係数 × Σ(濡れ期間スコア) + 進行中濡れの部分リスク",
+      conditions: [
+        "評価期間: 直近7日（予測時点まで）",
+        "感染適温: 濡れ期間の平均気温 10–22℃",
+        "小生子飛散: 濡れ期間内に降水量≥0.1mm/h を含む（降雨が必要）",
+        "濡れ継続: 連続6時間以上（RH≥90% または降水で葉面濡れ推定）",
+        "高リスク: 降雨後 RH90%以上が15時間以上継続",
+        "季節係数: 4–5月=1.0 / 3・6月=0.55 / その他=0.12",
+        "※ 中間宿主（ビャクシン類）が園周1–2km以内にない場合は発生しません",
+      ],
       calculationHtml: `<div class="disease-logic-calc-block">
-      <div>この病害は順次対応予定です。</div>
+      <div>1. 葉面濡れ期間の抽出</div>
+      <div>降水≥0.1mm/h または RH≥90% の連続時間</div>
+      <div>1時間以内の乾燥は同一期間として結合</div>
+      <div class="disease-logic-calc-gap">2. 感染イベント判定</div>
+      <div>平均気温10–22℃ かつ 期間≥6h</div>
+      <div>かつ 期間内に降雨を含む（冬胞子堆の膨潤・飛散）</div>
+      <div class="disease-logic-calc-gap">3. リスク集計</div>
+      <div>濡れ期間の長さと新しさで加点</div>
+      <div>≥15h: 高湿継続ボーナス</div>
+      <div class="disease-logic-calc-gap">4. 季節係数</div>
+      <div>4–5月: ×1.0（開花～落花期）</div>
+      <div>3・6月: ×0.55 / 7–2月: ×0.12</div>
     </div>`,
     },
   };
@@ -230,7 +268,7 @@ const DiseaseRiskUI = (() => {
     html += `</div>
     </div>
     <p class="disease-risk-footer">${footerLabel}</p>
-    <p class="disease-risk-footer disease-risk-footer-note">— はモデル未実装（順次対応予定）。? は気象データ不足です。黒星病・腐らん病・かいよう病は 0–100% で表示されます。</p>
+    <p class="disease-risk-footer disease-risk-footer-note">? は気象データ不足です。黒星病・腐らん病・かいよう病・輪紋病・赤星病は 0–100% で表示されます（赤星病は中間宿主ビャクシン類の有無は未考慮）。</p>
   </div>`;
 
     return html;

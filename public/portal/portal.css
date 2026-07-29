@@ -981,13 +981,83 @@ section h2 {
 
 .gdd-gauge-scale {
     position: relative;
-    height: 14px;
+    height: 16px;
     font-size: 9px;
     color: #6B7280;
     margin-top: 2px;
 }
 
-.gdd-gauge-scale span {
+.gdd-gauge-scale span.scale-mid {
+    font-size: 8px;
+    line-height: 1.15;
+    max-width: 76px;
+    text-align: center;
+    white-space: normal;
+}
+
+.gdd-harvest-scale {
+    height: auto;
+    min-height: 34px;
+}
+
+.gdd-harvest-scale-layout {
+    position: relative;
+    width: 100%;
+    height: 34px;
+    color: #6B7280;
+}
+
+.gdd-harvest-scale-mark {
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.gdd-harvest-scale-mark--start {
+    transform: translateX(-100%);
+    align-items: flex-end;
+    text-align: right;
+    padding-right: 1px;
+}
+
+.gdd-harvest-scale-mark--end {
+    transform: translateX(0);
+    align-items: flex-start;
+    text-align: left;
+    padding-left: 1px;
+}
+
+.gdd-harvest-scale-label-title {
+    display: block;
+    font-size: 8px;
+}
+
+.gdd-harvest-scale-label-value {
+    display: block;
+    font-size: 9px;
+}
+
+.gdd-harvest-scale-edge {
+    position: absolute;
+    bottom: 0;
+    font-size: 9px;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.gdd-harvest-scale-edge--start {
+    left: 0;
+}
+
+.gdd-harvest-scale-edge--end {
+    right: 0;
+}
+
+.gdd-gauge-scale:not(.gdd-harvest-scale) > span {
     position: absolute;
     white-space: nowrap;
     transform: translateX(-50%);

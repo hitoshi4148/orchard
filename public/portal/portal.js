@@ -11,12 +11,16 @@ const DAFB_GAUGE_CONFIG = {
     windowStart: 20,
     windowEnd: 40,
     alertAfter: 40,
+    windowStartLabel: "摘花開始(20D)",
+    windowEndLabel: "摘花終了(40D)",
   },
   greenfield: {
     maxDays: 80,
     windowStart: 20,
     windowEnd: 60,
     alertAfter: 60,
+    windowStartLabel: "摘花開始(20D)",
+    windowEndLabel: "摘花終了(60D)",
   },
 };
 const AGROMAP_COOKIE_DAYS = 365;
@@ -894,8 +898,16 @@ function renderDafbGaugeScale(scaleEl, mode) {
   const config = DAFB_GAUGE_CONFIG[mode];
   const ticks = [
     { value: 0, label: "0", edge: "start" },
-    { value: config.windowStart, label: String(config.windowStart) },
-    { value: config.windowEnd, label: String(config.windowEnd) },
+    {
+      value: config.windowStart,
+      label: config.windowStartLabel ?? String(config.windowStart),
+      mid: true,
+    },
+    {
+      value: config.windowEnd,
+      label: config.windowEndLabel ?? String(config.windowEnd),
+      mid: true,
+    },
     { value: config.maxDays, label: String(config.maxDays), edge: "end" },
   ];
 
@@ -908,6 +920,8 @@ function renderDafbGaugeScale(scaleEl, mode) {
       span.className = "scale-start";
     } else if (tick.edge === "end") {
       span.className = "scale-end";
+    } else if (tick.mid) {
+      span.className = "scale-mid";
     }
     scaleEl.appendChild(span);
   });
@@ -1082,25 +1096,37 @@ function renderHarvestGddGaugeScale(scaleEl, type) {
   }
 
   const config = getHarvestGddConfig(type);
-  const ticks = [
-    { value: 0, label: "0", edge: "start" },
-    { value: config.windowStart, label: formatHarvestScaleLabel(config.windowStart) },
-    { value: config.windowEnd, label: formatHarvestScaleLabel(config.windowEnd) },
-    { value: config.maxGdd, label: formatHarvestScaleLabel(config.maxGdd), edge: "end" },
-  ];
+  const pStart = pctOfHarvestMax(config.windowStart, config.maxGdd);
+  const pEnd = pctOfHarvestMax(config.windowEnd, config.maxGdd);
 
   scaleEl.innerHTML = "";
-  ticks.forEach((tick) => {
-    const span = document.createElement("span");
-    span.textContent = tick.label;
-    span.style.left = `${pctOfHarvestMax(tick.value, config.maxGdd)}%`;
-    if (tick.edge === "start") {
-      span.className = "scale-start";
-    } else if (tick.edge === "end") {
-      span.className = "scale-end";
-    }
-    scaleEl.appendChild(span);
-  });
+  scaleEl.className = "gdd-gauge-scale gdd-harvest-scale";
+
+  const layout = document.createElement("div");
+  layout.className = "gdd-harvest-scale-layout";
+
+  const createMark = (title, value, leftPct, anchor) => {
+    const mark = document.createElement("div");
+    mark.className = `gdd-harvest-scale-mark gdd-harvest-scale-mark--${anchor}`;
+    mark.style.left = `${leftPct}%`;
+    mark.innerHTML = `<span class="gdd-harvest-scale-label-title">${title}</span><span class="gdd-harvest-scale-label-value">${formatHarvestScaleLabel(value)}</span>`;
+    return mark;
+  };
+
+  const edgeStart = document.createElement("span");
+  edgeStart.className = "gdd-harvest-scale-edge gdd-harvest-scale-edge--start";
+  edgeStart.textContent = "0";
+  layout.appendChild(edgeStart);
+
+  layout.appendChild(createMark("収穫目安", config.windowStart, pStart, "start"));
+  layout.appendChild(createMark("収穫終了", config.windowEnd, pEnd, "end"));
+
+  const edgeEnd = document.createElement("span");
+  edgeEnd.className = "gdd-harvest-scale-edge gdd-harvest-scale-edge--end";
+  edgeEnd.textContent = formatHarvestScaleLabel(config.maxGdd);
+  layout.appendChild(edgeEnd);
+
+  scaleEl.appendChild(layout);
 }
 
 function renderHarvestGddGauge(trackEl, gdd, type) {
@@ -1483,6 +1509,17 @@ function expandAdvisorChat() {
   messagesEl.classList.add("expanded");
 }
 
+function scrollAdvisorMessageIntoView(messagesEl, messageDiv, align = "start") {
+  if (align === "end") {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return;
+  }
+
+  const containerRect = messagesEl.getBoundingClientRect();
+  const messageRect = messageDiv.getBoundingClientRect();
+  messagesEl.scrollTop += messageRect.top - containerRect.top;
+}
+
 function addAdvisorMessage(content, isUser = false) {
   const messagesEl = document.getElementById("ai-advisor-messages");
   const messageDiv = document.createElement("div");
@@ -1501,7 +1538,7 @@ function addAdvisorMessage(content, isUser = false) {
 
   messageDiv.appendChild(contentDiv);
   messagesEl.appendChild(messageDiv);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  scrollAdvisorMessageIntoView(messagesEl, messageDiv, isUser ? "end" : "start");
 }
 
 async function sendAdvisorMessage() {
