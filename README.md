@@ -345,7 +345,7 @@ spray ページは `portalSettings` Cookie の緯度経度を優先して読み�
 | コマンド | 内容 |
 |----------|------|
 | `npm run dev` | ローカル開発サーバー（`http://127.0.0.1:8788`） |
-| `npm run deploy` | Pages へ手動デプロイ（通常は Git push で自動デプロイ） |
+| `npm run deploy` | Pages へ手動デプロイ（Git 連携後は push で自動デプロイされるため通常不要） |
 | `npm run deploy:router` | `turf-tools.jp/portal*` 用 Worker ルートをデプロイ |
 
 ## ローカル開発
@@ -374,18 +374,58 @@ New-Item -ItemType Directory -Force -Path "$env:APPDATA\xdg.config\.wrangler\reg
 
 ## Cloudflare Pages へのデプロイ
 
-GitHub リポジトリ: https://github.com/hitoshi4148/tool-portal
+GitHub リポジトリ: https://github.com/hitoshi4148/orchard  
+本番 URL: https://orchard-aa7.pages.dev/portal/
 
-`main` ブランチへの push で Cloudflare Pages が自動デプロイされます。
+### 現状
 
-### 初回セットアップ（済）
+`orchard` プロジェクトは **Direct Upload（wrangler 手動デプロイ）** で作成されているため、**Git push だけでは本番は更新されません**（`wrangler pages project list` の Git Provider が `No`）。
 
-1. GitHub リポジトリ `tool-portal` を Cloudflare Pages に接続
-2. ビルド設定:
-   - **Framework preset**: None
-   - **Build command**: （空欄）
-   - **Build output directory**: `public`
-3. Production 環境変数に `GEMINI_API_KEY` を設定
+手動デプロイ:
+
+```powershell
+npm run deploy
+```
+
+### push で自動デプロイする（推奨: ダッシュボードで Git 連携）
+
+Wrangler CLI から Git 連携はできないため、Cloudflare ダッシュボードで接続します。
+
+1. [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **orchard**
+2. **Settings** → **Builds** → **Connect to Git**（または **Git repository**）
+3. GitHub を選び、リポジトリ **`hitoshi4148/orchard`** を接続
+4. **Production branch**: `main`
+5. ビルド設定:
+
+   | 項目 | 値 |
+   |------|-----|
+   | Framework preset | None |
+   | Build command | （空欄） |
+   | Build output directory | `public` |
+   | Root directory | `/` |
+
+6. **Deploy command / Version command** は設定しない（空欄または `exit 0`）。`npx wrangler pages deploy ...` を Build に書くと二重デプロイや失敗の原因になります
+7. 保存すると `main` の最新コミットから Production デプロイが走ります
+
+以降は **`main` へ push するだけ** で本番が更新されます。`functions/` 配下の Pages Functions も自動でビルドされます。
+
+**注意**
+
+- **Build → Variables and secrets** はビルド用（例: `CLOUDFLARE_API_TOKEN`）。AI 質問箱の `GEMINI_API_KEY` は **Settings → Variables and Secrets（Production）** に Secret として設定
+- Git 連携後も緊急時は `npm run deploy` で手動デプロイ可能
+
+### 代替: GitHub Actions
+
+ダッシュボード連携の代わりに、リポジトリの GitHub Actions から `wrangler pages deploy` することもできます。その場合は GitHub リポジトリの Secrets に `CLOUDFLARE_API_TOKEN`（Pages Edit 権限）と `CLOUDFLARE_ACCOUNT_ID` を登録し、`.github/workflows/deploy.yml` を追加します。ダッシュボード Git 連携と **両方有効にすると push ごとに二重デプロイ** になるため、どちらか一方にしてください。
+
+### 旧プロジェクト（tool-portal）について
+
+旧リポジトリ `tool-portal` は別 Pages プロジェクト（`tool-portal-9y2.pages.dev`）に Git 連携済みです。本リポジトリ `orchard` とは別管理です。
+
+### 初回セットアップ（本番 Secret）
+
+1. Production 環境変数に `GEMINI_API_KEY` を設定（`wrangler pages secret put` またはダッシュボード Settings → Variables and Secrets）
+2. 任意: `GEMINI_MODEL`（デフォルト `gemini-2.5-flash`）
 
 ## 本番ドメイン接続（`turf-tools.jp/portal/`）
 
