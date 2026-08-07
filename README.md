@@ -2,7 +2,7 @@
 
 芝管理ツールを集約するポータルサイト（Cloudflare Pages + Functions）。
 
-**現在のバージョン: v1.1.7**
+**現在のバージョン: v1.2.0**
 
 ## 本番 URL
 
@@ -60,7 +60,7 @@ Wix ホームページ（https://www.turf-tools.jp/）は DNS 経由で従来ど
 └─────────────────┴─────────────────┘
 [芝しごとシリーズ（2列カードグリッド）]
 [PR | ブログ | YouTube バナー（3列）]
-[フッター: 気象クレジット / グロウアンドプログレス / v1.1.7]
+[フッター: 気象クレジット / グロウアンドプログレス / v1.2.0]
 ```
 
 | 機能 | 説明 |
@@ -77,7 +77,7 @@ Wix ホームページ（https://www.turf-tools.jp/）は DNS 経由で従来ど
 | 農薬検索 | 農薬名・病害虫名で検索し `/portal/rac/` へ遷移して結果一覧を自動表示（URL クエリ `pesticide` / `target`） |
 | 芝しごとシリーズ | 外部アプリへのリンクカード（2列）。各カード名横の **ℹ** で説明文を表示（PC: ホバー、スマホ: タップ） |
 | 関連バナー | PR・ブログ・YouTube を 3 列 1 行（最大幅 720px）でフッター上に表示 |
-| フッター | 気象データクレジット・グロウアンドプログレスリンク・**v1.1.7** |
+| フッター | 気象データクレジット・グロウアンドプログレスリンク・**v1.2.0** |
 
 ### PGR適時・発芽予測（積算温度 GDD）
 
@@ -141,11 +141,13 @@ Google Cloud Console で OAuth 同意画面を **Testing** のまま運用し、
 
 **Google Cloud 設定手順（概要）**
 
-1. プロジェクト作成 → **Google Drive API** / **Google Sheets API** を有効化
-2. OAuth 同意画面（External・Testing）→ テストユーザーを追加
-3. OAuth 2.0 クライアント ID（Web）を作成  
+1. **orchard-portal** など果樹園専用の Google Cloud プロジェクトを作成（芝しごとと OAuth 同意画面を分離）
+2. **Google Drive API** / **Google Sheets API** を有効化
+3. OAuth 同意画面（External・Testing）→ **アプリ名: 果樹園しごとポータル** → テストユーザーを追加
+4. スコープ: `https://www.googleapis.com/auth/drive.file`
+5. OAuth 2.0 クライアント ID（Web）を作成  
    - 許可 JS オリジン: `https://orchard-aa7.pages.dev` / `http://127.0.0.1:8790`
-4. クライアント ID を `GOOGLE_OAUTH_CLIENT_ID` に設定（`.dev.vars` / Cloudflare Pages）
+6. クライアント ID を `GOOGLE_OAUTH_CLIENT_ID` に設定（`.dev.vars` / Cloudflare Pages）
 
 ### 病害リスク「判定ロジック」
 
@@ -321,6 +323,14 @@ spray ページは `portalSettings` Cookie の緯度経度を優先して読み�
 **その他 UI**
 
 - AI質問箱セクション下の区切り横線を削除
+
+### ポータル TOP v1.2.0（2026-08）
+
+**果実園しごとノート（Google OAuth）**
+
+- Google OAuth を **orchard-portal 専用プロジェクト** で運用（芝しごとポータルと同意画面・Client ID を分離）
+- 連携画面のアプリ名を **果樹園しごとポータル** として表示
+- README に OAuth 設定手順（専用 GCP プロジェクト・スコープ `drive.file`）を追記
 
 ### ポータル TOP v1.1.7（2026-08）
 
