@@ -2,7 +2,7 @@
   "name": "orchard",
   "private": true,
   "scripts": {
-    "dev": "wrangler pages dev public",
+    "dev": "wrangler pages dev public --port 8790",
     "deploy": "wrangler pages deploy public --project-name=orchard --commit-dirty=true",
     "pages:deploy": "wrangler pages deploy public --project-name=orchard --commit-dirty=true",
     "deploy:router": "wrangler deploy --config workers/turf-tools-router/wrangler.toml"

@@ -2,7 +2,7 @@
 
 芝管理ツールを集約するポータルサイト（Cloudflare Pages + Functions）。
 
-**現在のバージョン: v1.1.6**
+**現在のバージョン: v1.1.7**
 
 ## 本番 URL
 
@@ -36,6 +36,7 @@ Wix ホームページ（https://www.turf-tools.jp/）は DNS 経由で従来ど
 | `/portal/api/growth-potential` | Growth Potential API（単体・デバッグ用） |
 | `/portal/api/gdd` | 積算温度（GDD）API |
 | `/portal/api/chat` | 芝しごと・AI質問箱 API（Gemini） |
+| `/portal/api/google-config` | 果実園しごとノート用 Google OAuth クライアント ID 取得 |
 | `/portal/api/geocode` | 逆ジオコーディング API |
 | `/portal/spray/api/forecast` | 散布予報 API |
 
@@ -59,7 +60,7 @@ Wix ホームページ（https://www.turf-tools.jp/）は DNS 経由で従来ど
 └─────────────────┴─────────────────┘
 [芝しごとシリーズ（2列カードグリッド）]
 [PR | ブログ | YouTube バナー（3列）]
-[フッター: 気象クレジット / グロウアンドプログレス / v1.1.6]
+[フッター: 気象クレジット / グロウアンドプログレス / v1.1.7]
 ```
 
 | 機能 | 説明 |
@@ -76,7 +77,7 @@ Wix ホームページ（https://www.turf-tools.jp/）は DNS 経由で従来ど
 | 農薬検索 | 農薬名・病害虫名で検索し `/portal/rac/` へ遷移して結果一覧を自動表示（URL クエリ `pesticide` / `target`） |
 | 芝しごとシリーズ | 外部アプリへのリンクカード（2列）。各カード名横の **ℹ** で説明文を表示（PC: ホバー、スマホ: タップ） |
 | 関連バナー | PR・ブログ・YouTube を 3 列 1 行（最大幅 720px）でフッター上に表示 |
-| フッター | 気象データクレジット・グロウアンドプログレスリンク・**v1.1.6** |
+| フッター | 気象データクレジット・グロウアンドプログレスリンク・**v1.1.7** |
 
 ### PGR適時・発芽予測（積算温度 GDD）
 
@@ -115,10 +116,36 @@ API: `/portal/api/gdd`（NASA POWER daily）。dashboard とは独立して散�
 |------|------|------|
 | `GEMINI_API_KEY` | はい | [Google AI Studio](https://aistudio.google.com/) の API キー |
 | `GEMINI_MODEL` | いいえ | デフォルト `gemini-2.5-flash` |
+| `GOOGLE_OAUTH_CLIENT_ID` | 果実園しごとノート利用時 | Google Cloud OAuth 2.0 Web クライアント ID |
 
 **ローカル**: `.dev.vars.example` を `.dev.vars` にコピーしてキーを設定（`wrangler pages dev` が自動読み込み）
 
-**本番**: Cloudflare Pages ダッシュボード → **tool-portal** → Settings → Environment variables → **Production**
+**本番**: Cloudflare Pages ダッシュボード → **orchard** → Settings → Variables and Secrets → **Production**
+
+### 果実園しごとノート（Google スプレッドシート）
+
+成長能（Growth Potential）の上に **果実園しごとノート** パネルを表示します。メモ機能を使う場合のみ **Googleで連携** から OAuth 同意を求めます。
+
+| 項目 | 内容 |
+|------|------|
+| 保存先 | 利用者 Google ドライブ（マイドライブ） |
+| ファイル名 | `{施設名}作業履歴`（設定 Cookie の施設名から自動生成） |
+| 列 | A: 日付 / B: 圃場名 / C: メモ |
+| UI | 直近履歴を約5行分表示、スクロールで過去分を参照。下部フォームから追記・行クリックで編集・削除 |
+| OAuth スコープ | `drive.file`（このアプリが作成したファイルのみ） |
+| API | `GET /portal/api/google-config`（OAuth クライアント ID） |
+
+**モニター限定（Testing モード）**
+
+Google Cloud Console で OAuth 同意画面を **Testing** のまま運用し、利用者の Google アカウントを **テストユーザー** に登録してください（最大100件）。
+
+**Google Cloud 設定手順（概要）**
+
+1. プロジェクト作成 → **Google Drive API** / **Google Sheets API** を有効化
+2. OAuth 同意画面（External・Testing）→ テストユーザーを追加
+3. OAuth 2.0 クライアント ID（Web）を作成  
+   - 許可 JS オリジン: `https://orchard-aa7.pages.dev` / `http://127.0.0.1:8790`
+4. クライアント ID を `GOOGLE_OAUTH_CLIENT_ID` に設定（`.dev.vars` / Cloudflare Pages）
 
 ### 病害リスク「判定ロジック」
 
@@ -295,6 +322,19 @@ spray ページは `portalSettings` Cookie の緯度経度を優先して読み�
 
 - AI質問箱セクション下の区切り横線を削除
 
+### ポータル TOP v1.1.7（2026-08）
+
+**果実園しごとノート**
+
+- 成長能（Growth Potential）の上に **果実園しごとノート** パネルを追加
+- Google 連携後、利用者のマイドライブに `{施設名}作業履歴` スプレッドシート（日付・圃場名・メモ）を保存
+- 直近約5行を表示し、スクロールで過去履歴を参照。行クリックで編集・削除
+- API: `GET /portal/api/google-config`（`GOOGLE_OAUTH_CLIENT_ID`）。モニター限定（OAuth Testing モード）
+
+**ローカル開発**
+
+- `npm run dev` のポートを **8790** に変更（芝しごと tool-portal の 8788 と衝突しないよう分離）
+
 ### ポータル TOP v1.1.6（2026-07）
 
 **病害リスク予測**
@@ -344,7 +384,7 @@ spray ページは `portalSettings` Cookie の緯度経度を優先して読み�
 
 | コマンド | 内容 |
 |----------|------|
-| `npm run dev` | ローカル開発サーバー（`http://127.0.0.1:8788`） |
+| `npm run dev` | ローカル開発サーバー（`http://127.0.0.1:8790`・芝しごと tool-portal の 8788 と分離） |
 | `npm run deploy` | Pages へ手動デプロイ（Git 連携後は push で自動デプロイされるため通常不要） |
 | `npm run deploy:router` | `turf-tools.jp/portal*` 用 Worker ルートをデプロイ |
 
@@ -357,10 +397,10 @@ npm run dev
 
 ブラウザで以下を開いてください:
 
-- http://127.0.0.1:8788/portal/
-- http://127.0.0.1:8788/portal/spray/
-- http://127.0.0.1:8788/portal/rac/
-- http://127.0.0.1:8788/portal/risk/
+- http://127.0.0.1:8790/portal/
+- http://127.0.0.1:8790/portal/spray/
+- http://127.0.0.1:8790/portal/rac/
+- http://127.0.0.1:8790/portal/risk/
 
 AI質問箱をローカルで試す場合は `.dev.vars` に `GEMINI_API_KEY` が必要です。
 
@@ -546,6 +586,7 @@ tool-portal/
 │   └── portal/
 │       ├── index.html            # ポータル TOP
 │       ├── portal.js / portal.css
+│       ├── work-memo-ui.js       # 果実園しごとノート（Google Sheets / drive.file）
 │       ├── portal-title-logo.png # タイトル PNG ロゴ
 │       ├── banner_*.png / bloglink.png / youtubelink.png
 │       ├── spray/                # ピンポイント天気 UI

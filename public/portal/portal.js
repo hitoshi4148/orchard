@@ -54,7 +54,7 @@ function buildApiJsonError(status, text) {
     const isLocalDevHost =
       location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const hint = isLocalDevHost
-      ? "開発時は tool-portal で npm run dev を実行し、http://127.0.0.1:8788/portal/ から開いてください（Live Server 等の静的サーバーでは API が動きません）。"
+      ? "開発時は orchard で npm run dev を実行し、http://127.0.0.1:8790/portal/ から開いてください（Live Server 等の静的サーバーでは API が動きません）。"
       : "サーバーが HTML を返しました。https://www.turf-tools.jp/portal/ から開き直すか、しばらく待って再読み込みしてください。";
     return new Error(`API 応答が JSON ではありません。${hint}`);
   }
@@ -622,6 +622,7 @@ async function handleSaveSettings() {
 
   saveSettings(settings);
   updatePortalTitle(settings);
+  WorkMemoUI.updateFacilityName(settings.facilityName);
   showLocationStatus(
     settings.locationName
       ? `設定を保存しました（${settings.locationName}）`
@@ -1470,6 +1471,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("save-settings-btn").addEventListener("click", handleSaveSettings);
   DiseaseRiskUI.init();
   DiseaseRiskUI.bindLogicButtons(document.getElementById("disease-risk-area"));
+  WorkMemoUI.init(document.getElementById("work-memo-area"), loadSettings());
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
