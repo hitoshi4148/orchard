@@ -1463,7 +1463,56 @@ function initPortalBrandInfo() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+const PORTAL_AUTH_STORAGE_KEY = "orchardPortalAuth";
+const PORTAL_AUTH_USERNAME = "apple";
+
+function isPortalAuthenticated() {
+  return sessionStorage.getItem(PORTAL_AUTH_STORAGE_KEY) === "1";
+}
+
+function initPortalAuthGate() {
+  const gate = document.getElementById("portal-auth-gate");
+  const main = document.getElementById("portal-main");
+  const form = document.getElementById("portal-auth-form");
+  const input = document.getElementById("portal-auth-username");
+  const error = document.getElementById("portal-auth-error");
+
+  if (!gate || !main || !form || !input || !error) {
+    initPortalApp();
+    return;
+  }
+
+  function showPortal() {
+    gate.classList.add("hidden");
+    main.classList.remove("hidden");
+    initPortalApp();
+  }
+
+  if (isPortalAuthenticated()) {
+    showPortal();
+    return;
+  }
+
+  gate.classList.remove("hidden");
+  main.classList.add("hidden");
+  input.focus();
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (input.value === PORTAL_AUTH_USERNAME) {
+      sessionStorage.setItem(PORTAL_AUTH_STORAGE_KEY, "1");
+      error.classList.add("hidden");
+      showPortal();
+      return;
+    }
+
+    error.classList.remove("hidden");
+    input.focus();
+    input.select();
+  });
+}
+
+function initPortalApp() {
   document.getElementById("settings-open-btn").addEventListener("click", openSettingsModal);
   document.getElementById("settings-close-btn").addEventListener("click", closeSettingsModal);
   document.getElementById("settings-backdrop").addEventListener("click", closeSettingsModal);
@@ -1486,7 +1535,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initPortalBrandInfo();
   initGddInfoPopovers();
   initAdvisorChat();
-});
+}
+
+document.addEventListener("DOMContentLoaded", initPortalAuthGate);
 
 function getAdvisorSettingsPayload() {
   const settings = loadSettings();

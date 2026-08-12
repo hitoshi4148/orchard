@@ -16,6 +16,74 @@ body.modal-open {
     overflow: hidden;
 }
 
+.portal-auth-gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.portal-auth-gate.hidden {
+    display: none;
+}
+
+.portal-main.hidden {
+    display: none;
+}
+
+.portal-auth-panel {
+    width: 100%;
+    max-width: 360px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 28px 24px;
+}
+
+.portal-auth-title {
+    margin: 0 0 20px;
+    text-align: center;
+    font-size: 1.35rem;
+    color: #333;
+}
+
+.portal-auth-form {
+    display: grid;
+    gap: 12px;
+}
+
+.portal-auth-form label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.portal-auth-form input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.portal-auth-form input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.portal-auth-submit {
+    width: 100%;
+}
+
+.portal-auth-error {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #dc2626;
+    text-align: center;
+}
+
 .container {
     max-width: 960px;
     margin: 0 auto;

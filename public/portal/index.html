@@ -5,11 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>果実園しごとポータル</title>
     <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
-    <link rel="stylesheet" href="/portal/portal.css?v=20250807v131">
+    <link rel="stylesheet" href="/portal/portal.css?v=20250812v133">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 </head>
 <body>
+    <div id="portal-auth-gate" class="portal-auth-gate" role="dialog" aria-modal="true" aria-labelledby="portal-auth-title">
+        <div class="portal-auth-panel">
+            <h1 id="portal-auth-title" class="portal-auth-title">果実園しごと</h1>
+            <form id="portal-auth-form" class="portal-auth-form" autocomplete="off">
+                <label for="portal-auth-username">user name</label>
+                <input type="text" id="portal-auth-username" name="username" autocomplete="off" spellcheck="false">
+                <button type="submit" class="btn-primary portal-auth-submit">Enter</button>
+                <p id="portal-auth-error" class="portal-auth-error hidden" role="alert">正しいuser名を入力してください</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="portal-main" class="portal-main hidden">
     <div class="container">
         <div class="portal-header">
             <div class="portal-header-text">
@@ -240,7 +253,7 @@
                     <span class="footer-gp-name">グロウアンドプログレス</span>
                 </a>
             </p>
-            <p class="footer-version">v1.2.0</p>
+            <p class="footer-version">v1.2.1</p>
         </footer>
     </div>
 
@@ -341,9 +354,10 @@
             <div class="modal-body" id="disease-logic-body"></div>
         </div>
     </div>
+    </div>
 
     <script src="/portal/disease-risk-ui.js?v=20250727v007"></script>
     <script src="/portal/work-memo-ui.js?v=20250807v001"></script>
-    <script src="/portal/portal.js?v=20250807v132"></script>
+    <script src="/portal/portal.js?v=20250812v133"></script>
 </body>
 </html>
