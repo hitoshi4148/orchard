@@ -2206,6 +2206,19 @@ footer p {
     text-decoration: underline;
 }
 
+.footer-gp-brand {
+    cursor: default;
+    color: #4b5563;
+}
+
+.footer-gp-brand:hover {
+    opacity: 1;
+}
+
+.footer-gp-brand:hover .footer-gp-name {
+    text-decoration: none;
+}
+
 .footer-gp-logo {
     display: block;
     height: 56px;
