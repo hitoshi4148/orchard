@@ -3,44 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>果実園しごとポータル</title>
-    <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
-    <link rel="stylesheet" href="/portal/portal.css?v=20250812v133">
+    <title>卸値ナビ</title>
+    <link rel="icon" type="image/png" href="/portal/portal-title-logo.png?v=20251030oroshine">
+    <link rel="stylesheet" href="/portal/portal.css?v=20251030logotight2">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 </head>
 <body>
-    <div id="portal-auth-gate" class="portal-auth-gate" role="dialog" aria-modal="true" aria-labelledby="portal-auth-title">
-        <div class="portal-auth-panel">
-            <h1 id="portal-auth-title" class="portal-auth-title">果実園しごと</h1>
-            <form id="portal-auth-form" class="portal-auth-form" autocomplete="off">
-                <label for="portal-auth-username">user name</label>
-                <input type="text" id="portal-auth-username" name="username" autocomplete="off" spellcheck="false">
-                <button type="submit" class="btn-primary portal-auth-submit">Enter</button>
-                <p id="portal-auth-error" class="portal-auth-error hidden" role="alert">正しいuser名を入力してください</p>
-            </form>
-        </div>
-    </div>
-
-    <div id="portal-main" class="portal-main hidden">
+    <div id="portal-main" class="portal-main">
     <div class="container">
         <div class="portal-header">
             <div class="portal-header-text">
                 <h1 id="portal-title" class="portal-title">
-                    <span id="portal-title-prefix" class="portal-title-prefix hidden"></span>
+                    <span id="portal-title-prefix" class="portal-title-prefix hidden" hidden aria-hidden="true"></span>
                     <span class="portal-title-logo-track">
                         <img
-                            src="/portal/portal-title-logo.png"
-                            alt="果実園しごと"
+                            src="/portal/portal-title-logo.png?v=20251030oroshine"
+                            alt="卸値ナビ（全国果樹卸売価格データ）"
                             class="portal-title-logo"
-                            width="560"
-                            height="80"
+                            width="1024"
+                            height="559"
                         >
                     </span>
                 </h1>
                 <p class="portal-brand-line">
-                    <span class="portal-brand-message">果樹園経営を、もっとシンプルに。</span>
-                    <span class="portal-brand-info-anchor">
+                    <span class="portal-brand-message">中央卸売市場の取引価格です。直売の値付け参考にご利用ください。（小売実売ではありません）。</span>
+                    <span id="portal-brand-info-anchor" class="portal-brand-info-anchor hidden" hidden aria-hidden="true">
                         <button type="button" class="portal-brand-info-btn" aria-label="果実園しごとについて">i</button>
                         <span class="portal-brand-info-popover" role="tooltip">
                             果実園しごとは、果樹園経営に役立つ気象・病害・農薬・AI・データを、一か所にまとめたWebサイトです。<br>
@@ -54,12 +42,12 @@
                     </span>
                 </p>
             </div>
-            <button type="button" id="settings-open-btn" class="settings-btn" aria-label="設定">
+            <button type="button" id="settings-open-btn" class="settings-btn hidden" aria-label="設定" hidden aria-hidden="true">
                 ⚙ 設定
             </button>
         </div>
 
-        <section class="ai-advisor-section" id="ai-advisor-section" aria-label="AI質問">
+        <section class="ai-advisor-section hidden" id="ai-advisor-section" aria-label="AI質問" hidden aria-hidden="true">
             <div class="ai-advisor-chat" id="ai-advisor-chat">
                 <div class="ai-advisor-messages collapsed" id="ai-advisor-messages" aria-live="polite"></div>
                 <div class="ai-advisor-input-row">
@@ -84,7 +72,7 @@
             </div>
         </section>
 
-        <section class="weather-section">
+        <section class="weather-section hidden" id="weather-section" hidden aria-hidden="true">
             <a href="/portal/spray/" class="weather-more-link hidden" title="ピンポイント天気で果実園しごと">もっと詳しく</a>
             <div id="weather-loading" class="loading hidden">
                 <div class="spinner"></div>
@@ -96,21 +84,21 @@
             </div>
         </section>
 
-        <section class="disease-risk-section" id="disease-risk-section">
+        <section class="disease-risk-section hidden" id="disease-risk-section" hidden aria-hidden="true">
             <div id="disease-risk-loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>病害リスク・積算温度・GPを取得中...</p>
+                <p>GPを取得中...</p>
             </div>
             <div id="disease-risk-error" class="error hidden"></div>
             <div id="gdd-error" class="error hidden"></div>
-            <div id="portal-insights-row" class="portal-insights-row">
+            <div id="portal-insights-row" class="portal-insights-row hidden" hidden aria-hidden="true">
                 <div id="disease-risk-area" class="portal-insights-col"></div>
                 <div id="gdd-area" class="portal-insights-col"></div>
             </div>
-            <div id="portal-work-memo-row" class="portal-work-memo-row">
+            <div id="portal-work-memo-row" class="portal-work-memo-row hidden" hidden aria-hidden="true">
                 <div id="work-memo-area"></div>
             </div>
-            <div id="portal-gp-row" class="portal-gp-row portal-gp-rac-row">
+            <div id="portal-gp-row" class="portal-gp-row portal-gp-rac-row hidden" hidden aria-hidden="true">
                 <div class="portal-gp-col">
                     <div id="gp-chart-error" class="error hidden"></div>
                     <div id="gp-chart-area"></div>
@@ -129,7 +117,60 @@
             </div>
         </section>
 
-        <section class="series-section" id="series-section">
+        <section class="fruit-market-section" id="fruit-market-section" aria-label="果物の卸売相場">
+            <div class="fruit-market-header">
+                <p class="fruit-market-lead hidden" hidden aria-hidden="true">中央卸売市場の取引価格です。直売の値付け参考にご利用ください。（小売実売ではありません）。</p>
+                <p class="fruit-market-meta">対象日: <span id="fruit-market-date">読み込み中…</span> <span class="fruit-market-meta-note">※おおむね15時頃更新</span></p>
+            </div>
+
+            <div class="fruit-market-controls">
+                <fieldset class="fruit-market-fieldset">
+                    <legend>市場</legend>
+                    <div class="fruit-market-radio-row">
+                        <label><input type="radio" name="fruit-market-city" value="1301" checked> 東京</label>
+                        <label><input type="radio" name="fruit-market-city" value="2701"> 大阪</label>
+                        <label><input type="radio" name="fruit-market-city" value="2301"> 名古屋</label>
+                        <label><input type="radio" name="fruit-market-city" value="4002"> 福岡</label>
+                    </div>
+                </fieldset>
+                <div class="fruit-market-fruit-row" role="tablist" aria-label="果物">
+                    <button type="button" class="fruit-market-fruit-btn is-active" data-fruit-key="apple">りんご</button>
+                    <button type="button" class="fruit-market-fruit-btn" data-fruit-key="pear">なし</button>
+                    <button type="button" class="fruit-market-fruit-btn" data-fruit-key="grape">ぶどう</button>
+                    <button type="button" class="fruit-market-fruit-btn" data-fruit-key="kiwi">キウイ</button>
+                </div>
+            </div>
+
+            <div id="fruit-market-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>卸売相場データを取得中...</p>
+            </div>
+            <div id="fruit-market-error" class="error hidden"></div>
+
+            <div class="fruit-market-summary-block">
+                <h3 class="fruit-market-subtitle">市場比較（品目計）</h3>
+                <div id="fruit-market-summary" class="fruit-market-summary-grid"></div>
+            </div>
+
+            <div class="fruit-market-detail-block">
+                <div class="fruit-market-detail-head">
+                    <h3 class="fruit-market-subtitle" id="fruit-market-detail-title">産地別一覧</h3>
+                    <label class="fruit-market-sort-label">
+                        並べ替え
+                        <select id="fruit-market-sort">
+                            <option value="volume">取引量（多い順）</option>
+                            <option value="price-desc">価格（高い順）</option>
+                            <option value="price-asc">価格（安い順）</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="fruit-market-table-area"></div>
+            </div>
+
+            <p class="fruit-market-source">出典: 青果物卸売市場調査（農林水産省）</p>
+        </section>
+
+        <section class="series-section hidden" id="series-section" hidden aria-hidden="true">
             <h2 class="series-section-title">果実園しごとシリーズ</h2>
             <div class="series-grid">
                 <a class="series-card" href="https://turfpool.onrender.com/" target="_blank" rel="noopener noreferrer">
@@ -165,7 +206,7 @@
                     </span>
                     <span class="series-card-external" aria-hidden="true">↗</span>
                 </a>
-                <a class="series-card" href="/portal/risk/">
+                <a class="series-card hidden" href="/portal/risk/" hidden aria-hidden="true">
                     <span class="series-card-category">予報</span>
                     <span class="series-card-name-row">
                         <span class="series-card-name">病害リスク予報</span>
@@ -246,14 +287,14 @@
         </section>
 
         <footer>
-            <p>気象データ提供: <a href="https://www.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> / <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER</a></p>
+            <p id="footer-weather-credit" class="hidden" hidden aria-hidden="true">気象データ提供: <a href="https://www.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> / <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER</a></p>
             <p class="footer-gp">
                 <a href="https://www.turf-tools.jp/" target="_blank" rel="noopener noreferrer" class="footer-gp-link">
-                    <img src="/portal/grow-and-progress-logo.png?v=2" alt="" class="footer-gp-logo" width="72" height="72">
-                    <span class="footer-gp-name">グロウアンドプログレス</span>
+                    <img src="/portal/farmlabo-logo.jpg?v=20251030" alt="FarmLabo" class="footer-gp-logo" width="200" height="200">
+                    <span class="footer-gp-name">FarmLabo</span>
                 </a>
             </p>
-            <p class="footer-version">v1.2.1</p>
+            <p class="footer-version">v0.0.0</p>
         </footer>
     </div>
 
@@ -358,6 +399,7 @@
 
     <script src="/portal/disease-risk-ui.js?v=20250727v007"></script>
     <script src="/portal/work-memo-ui.js?v=20250807v001"></script>
-    <script src="/portal/portal.js?v=20250812v133"></script>
+    <script src="/portal/fruit-market-ui.js?v=20251023v002"></script>
+    <script src="/portal/portal.js?v=20251030v142"></script>
 </body>
 </html>

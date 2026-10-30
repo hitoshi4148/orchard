@@ -27,6 +27,35 @@ const AGROMAP_COOKIE_DAYS = 365;
 const LOCATION_NOT_SET_MESSAGE =
   "果樹園の場所が未設定です。右上の「⚙ 設定」から緯度・経度を入力してください";
 
+/** TOP の病害リスク予測・摘果適時・収穫時期予測パネル */
+const SHOW_PORTAL_INSIGHTS = false;
+/** TOP の果樹園しごとノート */
+const SHOW_WORK_MEMO = false;
+/** TOP の成長能(Growth Potential) */
+const SHOW_GROWTH_POTENTIAL = false;
+/** TOP の農薬検索 */
+const SHOW_RAC_SEARCH = false;
+/** TOP の「果実園しごとシリーズ」リンク一覧 */
+const SHOW_PORTAL_SERIES = false;
+/** TOP の設定ボタン（設定モーダル） */
+const SHOW_PORTAL_SETTINGS = false;
+/** TOP の AI 質問欄 */
+const SHOW_AI_ADVISOR = false;
+/** TOP の天気予報 */
+const SHOW_WEATHER = false;
+/** タイトル左の施設名・エリア表示 */
+const SHOW_PORTAL_TITLE_PREFIX = false;
+/** フッターの気象データ提供クレジット */
+const SHOW_FOOTER_WEATHER_CREDIT = false;
+/** ヘッダーサブタイトル横の i 説明 */
+const SHOW_PORTAL_BRAND_INFO = false;
+
+const SHOW_DISEASE_RISK_SECTION =
+  SHOW_PORTAL_INSIGHTS ||
+  SHOW_WORK_MEMO ||
+  SHOW_GROWTH_POTENTIAL ||
+  SHOW_RAC_SEARCH;
+
 const API_RETRYABLE_STATUSES = new Set([502, 503, 504, 520, 524, 525]);
 const API_MAX_INFRA_RETRIES = 5;
 const API_RETRY_BASE_MS = 2000;
@@ -43,6 +72,9 @@ function apiRetryDelayMs(attempt) {
 }
 
 function shouldRetryInfraResponse(status, text) {
+  if (text.includes("error code: 1102")) {
+    return false;
+  }
   if (API_RETRYABLE_STATUSES.has(status)) {
     return true;
   }
@@ -186,12 +218,21 @@ function updatePortalTitle(settings = loadSettings()) {
   const prefix = name ? `${name}${placePart}` : placePart;
 
   if (prefixEl) {
-    prefixEl.textContent = prefix;
-    prefixEl.classList.toggle("hidden", !prefix);
+    if (SHOW_PORTAL_TITLE_PREFIX) {
+      prefixEl.textContent = prefix;
+      prefixEl.classList.toggle("hidden", !prefix);
+      prefixEl.hidden = !prefix;
+      prefixEl.setAttribute("aria-hidden", prefix ? "false" : "true");
+    } else {
+      prefixEl.textContent = "";
+      prefixEl.classList.add("hidden");
+      prefixEl.hidden = true;
+      prefixEl.setAttribute("aria-hidden", "true");
+    }
   }
 
   // GA4 のページタイトル集計を施設名・地名で分割しないため、document.title は固定のままにする。
-  document.title = "果実園しごとポータル";
+  document.title = "卸値ナビ";
 }
 
 const WARM_GRASS_LEGACY = {
@@ -500,15 +541,31 @@ async function ensureLocationName(settings) {
   return settings;
 }
 
+function portalNeedsDashboardData() {
+  return SHOW_WEATHER || SHOW_PORTAL_INSIGHTS || SHOW_GROWTH_POTENTIAL;
+}
+
 async function loadPortalData() {
   let settings = loadSettings();
+  updatePortalTitle(settings);
+
+  if (!portalNeedsDashboardData()) {
+    document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
+    return;
+  }
 
   if (!hasLocation(settings)) {
-    updatePortalTitle(settings);
-    renderWeatherPlaceholder(LOCATION_NOT_SET_MESSAGE);
-    renderDiseaseRiskPlaceholder(LOCATION_NOT_SET_MESSAGE);
-    renderGddPlaceholder(LOCATION_NOT_SET_MESSAGE);
-    renderGpPlaceholder(LOCATION_NOT_SET_MESSAGE);
+    if (SHOW_WEATHER) {
+      renderWeatherPlaceholder(LOCATION_NOT_SET_MESSAGE);
+    }
+    if (SHOW_PORTAL_INSIGHTS) {
+      renderDiseaseRiskPlaceholder(LOCATION_NOT_SET_MESSAGE);
+      renderGddPlaceholder(LOCATION_NOT_SET_MESSAGE);
+    }
+    if (SHOW_GROWTH_POTENTIAL) {
+      renderGpPlaceholder(LOCATION_NOT_SET_MESSAGE);
+    }
+    document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
     return;
   }
 
@@ -522,16 +579,26 @@ async function loadPortalData() {
   const gddError = document.getElementById("gdd-error");
   const gpError = document.getElementById("gp-chart-error");
 
-  weatherLoading.classList.remove("hidden");
-  insightsLoading.classList.remove("hidden");
-  weatherError.classList.add("hidden");
-  diseaseError.classList.add("hidden");
-  gddError.classList.add("hidden");
-  gpError.classList.add("hidden");
-  renderWeatherPlaceholder("");
-  renderDiseaseRiskPlaceholder("");
-  renderGddPlaceholder("");
-  renderGpPlaceholder("");
+  if (SHOW_WEATHER) {
+    weatherLoading.classList.remove("hidden");
+    weatherError.classList.add("hidden");
+    renderWeatherPlaceholder("");
+  }
+  if (SHOW_PORTAL_INSIGHTS) {
+    insightsLoading.classList.remove("hidden");
+  }
+  if (SHOW_DISEASE_RISK_SECTION) {
+    diseaseError.classList.add("hidden");
+    gddError.classList.add("hidden");
+    gpError.classList.add("hidden");
+  }
+  if (SHOW_PORTAL_INSIGHTS) {
+    renderDiseaseRiskPlaceholder("");
+    renderGddPlaceholder("");
+  }
+  if (SHOW_GROWTH_POTENTIAL) {
+    renderGpPlaceholder("");
+  }
 
   const params = new URLSearchParams({
     lat: settings.lat,
@@ -540,7 +607,7 @@ async function loadPortalData() {
     coolGrass: settings.coolGrass,
   });
 
-  const gddPromise = refreshAllGdd(settings);
+  const gddPromise = SHOW_PORTAL_INSIGHTS ? refreshAllGdd(settings) : Promise.resolve();
 
   try {
     const data = await fetchApiJson(`${DASHBOARD_API}?${params.toString()}`);
@@ -549,29 +616,50 @@ async function loadPortalData() {
       throw new Error(data.error || "データの取得に失敗しました");
     }
 
-    renderWeatherWidget(data.weather.hourly, data.weather.days);
-    renderDiseaseRiskPanels({
-      tomorrow: data.diseaseRisk.tomorrow,
-      dayAfterTomorrow: data.diseaseRisk.dayAfterTomorrow,
-    });
-    renderGpChart(data.growthPotential);
+    if (SHOW_WEATHER) {
+      renderWeatherWidget(data.weather.hourly, data.weather.days);
+    }
+    if (SHOW_PORTAL_INSIGHTS) {
+      renderDiseaseRiskPanels({
+        tomorrow: data.diseaseRisk.tomorrow,
+        dayAfterTomorrow: data.diseaseRisk.dayAfterTomorrow,
+      });
+    }
+    if (SHOW_GROWTH_POTENTIAL) {
+      renderGpChart(data.growthPotential);
+    }
     if (data.sprayForecast) {
       cacheSprayForecast(settings.lat, settings.lon, data.sprayForecast);
     }
   } catch (err) {
-    weatherError.textContent = err.message;
-    diseaseError.textContent = err.message;
-    gpError.textContent = err.message;
-    weatherError.classList.remove("hidden");
-    diseaseError.classList.remove("hidden");
-    gpError.classList.remove("hidden");
-    renderWeatherPlaceholder("天気予報を表示できませんでした。");
-    renderDiseaseRiskPlaceholder("病害リスクを表示できませんでした。");
-    renderGpPlaceholder("GPを表示できませんでした。");
+    if (SHOW_WEATHER) {
+      weatherError.textContent = err.message;
+      weatherError.classList.remove("hidden");
+      renderWeatherPlaceholder("天気予報を表示できませんでした。");
+    }
+    if (SHOW_PORTAL_INSIGHTS) {
+      diseaseError.textContent = err.message;
+      diseaseError.classList.remove("hidden");
+      renderDiseaseRiskPlaceholder("病害リスクを表示できませんでした。");
+    }
+    if (SHOW_GROWTH_POTENTIAL) {
+      gpError.textContent = err.message;
+      gpError.classList.remove("hidden");
+      renderGpPlaceholder("GPを表示できませんでした。");
+    }
   } finally {
-    await gddPromise;
-    weatherLoading.classList.add("hidden");
-    insightsLoading.classList.add("hidden");
+    if (SHOW_WEATHER) {
+      weatherLoading.classList.add("hidden");
+    }
+    document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
+  }
+
+  if (SHOW_PORTAL_INSIGHTS) {
+    try {
+      await gddPromise;
+    } finally {
+      insightsLoading.classList.add("hidden");
+    }
   }
 }
 
@@ -622,7 +710,9 @@ async function handleSaveSettings() {
 
   saveSettings(settings);
   updatePortalTitle(settings);
-  WorkMemoUI.updateFacilityName(settings.facilityName);
+  if (SHOW_WORK_MEMO) {
+    WorkMemoUI.updateFacilityName(settings.facilityName);
+  }
   showLocationStatus(
     settings.locationName
       ? `設定を保存しました（${settings.locationName}）`
@@ -1463,81 +1553,67 @@ function initPortalBrandInfo() {
   });
 }
 
-const PORTAL_AUTH_STORAGE_KEY = "orchardPortalAuth";
-const PORTAL_AUTH_USERNAME = "apple";
-
-function isPortalAuthenticated() {
-  return sessionStorage.getItem(PORTAL_AUTH_STORAGE_KEY) === "1";
+function setPortalBlockVisibility(elementId, show) {
+  const el = document.getElementById(elementId);
+  if (!el) {
+    return;
+  }
+  el.classList.toggle("hidden", !show);
+  el.hidden = !show;
+  el.setAttribute("aria-hidden", show ? "false" : "true");
 }
 
-function initPortalAuthGate() {
-  const gate = document.getElementById("portal-auth-gate");
-  const main = document.getElementById("portal-main");
-  const form = document.getElementById("portal-auth-form");
-  const input = document.getElementById("portal-auth-username");
-  const error = document.getElementById("portal-auth-error");
-
-  if (!gate || !main || !form || !input || !error) {
-    initPortalApp();
-    return;
-  }
-
-  function showPortal() {
-    gate.classList.add("hidden");
-    main.classList.remove("hidden");
-    initPortalApp();
-  }
-
-  if (isPortalAuthenticated()) {
-    showPortal();
-    return;
-  }
-
-  gate.classList.remove("hidden");
-  main.classList.add("hidden");
-  input.focus();
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (input.value === PORTAL_AUTH_USERNAME) {
-      sessionStorage.setItem(PORTAL_AUTH_STORAGE_KEY, "1");
-      error.classList.add("hidden");
-      showPortal();
-      return;
-    }
-
-    error.classList.remove("hidden");
-    input.focus();
-    input.select();
-  });
+function applyPortalFeatureVisibility() {
+  setPortalBlockVisibility("series-section", SHOW_PORTAL_SERIES);
+  setPortalBlockVisibility("settings-open-btn", SHOW_PORTAL_SETTINGS);
+  setPortalBlockVisibility("ai-advisor-section", SHOW_AI_ADVISOR);
+  setPortalBlockVisibility("weather-section", SHOW_WEATHER);
+  setPortalBlockVisibility("portal-title-prefix", SHOW_PORTAL_TITLE_PREFIX);
+  setPortalBlockVisibility("footer-weather-credit", SHOW_FOOTER_WEATHER_CREDIT);
+  setPortalBlockVisibility("portal-brand-info-anchor", SHOW_PORTAL_BRAND_INFO);
 }
 
 function initPortalApp() {
-  document.getElementById("settings-open-btn").addEventListener("click", openSettingsModal);
-  document.getElementById("settings-close-btn").addEventListener("click", closeSettingsModal);
-  document.getElementById("settings-backdrop").addEventListener("click", closeSettingsModal);
-  document.getElementById("get-current-location-btn").addEventListener("click", getCurrentLocation);
-  document.getElementById("save-settings-btn").addEventListener("click", handleSaveSettings);
-  DiseaseRiskUI.init();
-  DiseaseRiskUI.bindLogicButtons(document.getElementById("disease-risk-area"));
-  WorkMemoUI.init(document.getElementById("work-memo-area"), loadSettings());
+  applyPortalFeatureVisibility();
+  if (SHOW_PORTAL_SETTINGS) {
+    document.getElementById("settings-open-btn").addEventListener("click", openSettingsModal);
+    document.getElementById("settings-close-btn").addEventListener("click", closeSettingsModal);
+    document.getElementById("settings-backdrop").addEventListener("click", closeSettingsModal);
+    document.getElementById("get-current-location-btn").addEventListener("click", getCurrentLocation);
+    document.getElementById("save-settings-btn").addEventListener("click", handleSaveSettings);
+  }
+  if (SHOW_DISEASE_RISK_SECTION) {
+    DiseaseRiskUI.init();
+    DiseaseRiskUI.bindLogicButtons(document.getElementById("disease-risk-area"));
+  }
+  if (SHOW_WORK_MEMO) {
+    WorkMemoUI.init(document.getElementById("work-memo-area"), loadSettings());
+  }
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      closeSettingsModal();
+      if (SHOW_PORTAL_SETTINGS) {
+        closeSettingsModal();
+      }
       DiseaseRiskUI.closeDiseaseLogicModal();
     }
   });
 
   loadPortalData();
   updatePortalTitle(loadSettings());
-  initPortalRacSearch();
-  initPortalBrandInfo();
+  if (SHOW_RAC_SEARCH) {
+    initPortalRacSearch();
+  }
+  if (SHOW_PORTAL_BRAND_INFO) {
+    initPortalBrandInfo();
+  }
   initGddInfoPopovers();
-  initAdvisorChat();
+  if (SHOW_AI_ADVISOR) {
+    initAdvisorChat();
+  }
 }
 
-document.addEventListener("DOMContentLoaded", initPortalAuthGate);
+document.addEventListener("DOMContentLoaded", initPortalApp);
 
 function getAdvisorSettingsPayload() {
   const settings = loadSettings();

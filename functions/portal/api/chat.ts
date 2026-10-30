@@ -33,6 +33,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const settings = body.settings ?? {};
     const modelName = context.env.GEMINI_MODEL ?? "gemini-2.5-flash";
     const fullPrompt = buildFullPrompt(message, settings);
+    console.log("=== Gemini prompt ===\n", fullPrompt);
     const text = await generateGeminiResponse(apiKey, modelName, fullPrompt);
 
     return Response.json({ success: true, response: text });
