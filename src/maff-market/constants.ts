@@ -45,6 +45,41 @@ export const FRUITS: FruitConfig[] = [
     varietyCodeMin: 49301,
     varietyCodeMax: 49399,
   },
+  {
+    key: "mikan",
+    label: "みかん",
+    rootItemCode: "40100",
+    varietyCodeMin: 40101,
+    varietyCodeMax: 40999,
+  },
+  {
+    key: "persimmon",
+    label: "かき",
+    rootItemCode: "43500",
+    varietyCodeMin: 43501,
+    varietyCodeMax: 43799,
+  },
+  {
+    key: "peach",
+    label: "もも",
+    rootItemCode: "44100",
+    varietyCodeMin: 44101,
+    varietyCodeMax: 44699,
+  },
+  {
+    key: "strawberry",
+    label: "いちご",
+    rootItemCode: "46100",
+    varietyCodeMin: 46101,
+    varietyCodeMax: 46199,
+  },
+  {
+    key: "melon",
+    label: "メロン",
+    rootItemCode: "47000",
+    varietyCodeMin: 47001,
+    varietyCodeMax: 47299,
+  },
 ];
 
 export function fruitConfigByKey(key: string): FruitConfig | undefined {

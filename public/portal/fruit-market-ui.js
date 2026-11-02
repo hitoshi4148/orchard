@@ -15,6 +15,11 @@
     { key: "pear", label: "なし" },
     { key: "grape", label: "ぶどう" },
     { key: "kiwi", label: "キウイ" },
+    { key: "mikan", label: "みかん" },
+    { key: "persimmon", label: "かき" },
+    { key: "peach", label: "もも" },
+    { key: "strawberry", label: "いちご" },
+    { key: "melon", label: "メロン" },
   ];
 
   let state = {

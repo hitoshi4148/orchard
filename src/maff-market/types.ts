@@ -1,4 +1,13 @@
-export type FruitKey = "apple" | "pear" | "grape" | "kiwi";
+export type FruitKey =
+  | "apple"
+  | "pear"
+  | "grape"
+  | "kiwi"
+  | "mikan"
+  | "persimmon"
+  | "peach"
+  | "strawberry"
+  | "melon";
 
 export interface MarketCity {
   code: string;
