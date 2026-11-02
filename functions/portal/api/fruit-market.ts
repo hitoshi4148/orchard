@@ -2,7 +2,7 @@ import { cityByCode, fruitConfigByKey, MARKET_CITIES } from "../../../src/maff-m
 import { fetchFruitMarketDataset } from "../../../src/maff-market/fetch";
 import type { FruitKey, FruitMarketApiResponse, FruitMarketDataset } from "../../../src/maff-market/types";
 
-const CACHE_KEY = "https://orchard.internal/cache/fruit-market-dataset";
+const CACHE_KEY = "https://orchard.internal/cache/fruit-market-dataset-v2";
 const CACHE_TTL_SECONDS = 24 * 60 * 60;
 
 let inFlight: Promise<FruitMarketDataset> | null = null;
