@@ -135,8 +135,12 @@ async function fetchMaffZipEntries(now: Date): Promise<Record<string, Uint8Array
   );
 }
 
-const FRUIT_CITY_FILE =
-  /^(?:\d{8})tk_(1301_tokyo|2701_oosaka|2301_nagoya|4002_hukuoka)\.csv$/;
+const FRUIT_CITY_SLUGS = MARKET_CITIES.map((city) => `${city.code}_${city.slug}`).join(
+  "|"
+);
+const FRUIT_CITY_FILE = new RegExp(
+  `^(?:\\d{8})tk_(${FRUIT_CITY_SLUGS})\\.csv$`
+);
 
 function unzipFruitCityEntries(
   zipBytes: Uint8Array

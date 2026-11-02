@@ -6,9 +6,13 @@ export const MAFF_DOWNLOAD_URL =
   "https://www.seisen.maff.go.jp/seisen/bs04b040md001/BS04B040UC020SC002-Evt001.do";
 
 export const MARKET_CITIES: MarketCity[] = [
+  { code: "5101", name: "札幌", slug: "sapporo" },
+  { code: "0401", name: "仙台", slug: "sendai" },
   { code: "1301", name: "東京", slug: "tokyo" },
-  { code: "2701", name: "大阪", slug: "oosaka" },
+  { code: "1401", name: "横浜", slug: "yokohama" },
   { code: "2301", name: "名古屋", slug: "nagoya" },
+  { code: "2601", name: "京都", slug: "kyoto" },
+  { code: "2701", name: "大阪", slug: "oosaka" },
   { code: "4002", name: "福岡", slug: "hukuoka" },
 ];
 

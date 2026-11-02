@@ -1,9 +1,13 @@
 (function initFruitMarketUi() {
   const API = "/portal/api/fruit-market";
   const MARKETS = [
+    { code: "5101", name: "札幌" },
+    { code: "0401", name: "仙台" },
     { code: "1301", name: "東京" },
-    { code: "2701", name: "大阪" },
+    { code: "1401", name: "横浜" },
     { code: "2301", name: "名古屋" },
+    { code: "2601", name: "京都" },
+    { code: "2701", name: "大阪" },
     { code: "4002", name: "福岡" },
   ];
   const FRUITS = [
