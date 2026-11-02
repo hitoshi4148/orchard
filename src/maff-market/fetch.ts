@@ -7,6 +7,8 @@ import {
 import { buildOriginGroups, decodeShiftJis, parseMaffCsv } from "./parse";
 import type { FruitKey, FruitMarketDataset } from "./types";
 
+const MAFF_USER_AGENT = "orchard-portal/1.0 (maff-market-data)";
+
 function getTendays(day: number): 1 | 2 | 3 {
   if (day <= 10) {
     return 1;
@@ -17,14 +19,51 @@ function getTendays(day: number): 1 | 2 | 3 {
   return 3;
 }
 
+/** Cloudflare Workers は UTC のため、公表カレンダーは JST で判定する */
+function getJstYmd(now = new Date()): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(now);
+  const pick = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value ?? "0");
+  return { year: pick("year"), month: pick("month"), day: pick("day") };
+}
+
+type MaffPeriod = { year: number; month: number; tendays: 1 | 2 | 3 };
+
+function maffPeriodCandidates(now = new Date(), maxAttempts = 8): MaffPeriod[] {
+  const { year, month, day } = getJstYmd(now);
+  let y = year;
+  let m = month;
+  let td = getTendays(day) as 1 | 2 | 3;
+  const out: MaffPeriod[] = [];
+
+  for (let i = 0; i < maxAttempts; i++) {
+    out.push({ year: y, month: m, tendays: td });
+    td = (td - 1) as 1 | 2 | 3 | 0;
+    if (td === 0) {
+      td = 3;
+      m -= 1;
+      if (m < 1) {
+        m = 12;
+        y -= 1;
+      }
+    }
+  }
+  return out;
+}
+
 function sessionIdFromHtml(html: string): string | null {
   const match = html.match(/name="s027\.sessionId"\s+value="([^"]+)"/);
   return match?.[1] ?? null;
 }
 
-async function fetchMonthlyZip(now: Date): Promise<Uint8Array> {
+async function fetchMaffSessionId(): Promise<string> {
   const formRes = await fetch(MAFF_FORM_URL, {
-    headers: { "User-Agent": "orchard-portal/1.0 (maff-market-data)" },
+    headers: { "User-Agent": MAFF_USER_AGENT },
   });
   if (!formRes.ok) {
     throw new Error(`MAFF form fetch failed (${formRes.status})`);
@@ -34,12 +73,18 @@ async function fetchMonthlyZip(now: Date): Promise<Uint8Array> {
   if (!sessionId) {
     throw new Error("MAFF sessionId not found");
   }
+  return sessionId;
+}
 
+async function fetchMonthlyZipForPeriod(
+  sessionId: string,
+  period: MaffPeriod
+): Promise<Uint8Array> {
   const body = new URLSearchParams({
     "s027.sessionId": sessionId,
-    "s027.year": String(now.getFullYear()),
-    "s027.month": String(now.getMonth() + 1).padStart(2, "0"),
-    "s027.tendays": String(getTendays(now.getDate())),
+    "s027.year": String(period.year),
+    "s027.month": String(period.month).padStart(2, "0"),
+    "s027.tendays": String(period.tendays),
     "s027.chohyoFileType": "CSV",
   });
 
@@ -47,7 +92,8 @@ async function fetchMonthlyZip(now: Date): Promise<Uint8Array> {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "orchard-portal/1.0 (maff-market-data)",
+      "User-Agent": MAFF_USER_AGENT,
+      Referer: MAFF_FORM_URL,
     },
     body: body.toString(),
   });
@@ -60,6 +106,33 @@ async function fetchMonthlyZip(now: Date): Promise<Uint8Array> {
     throw new Error("MAFF download was not a ZIP file");
   }
   return bytes;
+}
+
+async function fetchMaffZipEntries(now: Date): Promise<Record<string, Uint8Array>> {
+  const sessionId = await fetchMaffSessionId();
+  const failures: string[] = [];
+  let merged: Record<string, Uint8Array> = {};
+
+  for (const period of maffPeriodCandidates(now)) {
+    const label = `${period.year}-${String(period.month).padStart(2, "0")} tendays ${period.tendays}`;
+    try {
+      const zipBytes = await fetchMonthlyZipForPeriod(sessionId, period);
+      const entries = await unzipFruitCityEntries(zipBytes);
+      merged = { ...merged, ...entries };
+      if (Object.keys(merged).length > 0) {
+        return merged;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      failures.push(`${label}: ${message}`);
+    }
+  }
+
+  throw new Error(
+    failures.length > 0
+      ? `MAFF CSV unavailable (${failures.join("; ")})`
+      : "MAFF CSV unavailable"
+  );
 }
 
 const FRUIT_CITY_FILE =
@@ -122,8 +195,7 @@ function formatTargetDate(yyyymmdd: string): string {
 
 export async function fetchFruitMarketDataset(): Promise<FruitMarketDataset> {
   const now = new Date();
-  const zipBytes = await fetchMonthlyZip(now);
-  const entries = await unzipFruitCityEntries(zipBytes);
+  const entries = await fetchMaffZipEntries(now);
   const targetDateKey = resolveTargetDate(entries);
 
   const cities: FruitMarketDataset["cities"] = {};
