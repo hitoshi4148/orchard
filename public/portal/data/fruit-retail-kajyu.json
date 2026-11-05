@@ -1,0 +1,203 @@
+{
+  "sourcePageUrl": "https://www.maff.go.jp/j/zyukyu/anpo/kouri/kouri/kajyu.html",
+  "pdfUrl": "https://www.maff.go.jp/j/zyukyu/anpo/kouri/kouri/attach/pdf/kajyu-40.pdf",
+  "fetchedAt": "2026-11-05T01:13:36.543Z",
+  "latest": {
+    "reiwaYear": 8,
+    "month": 10,
+    "surveyLabel": "令和8年10月",
+    "surveyPeriod": "全国平均",
+    "prices": {
+      "apple": 731,
+      "mikan": 791,
+      "grape": 2428,
+      "pear": 956,
+      "peach": null
+    },
+    "detail": {
+      "apple": {
+        "priceYenPerKg": 731,
+        "momIndexPct": 67,
+        "yoyIndexPct": 85
+      },
+      "mikan": {
+        "priceYenPerKg": 791,
+        "momIndexPct": null,
+        "yoyIndexPct": 109
+      },
+      "grape": {
+        "priceYenPerKg": 2428,
+        "momIndexPct": 104,
+        "yoyIndexPct": 98
+      },
+      "pear": {
+        "priceYenPerKg": 956,
+        "momIndexPct": 99,
+        "yoyIndexPct": 103
+      },
+      "peach": {
+        "priceYenPerKg": null,
+        "momIndexPct": null,
+        "yoyIndexPct": null
+      }
+    }
+  },
+  "history": [
+    {
+      "reiwaYear": 7,
+      "month": 11,
+      "surveyLabel": "令和7年11月",
+      "surveyPeriod": "11/10～11/12",
+      "prices": {
+        "apple": 838,
+        "mikan": 707,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 7,
+      "month": 12,
+      "surveyLabel": "令和7年12月",
+      "surveyPeriod": "12/8～12/10",
+      "prices": {
+        "apple": 826,
+        "mikan": 728,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 1,
+      "surveyLabel": "令和8年1月",
+      "surveyPeriod": "1/13～1/14",
+      "prices": {
+        "apple": 843,
+        "mikan": 795,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 2,
+      "surveyLabel": "令和8年2月",
+      "surveyPeriod": "2/9～2/10",
+      "prices": {
+        "apple": 829,
+        "mikan": 796,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 3,
+      "surveyLabel": "令和8年3月",
+      "surveyPeriod": "3/9～3/11",
+      "prices": {
+        "apple": 832,
+        "mikan": 904,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 4,
+      "surveyLabel": "令和8年4月",
+      "surveyPeriod": "4/13～4/15",
+      "prices": {
+        "apple": 828,
+        "mikan": null,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 5,
+      "surveyLabel": "令和8年5月",
+      "surveyPeriod": "5/11～5/13",
+      "prices": {
+        "apple": 847,
+        "mikan": null,
+        "grape": null,
+        "pear": null,
+        "peach": null
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 6,
+      "surveyLabel": "令和8年6月",
+      "surveyPeriod": "6/8～6/10",
+      "prices": {
+        "apple": 943,
+        "mikan": null,
+        "grape": 4653,
+        "pear": null,
+        "peach": 2709
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 7,
+      "surveyLabel": "令和8年7月",
+      "surveyPeriod": "7/13～7/15",
+      "prices": {
+        "apple": null,
+        "mikan": null,
+        "grape": 3415,
+        "pear": 1703,
+        "peach": 1626
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 8,
+      "surveyLabel": "令和8年8月",
+      "surveyPeriod": "8/3～8/5",
+      "prices": {
+        "apple": null,
+        "mikan": null,
+        "grape": 2834,
+        "pear": 1291,
+        "peach": 1559
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 9,
+      "surveyLabel": "令和8年9月",
+      "surveyPeriod": "9/7～9/9",
+      "prices": {
+        "apple": 1090,
+        "mikan": null,
+        "grape": 2335,
+        "pear": 963,
+        "peach": 1502
+      }
+    },
+    {
+      "reiwaYear": 8,
+      "month": 10,
+      "surveyLabel": "令和8年10月",
+      "surveyPeriod": "10/19～10/21",
+      "prices": {
+        "apple": 731,
+        "mikan": 791,
+        "grape": 2428,
+        "pear": 956,
+        "peach": null
+      }
+    }
+  ]
+}
