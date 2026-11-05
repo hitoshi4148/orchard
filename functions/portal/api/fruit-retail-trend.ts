@@ -1,8 +1,11 @@
 import { RETAIL_FRUITS } from "../../../src/maff-retail-kajyu/constants";
+import {
+  readCachedDataset,
+  refreshRetailDatasetIfNeeded,
+  writeCachedDataset,
+} from "../../../src/maff-retail-kajyu/dataset-loader";
 import type { RetailKajyuDataset } from "../../../src/maff-retail-kajyu/types";
 
-const CACHE_KEY = "https://orchard.internal/cache/fruit-retail-kajyu-v1";
-const CACHE_TTL_SECONDS = 30 * 24 * 60 * 60;
 const SNAPSHOT_PATH = "/portal/data/fruit-retail-kajyu.json";
 
 let inFlight: Promise<RetailKajyuDataset> | null = null;
@@ -21,29 +24,22 @@ async function loadSnapshot(request: Request): Promise<RetailKajyuDataset> {
 }
 
 async function loadDataset(request: Request): Promise<RetailKajyuDataset> {
-  const cache = caches.default;
-  const cached = await cache.match(CACHE_KEY);
-  if (cached) {
-    return (await cached.json()) as RetailKajyuDataset;
-  }
-
   if (!inFlight) {
-    inFlight = loadSnapshot(request)
-      .then(async (dataset) => {
-        const response = new Response(JSON.stringify(dataset), {
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Cache-Control": `public, max-age=${CACHE_TTL_SECONDS}`,
-          },
-        });
-        await cache.put(CACHE_KEY, response);
-        return dataset;
-      })
-      .finally(() => {
-        inFlight = null;
-      });
-  }
+    inFlight = (async () => {
+      const cached = await readCachedDataset();
+      const snapshot = cached ?? (await loadSnapshot(request));
+      if (!cached) {
+        await writeCachedDataset(snapshot);
+      }
 
+      const { dataset } = await refreshRetailDatasetIfNeeded({
+        fallback: snapshot,
+      });
+      return dataset;
+    })().finally(() => {
+      inFlight = null;
+    });
+  }
   return inFlight;
 }
 

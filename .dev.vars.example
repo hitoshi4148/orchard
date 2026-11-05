@@ -3,3 +3,6 @@
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.5-flash
 GOOGLE_OAUTH_CLIENT_ID=
+
+# 小売価格の自動更新（POST /portal/api/fruit-retail-refresh）。Cron Worker と同じ値を Pages にも設定
+CRON_SECRET=

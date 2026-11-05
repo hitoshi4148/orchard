@@ -1,0 +1,11 @@
+name = "orchard-fruit-retail-cron"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# 09:00 UTC = 18:00 JST — daily check after MAFF monthly release window
+# Extra Tue/Wed runs cover publication-day drift
+[triggers]
+crons = ["0 9 * * *", "0 10 * * 2", "0 10 * * 3"]
+
+[vars]
+REFRESH_URL = "https://orchard-aa7.pages.dev/portal/api/fruit-retail-refresh"

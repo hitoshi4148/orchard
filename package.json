@@ -6,7 +6,8 @@
     "dev": "wrangler pages dev public --port 8790",
     "deploy": "npm run sync:fruit-retail && wrangler pages deploy public --project-name=orchard --commit-dirty=true",
     "pages:deploy": "wrangler pages deploy public --project-name=orchard --commit-dirty=true",
-    "deploy:router": "wrangler deploy --config workers/turf-tools-router/wrangler.toml"
+    "deploy:router": "wrangler deploy --config workers/turf-tools-router/wrangler.toml",
+    "deploy:fruit-retail-cron": "wrangler deploy --config workers/fruit-retail-cron/wrangler.toml"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250204.0",
