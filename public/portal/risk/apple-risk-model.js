@@ -634,7 +634,7 @@ const OrchardRiskModel = (() => {
       varietyFactor: forecast.varietyFactor,
       bloomStartApple:
         baseDashboard.cropId === "apple"
-          ? forecast.bloomStart ?? loadBloomStartApple() || null
+          ? (forecast.bloomStart ?? (loadBloomStartApple() || null))
           : null,
       dataSource: "live",
       dataSourceLabel: forecast.dataSourceLabel || baseDashboard.dataSourceLabel,
