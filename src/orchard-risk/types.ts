@@ -13,6 +13,7 @@ export type ModelStatus =
 export type MarssoninaOnsetStatus =
   | "bloom_date_unset"
   | "onset_pending_model"
+  | "primary_infection_estimated"
   | "insufficient_weather"
   | "insufficient_weather_coverage"
   | "no_infection_event"
@@ -54,6 +55,21 @@ export interface OrchardOnsetRow {
   /** 褐斑（apple:marssonina）のみ */
   marssoninaStatus?: MarssoninaOnsetStatus;
   bloomStart?: string | null;
+  weatherCoverage?: "full" | "partial";
+  primaryInfection?: {
+    infectionDate: string;
+    periodStart: string;
+    periodEnd: string;
+    wetDurationHours: number;
+    wetAvgTempC: number;
+    leafWetIsEstimated: true;
+  } | null;
+  marssoninaNasaWindow?: {
+    fetchStart: string;
+    fetchEnd: string;
+    hourlyCount: number;
+    requestedDays: number;
+  };
 }
 
 export interface OrchardRiskForecast {

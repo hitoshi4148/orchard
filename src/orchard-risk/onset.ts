@@ -4,6 +4,7 @@ import {
   addDaysToDateString,
   jstTodayString,
 } from "../disease/met-norway-forecast";
+import { MarssoninaInfectionSearchResult } from "./marssonina-infection";
 import { OrchardOnsetRow, RiskLevel } from "./types";
 import { percentToInfectionLevel } from "./risk-level";
 
@@ -37,19 +38,83 @@ export function buildMarssoninaBloomUnsetOnset(): OrchardOnsetRow {
   };
 }
 
-/** P1: 開花始期は受信済み。P2 で気象モデル接続 */
-export function buildMarssoninaPendingOnset(bloomStart: string): OrchardOnsetRow {
-  return {
-    diseaseId: "apple:marssonina",
-    estimatedInfectionDate: "—",
+/** P2: 気象探索結果から褐斑発病行を組み立て（GDD・発病日は未接続） */
+export function buildMarssoninaOnsetFromSearch(
+  bloomStart: string,
+  search: MarssoninaInfectionSearchResult
+): OrchardOnsetRow {
+  const base = {
+    diseaseId: "apple:marssonina" as const,
     gddSinceInfectionDayC: null,
-    predictedOnsetWindow: "—",
-    confidence: "低",
-    note: `開花始期 ${bloomStart} を受け取りました。一次感染・発病予測（猫塚 2023）は次フェーズで接続予定です。`,
-    modelStatus: "gdd",
+    confidence: "低" as const,
+    modelStatus: "gdd" as const,
     isDemo: false,
-    marssoninaStatus: "onset_pending_model",
     bloomStart,
+    marssoninaStatus: search.marssoninaStatus,
+    weatherCoverage: search.coverage,
+    primaryInfection: search.primary,
+    marssoninaNasaWindow: {
+      fetchStart: search.nasaWindow.fetchStart,
+      fetchEnd: search.nasaWindow.fetchEnd,
+      hourlyCount: search.hourlyCount,
+      requestedDays: search.nasaWindow.requestedDays,
+    },
+  };
+
+  if (search.marssoninaStatus === "primary_infection_estimated" && search.primary) {
+    const p = search.primary;
+    const coverageNote =
+      search.coverage === "partial"
+        ? ` 気象取得は直近${search.nasaWindow.fetchStart}〜${search.nasaWindow.fetchEnd}のみ（開花始期以前は未探索）。`
+        : "";
+    return {
+      ...base,
+      estimatedInfectionDate: p.infectionDate,
+      predictedOnsetWindow: "—（発病予測・GDD は次フェーズ）",
+      note:
+        `一次感染候補（推定）: 濡れ ${p.wetDurationHours}h・濡れ中平均 ${p.wetAvgTempC}℃（葉面濡れ推定）。` +
+        `猫塚（2023）閾値参考。1st 飛散ピークの確定ではありません。${coverageNote}`,
+    };
+  }
+
+  if (search.marssoninaStatus === "no_infection_event") {
+    return {
+      ...base,
+      estimatedInfectionDate: "—",
+      predictedOnsetWindow: "—",
+      primaryInfection: null,
+      note:
+        `開花始期 ${bloomStart} 以降、探索範囲（${search.nasaWindow.fetchStart}〜${search.nasaWindow.fetchEnd}）で条件を満たす推定濡れは見つかりませんでした。`,
+    };
+  }
+
+  if (search.marssoninaStatus === "insufficient_weather_coverage") {
+    return {
+      ...base,
+      estimatedInfectionDate: "—",
+      predictedOnsetWindow: "—",
+      primaryInfection: null,
+      note:
+        `予測データ不足: 開花始期 ${search.nasaWindow.bloomStart} から昨日までの全区間を探索できていません（取得上限 ${search.nasaWindow.fetchStart} 〜 ${search.nasaWindow.fetchEnd}）。` +
+        `一次感染が未探索期間にある可能性があります。候補なしと断定しません。`,
+    };
+  }
+
+  if (search.marssoninaStatus === "insufficient_weather") {
+    return {
+      ...base,
+      estimatedInfectionDate: "—",
+      predictedOnsetWindow: "—",
+      primaryInfection: null,
+      note: `予測データ不足: NASA POWER 時別気象を十分に取得できませんでした（${search.hourlyCount} 件）。`,
+    };
+  }
+
+  return {
+    ...base,
+    estimatedInfectionDate: "—",
+    predictedOnsetWindow: "—",
+    note: `開花始期 ${bloomStart} — 褐斑発病の状態を判定できませんでした。`,
   };
 }
 

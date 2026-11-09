@@ -26,10 +26,14 @@ import {
   calcWetTempHeuristic,
 } from "./infection-calculators";
 import {
+  resolveMarssoninaNasaWindow,
+  searchPrimaryMarssoninaInfection,
+} from "./marssonina-infection";
+import {
   buildDemoOnset,
   buildAppleScabOnset,
   buildMarssoninaBloomUnsetOnset,
-  buildMarssoninaPendingOnset,
+  buildMarssoninaOnsetFromSearch,
   buildNashiScabOnset,
 } from "./onset";
 import {
@@ -122,7 +126,8 @@ function calculateForDisease(
 
 function buildOnsetRows(
   cropId: OrchardCropId,
-  bloomStart: string | null
+  bloomStart: string | null,
+  marssoninaSearch: ReturnType<typeof searchPrimaryMarssoninaInfection> | null
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -135,8 +140,10 @@ function buildOnsetRows(
     if (id === "apple:marssonina") {
       if (cropId !== "apple" || !bloomStart) {
         rows.push(buildMarssoninaBloomUnsetOnset());
+      } else if (marssoninaSearch) {
+        rows.push(buildMarssoninaOnsetFromSearch(bloomStart, marssoninaSearch));
       } else {
-        rows.push(buildMarssoninaPendingOnset(bloomStart));
+        rows.push(buildMarssoninaBloomUnsetOnset());
       }
       continue;
     }
@@ -162,11 +169,47 @@ export async function fetchOrchardRiskForecast(
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
 
-  const [nasaDaily, nasaHourly, forecastHourly] = await Promise.all([
+  const fetchPromises: [
+    Promise<DailyWeatherRecord[]>,
+    Promise<HourlyWeatherRecord[]>,
+    Promise<HourlyWeatherRecord[]>,
+    Promise<HourlyWeatherRecord[] | null>,
+  ] = [
     fetchNasaPowerDaily(lat, lon, startDate, endDate),
     fetchNasaPowerHourly(lat, lon, startDate, endDate),
     fetchMetNorwayFromToday(lat, lon, 168),
-  ]);
+    Promise.resolve(null),
+  ];
+
+  let marssoninaWindow = null as ReturnType<
+    typeof resolveMarssoninaNasaWindow
+  > | null;
+  let marssoninaFetchFailed = false;
+
+  if (cropId === "apple" && bloomStart) {
+    marssoninaWindow = resolveMarssoninaNasaWindow(bloomStart, endDate);
+    fetchPromises[3] = fetchNasaPowerHourly(
+      lat,
+      lon,
+      marssoninaWindow.fetchStart,
+      endDate
+    ).catch(() => {
+      marssoninaFetchFailed = true;
+      return [];
+    });
+  }
+
+  const [nasaDaily, nasaHourly, forecastHourly, marssoninaHourlyRaw] =
+    await Promise.all(fetchPromises);
+
+  const marssoninaSearch =
+    cropId === "apple" && bloomStart && marssoninaWindow
+      ? searchPrimaryMarssoninaInfection(
+          marssoninaHourlyRaw ?? [],
+          marssoninaWindow,
+          marssoninaFetchFailed
+        )
+      : null;
 
   const weather5d = buildSixDayWeather(forecastHourly);
   const varietyFactor = getVarietyFactor(cropId, variety);
@@ -246,7 +289,11 @@ export async function fetchOrchardRiskForecast(
     weather5d,
     infectionByDiseaseId,
     rationales,
-    onset: buildOnsetRows(cropId, cropId === "apple" ? bloomStart : null),
+    onset: buildOnsetRows(
+      cropId,
+      cropId === "apple" ? bloomStart : null,
+      marssoninaSearch
+    ),
     modelStatusByDisease,
     demoDiseaseIds,
     dataSourceLabel: `MET Norway 予報 + NASA POWER 履歴（${cropLabel}${demoNote}）`,

@@ -149,8 +149,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const isMarssoninaPending =
           item.diseaseId === "apple:marssonina" &&
           item.marssoninaStatus === "onset_pending_model";
+        const isMarssoninaCandidate =
+          item.diseaseId === "apple:marssonina" &&
+          item.marssoninaStatus === "primary_infection_estimated";
+        const isMarssoninaNoData =
+          item.diseaseId === "apple:marssonina" &&
+          (item.marssoninaStatus === "insufficient_weather" ||
+            item.marssoninaStatus === "insufficient_weather_coverage");
+        const primary = item.primaryInfection;
         const estimateTag =
-          isMarssoninaUnset || isMarssoninaPending
+          isMarssoninaUnset || isMarssoninaPending || isMarssoninaCandidate
             ? ""
             : item.isDemo
               ? '<span class="apple-risk-demo-badge">デモ表示</span> '
@@ -159,20 +167,41 @@ document.addEventListener("DOMContentLoaded", () => {
           ? '<span class="apple-risk-estimate-badge">未計算</span> '
           : isMarssoninaPending
             ? '<span class="apple-risk-estimate-badge">接続待ち</span> '
-            : "";
-        const confidenceRow = isMarssoninaUnset
-          ? ""
-          : `<dt>確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
+            : isMarssoninaCandidate
+              ? '<span class="apple-risk-estimate-badge">一次感染候補（推定）</span> '
+              : isMarssoninaNoData
+                ? '<span class="apple-risk-estimate-badge">予測データ不足</span> '
+                : item.marssoninaStatus === "no_infection_event"
+                  ? '<span class="apple-risk-estimate-badge">候補なし</span> '
+                  : "";
+        const infectionLabel = isMarssoninaCandidate
+          ? "一次感染候補日（推定）"
+          : "推定感染日";
+        const wetDetail =
+          primary &&
+          `<dt>推定濡れ</dt><dd>${primary.wetDurationHours} h（平均 ${primary.wetAvgTempC}℃・葉面濡れ推定）</dd>`;
+        const coverageDetail =
+          item.weatherCoverage === "partial" && item.marssoninaNasaWindow
+            ? `<dt>気象探索</dt><dd>一部のみ（${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}・${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
+            : item.marssoninaNasaWindow
+              ? `<dt>気象探索</dt><dd>${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}（${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
+              : "";
+        const confidenceRow =
+          isMarssoninaUnset || isMarssoninaNoData
+            ? ""
+            : `<dt>確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
         }">
           <h3>${statusBadge}${estimateTag}${escapeHtml(item.diseaseName)}</h3>
           <dl class="apple-risk-onset-dl">
-            <dt>推定感染日</dt><dd>${escapeHtml(item.estimatedInfectionDate)}</dd>
+            <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.estimatedInfectionDate)}</dd>
+            ${wetDetail || ""}
+            ${coverageDetail}
             <dt>感染後積算</dt><dd>${
               item.gddSinceInfectionDayC != null
                 ? `${item.gddSinceInfectionDayC} 日℃（仮）`
-                : "—（未算出）"
+                : "—（GDD 未接続）"
             }</dd>
             <dt>発病予測時期</dt><dd>${escapeHtml(item.predictedOnsetWindow)}</dd>
             ${confidenceRow}
