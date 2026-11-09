@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "—";
     root.innerHTML = `
       <header class="apple-risk-header">
-        <h1>りんご・なし病害リスク予報</h1>
+        <h1>りんご・日本なし病害リスク予報</h1>
         <p class="apple-risk-subtitle">気象データから感染リスクと発病時期を予測</p>
         ${renderStatusBanner(dashboard)}
         ${renderCropTabs(dashboard)}

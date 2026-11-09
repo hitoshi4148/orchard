@@ -1,5 +1,5 @@
 /**
- * りんご・なし病害リスク予報 — データモデル
+ * りんご・日本なし病害リスク予報 — データモデル
  * 気象は共通、病害パラメータは cropId:diseaseKey で独立管理
  */
 const OrchardRiskModel = (() => {
@@ -34,7 +34,7 @@ const OrchardRiskModel = (() => {
     },
     nashi: {
       id: "nashi",
-      label: "なし",
+      label: "日本なし",
       varieties: ["幸水", "豊水", "新高", "二十世紀", "あきづき", "その他"],
       defaultVariety: "幸水",
     },
@@ -123,7 +123,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "15〜22℃前後",
       wetHours: "連続葉面濡れ（Duthie モデル予定）",
       summary:
-        "なしの葉・果に黒褐色星状斑。りんご黒星病とは病原・条件が異なります。",
+        "日本なしの葉・果に黒褐色星状斑。りんご黒星病とは病原・条件が異なります。",
       infectionFactors: [
         "展葉期の長時間濡れ",
         "適温帯での降雨",
@@ -132,7 +132,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "duthie",
         implemented: false,
-        note: "将来: Duthie モデル（なし黒星病専用・未接続）",
+        note: "将来: Duthie モデル（日本なし黒星病専用・未接続）",
       },
     },
     "nashi:red_spot": {
@@ -143,7 +143,7 @@ const OrchardRiskModel = (() => {
       mainSeason: "春〜初夏",
       infectionTempC: "15〜22℃",
       wetHours: "落葉上の子嚢盤発生と湿潤",
-      summary: "なしの赤褐色星状斑。落葉管理と春の湿りが鍵。",
+      summary: "日本なしの赤褐色星状斑。落葉管理と春の湿りが鍵。",
       infectionFactors: ["落葉残存", "春の多雨", "展葉期"],
     },
     "nashi:blotch": {
@@ -154,7 +154,7 @@ const OrchardRiskModel = (() => {
       mainSeason: "収穫期前後",
       infectionTempC: "20〜26℃",
       wetHours: "果面の湿潤",
-      summary: "なし果実の輪状病斑。りんご輪紋病とは別病原。",
+      summary: "日本なし果実の輪状病斑。りんご輪紋病とは別病原。",
       infectionFactors: ["熟期の降雨", "果実の微小傷", "滞湿"],
     },
     "nashi:black_spot": {
@@ -165,7 +165,7 @@ const OrchardRiskModel = (() => {
       mainSeason: "夏〜秋",
       infectionTempC: "25〜30℃",
       wetHours: "高湿＋葉・果への湿り",
-      summary: "なしの黒色斑点と落葉。高温多雨期に注意。",
+      summary: "日本なしの黒色斑点と落葉。高温多雨期に注意。",
       infectionFactors: ["梅雨〜夏の高温多湿", "弱った葉", "通風不良"],
     },
     "nashi:anthracnose": {
@@ -176,7 +176,7 @@ const OrchardRiskModel = (() => {
       mainSeason: "肥大期〜熟期",
       infectionTempC: "22〜28℃",
       wetHours: "果面濡れ",
-      summary: "なし果実の黒褐色病斑。収穫品質に影響。",
+      summary: "日本なし果実の黒褐色病斑。収穫品質に影響。",
       infectionFactors: ["果実期の降雨", "冠内湿度", "軽傷"],
     },
   };
@@ -224,7 +224,7 @@ const OrchardRiskModel = (() => {
     "apple:anthracnose": "5日先に果実期の湿潤が増す予想です。（デモ表示）",
     "apple:blotch": "収穫期前の滞湿に注意。（デモ表示）",
     "nashi:scab":
-      "展葉期の濡れが続くと、なし黒星病（V. nashicola）の感染危険が上がります。りんご黒星病とは別判定です。（デモ表示）",
+      "展葉期の濡れが続くと、日本なし黒星病（V. nashicola）の感染危険が上がります。りんご黒星病とは別判定です。（デモ表示）",
     "nashi:red_spot": "落葉由来の初侵染と春の湿りが重なる時期に注意。（デモ表示）",
     "nashi:blotch": "熟期の降雨が増えると輪紋病リスクが上がります。（デモ表示）",
     "nashi:black_spot": "高温多湿が続く日は黒斑病に注意。（デモ表示）",

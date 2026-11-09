@@ -384,8 +384,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const state = PeachRiskModel.buildViewState(selectedDiseaseId);
     root.innerHTML = `
       <header class="peach-risk-header">
-        <h1>桃病害リスク予報</h1>
-        <p class="peach-risk-subtitle">気象データから、桃の病害発生リスクを予測</p>
+        <h1>もも病害リスク予報</h1>
+        <p class="peach-risk-subtitle">気象データから、ももの病害発生リスクを予測</p>
         <div class="peach-risk-meta">
           <span class="peach-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>

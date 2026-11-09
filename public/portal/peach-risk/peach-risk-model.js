@@ -69,7 +69,7 @@ const PeachRiskModel = (() => {
       pathogen: "Cladosporium carpophilum",
       watchConditions: "降雨・葉面濡れ・幼果〜肥大期",
       stageRelation: "落花・幼果〜収穫前",
-      summary: "葉・果の黒褐色の星状斑。桃専用の感染条件を将来モデル化（サンプル）。",
+      summary: "葉・果の黒褐色の星状斑。もも専用の感染条件を将来モデル化（サンプル）。",
     },
     "peach:leaf_curl": {
       id: "peach:leaf_curl",
@@ -220,7 +220,7 @@ const PeachRiskModel = (() => {
       humidityNote: "85%",
       wetNote: "濡れ 10 h",
       windNote: "南 2 m/s",
-      rationale: "【仮】桃黒星病用の独立パラメータは未接続。",
+      rationale: "【仮】もも黒星病用の独立パラメータは未接続。",
     },
     "peach:leaf_curl": {
       highDays: "—",
@@ -264,7 +264,7 @@ const PeachRiskModel = (() => {
       infectionWindow: "2026-06-01（仮）",
       onsetWindow: "2026-06-15 前後（仮）",
       confidence: "中",
-      basis: "【仮】桃黒星病専用潜伏期は未設定。",
+      basis: "【仮】もも黒星病専用潜伏期は未設定。",
       insufficient: false,
     },
     {
