@@ -9,6 +9,26 @@ export type ModelStatus =
   | "heuristic"
   | "demo";
 
+/** 褐斑発病予測の状態（v0.2）。P2 以降で拡張 */
+export type MarssoninaOnsetStatus =
+  | "bloom_date_unset"
+  | "onset_pending_model"
+  | "insufficient_weather"
+  | "insufficient_weather_coverage"
+  | "no_infection_event"
+  | "not_applicable"
+  | "onset_already_passed"
+  | "onset_within_forecast"
+  | "onset_beyond_forecast";
+
+export interface MarssoninaOnsetContext {
+  /** YYYY-MM-DD。りんご・褐斑発病で必須（未設定時は計算しない） */
+  bloomStart: string | null;
+  growthStageId: string;
+  cropId: OrchardCropId;
+  variety: string;
+}
+
 export interface OrchardDailyWeather {
   dayOffset: number;
   label: string;
@@ -31,6 +51,9 @@ export interface OrchardOnsetRow {
   note: string;
   modelStatus: ModelStatus;
   isDemo: boolean;
+  /** 褐斑（apple:marssonina）のみ */
+  marssoninaStatus?: MarssoninaOnsetStatus;
+  bloomStart?: string | null;
 }
 
 export interface OrchardRiskForecast {
@@ -38,6 +61,8 @@ export interface OrchardRiskForecast {
   variety: string;
   varietyFactor: number;
   growthStageId: string;
+  /** リクエストで受け取った開花始期（りんご・参照用） */
+  bloomStart: string | null;
   weather5d: OrchardDailyWeather[];
   infectionByDiseaseId: Record<string, RiskLevel[]>;
   rationales: Record<string, string>;

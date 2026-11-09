@@ -7,6 +7,7 @@ const OrchardRiskModel = (() => {
   const STORAGE_CROP = "orchardRiskCrop";
   const STORAGE_VARIETY_PREFIX = "orchardRiskVariety:";
   const STORAGE_STAGE_PREFIX = "orchardRiskStage:";
+  const STORAGE_BLOOM_START_APPLE = "orchardRiskBloomStart:apple";
   const LEGACY_STAGE_KEY = "appleRiskGrowthStage";
   const LEGACY_LOCATION_KEY = "appleRiskLocation";
 
@@ -446,6 +447,67 @@ const OrchardRiskModel = (() => {
     }
   }
 
+  function loadBloomStartApple() {
+    const raw = localStorage.getItem(STORAGE_BLOOM_START_APPLE);
+    if (!raw) return "";
+    const trimmed = String(raw).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : "";
+  }
+
+  function saveBloomStartApple(dateStr) {
+    const trimmed = String(dateStr || "").trim();
+    if (!trimmed) {
+      localStorage.removeItem(STORAGE_BLOOM_START_APPLE);
+      return;
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      localStorage.setItem(STORAGE_BLOOM_START_APPLE, trimmed);
+    }
+  }
+
+  function marssoninaOnsetRowForClient(cropId) {
+    if (cropId !== "apple") return null;
+    const bloom = loadBloomStartApple();
+    if (!bloom) {
+      return {
+        diseaseId: "apple:marssonina",
+        estimatedInfectionDate: "—",
+        gddSinceInfectionDayC: null,
+        predictedOnsetWindow: "—",
+        confidence: "低",
+        note: "開花始期未設定 — 一次感染・発病予測を計算するには開花始期（YYYY-MM-DD）を指定してください。",
+        marssoninaStatus: "bloom_date_unset",
+        bloomStart: null,
+        isDemo: true,
+      };
+    }
+    return {
+      diseaseId: "apple:marssonina",
+      estimatedInfectionDate: "—",
+      gddSinceInfectionDayC: null,
+      predictedOnsetWindow: "—",
+      confidence: "低",
+      note: `開花始期 ${bloom} を受け取りました。一次感染・発病予測（猫塚 2023）は次フェーズで接続予定です。`,
+      marssoninaStatus: "onset_pending_model",
+      bloomStart: bloom,
+      isDemo: true,
+    };
+  }
+
+  function applyMarssoninaOnsetClientRows(onset, cropId) {
+    const replacement = marssoninaOnsetRowForClient(cropId);
+    if (!replacement) return onset;
+    return onset.map((row) => {
+      if (row.diseaseId !== "apple:marssonina") return row;
+      const disease = DISEASES[row.diseaseId];
+      return {
+        ...replacement,
+        diseaseName: disease?.name || "褐斑病",
+        disease,
+      };
+    });
+  }
+
   function loadLocation() {
     try {
       const raw = localStorage.getItem(STORAGE_LOCATION);
@@ -570,6 +632,10 @@ const OrchardRiskModel = (() => {
       ...baseDashboard,
       variety: forecast.variety || baseDashboard.variety,
       varietyFactor: forecast.varietyFactor,
+      bloomStartApple:
+        baseDashboard.cropId === "apple"
+          ? forecast.bloomStart ?? loadBloomStartApple() || null
+          : null,
       dataSource: "live",
       dataSourceLabel: forecast.dataSourceLabel || baseDashboard.dataSourceLabel,
       updatedAt: forecast.updatedAt || baseDashboard.updatedAt,
@@ -595,6 +661,12 @@ const OrchardRiskModel = (() => {
       variety: loadVariety(cropId),
       growth_stage: loadGrowthStageId(cropId),
     });
+    if (cropId === "apple") {
+      const bloom = loadBloomStartApple();
+      if (bloom) {
+        params.set("bloom_start", bloom);
+      }
+    }
     const res = await fetch(`/portal/api/orchard-risk?${params.toString()}`);
     const json = await res.json();
     if (!json.success) {
@@ -647,7 +719,7 @@ const OrchardRiskModel = (() => {
       day5: aggregateOverallRisk(infectionByDisease.map((d) => d.days[5]?.level || "low")),
     };
 
-    const onset = MOCK_ONSET[cropId].map((row) => {
+    let onset = MOCK_ONSET[cropId].map((row) => {
       const disease = DISEASES[row.diseaseId];
       return {
         ...row,
@@ -655,11 +727,13 @@ const OrchardRiskModel = (() => {
         disease,
       };
     });
+    onset = applyMarssoninaOnsetClientRows(onset, cropId);
 
     return {
       cropId,
       cropLabel: crop.label,
       variety: loadVariety(cropId),
+      bloomStartApple: cropId === "apple" ? loadBloomStartApple() || null : null,
       varieties: crop.varieties,
       dataSource: "demo",
       dataSourceLabel: `デモ表示（${crop.label}・気象 API 未接続）`,
@@ -688,6 +762,8 @@ const OrchardRiskModel = (() => {
     saveLocation,
     loadGrowthStageId,
     saveGrowthStageId,
+    loadBloomStartApple,
+    saveBloomStartApple,
     tryLoadPortalLocation,
     buildDashboard,
     buildDashboardLive,

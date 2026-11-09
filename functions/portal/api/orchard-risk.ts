@@ -5,6 +5,27 @@ function parseCrop(value: string | null): OrchardCropId {
   return value === "nashi" ? "nashi" : "apple";
 }
 
+/** YYYY-MM-DD のみ受理 */
+function parseBloomStart(value: string | null): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return null;
+  }
+  const [y, m, d] = trimmed.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (
+    date.getUTCFullYear() !== y ||
+    date.getUTCMonth() !== m - 1 ||
+    date.getUTCDate() !== d
+  ) {
+    return null;
+  }
+  return trimmed;
+}
+
 export const onRequestGet: PagesFunction = async (context) => {
   try {
     const url = new URL(context.request.url);
@@ -14,6 +35,7 @@ export const onRequestGet: PagesFunction = async (context) => {
     const variety = url.searchParams.get("variety")?.trim() || "";
     const growthStage =
       url.searchParams.get("growth_stage")?.trim() || "youngfruit";
+    const bloomStart = parseBloomStart(url.searchParams.get("bloom_start"));
 
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return Response.json(
@@ -27,7 +49,8 @@ export const onRequestGet: PagesFunction = async (context) => {
       lon,
       crop,
       variety || (crop === "nashi" ? "幸水" : "ふじ"),
-      growthStage
+      growthStage,
+      crop === "apple" ? bloomStart : null
     );
 
     return Response.json({

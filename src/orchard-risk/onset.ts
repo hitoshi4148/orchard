@@ -21,6 +21,39 @@ function findRecentHighInfectionDate(
   return null;
 }
 
+/** P1: 開花始期未設定 */
+export function buildMarssoninaBloomUnsetOnset(): OrchardOnsetRow {
+  return {
+    diseaseId: "apple:marssonina",
+    estimatedInfectionDate: "—",
+    gddSinceInfectionDayC: null,
+    predictedOnsetWindow: "—",
+    confidence: "低",
+    note: "開花始期未設定 — 一次感染・発病予測を計算するには開花始期（YYYY-MM-DD）を指定してください。",
+    modelStatus: "gdd",
+    isDemo: false,
+    marssoninaStatus: "bloom_date_unset",
+    bloomStart: null,
+  };
+}
+
+/** P1: 開花始期は受信済み。P2 で気象モデル接続 */
+export function buildMarssoninaPendingOnset(bloomStart: string): OrchardOnsetRow {
+  return {
+    diseaseId: "apple:marssonina",
+    estimatedInfectionDate: "—",
+    gddSinceInfectionDayC: null,
+    predictedOnsetWindow: "—",
+    confidence: "低",
+    note: `開花始期 ${bloomStart} を受け取りました。一次感染・発病予測（猫塚 2023）は次フェーズで接続予定です。`,
+    modelStatus: "gdd",
+    isDemo: false,
+    marssoninaStatus: "onset_pending_model",
+    bloomStart,
+  };
+}
+
+/** @deprecated P2 で濡れイベント + GDD に置換。P1 では呼ばない */
 export function buildMarssoninaOnset(
   nasaDaily: DailyWeatherRecord[],
   recentDailyLevels: { date: string; level: RiskLevel }[]

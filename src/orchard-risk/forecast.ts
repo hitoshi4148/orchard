@@ -28,9 +28,9 @@ import {
 import {
   buildDemoOnset,
   buildAppleScabOnset,
-  buildMarssoninaOnset,
+  buildMarssoninaBloomUnsetOnset,
+  buildMarssoninaPendingOnset,
   buildNashiScabOnset,
-  infectionPercentToLevel,
 } from "./onset";
 import {
   applyVarietyFactor,
@@ -122,8 +122,7 @@ function calculateForDisease(
 
 function buildOnsetRows(
   cropId: OrchardCropId,
-  nasaDaily: DailyWeatherRecord[],
-  marssoninaHistory: { date: string; level: RiskLevel }[]
+  bloomStart: string | null
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -134,7 +133,11 @@ function buildOnsetRows(
       continue;
     }
     if (id === "apple:marssonina") {
-      rows.push(buildMarssoninaOnset(nasaDaily, marssoninaHistory));
+      if (cropId !== "apple" || !bloomStart) {
+        rows.push(buildMarssoninaBloomUnsetOnset());
+      } else {
+        rows.push(buildMarssoninaPendingOnset(bloomStart));
+      }
       continue;
     }
     if (id === "nashi:scab") {
@@ -152,7 +155,8 @@ export async function fetchOrchardRiskForecast(
   lon: number,
   cropId: OrchardCropId,
   variety: string,
-  growthStageId: string
+  growthStageId: string,
+  bloomStart: string | null = null
 ): Promise<OrchardRiskForecast> {
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
@@ -173,8 +177,6 @@ export async function fetchOrchardRiskForecast(
   const modelStatusByDisease: OrchardRiskForecast["modelStatusByDisease"] = {};
   const demoDiseaseIds: string[] = [];
 
-  const marssoninaHistory: { date: string; level: RiskLevel }[] = [];
-
   for (const diseaseId of diseaseIds) {
     const levels: RiskLevel[] = [];
     let lastRationale = "";
@@ -194,11 +196,6 @@ export async function fetchOrchardRiskForecast(
       const level = percentToInfectionLevel(adjusted) ?? "low";
       levels.push(level);
       lastRationale = raw.rationale;
-
-      if (diseaseId === "apple:marssonina") {
-        const date = addDaysToDateString(today, offset);
-        marssoninaHistory.push({ date, level: infectionPercentToLevel(adjusted) });
-      }
 
       if (
         MODEL_STATUS[diseaseId] === "heuristic" ||
@@ -245,10 +242,11 @@ export async function fetchOrchardRiskForecast(
     variety,
     varietyFactor,
     growthStageId,
+    bloomStart: cropId === "apple" ? bloomStart : null,
     weather5d,
     infectionByDiseaseId,
     rationales,
-    onset: buildOnsetRows(cropId, nasaDaily, marssoninaHistory),
+    onset: buildOnsetRows(cropId, cropId === "apple" ? bloomStart : null),
     modelStatusByDisease,
     demoDiseaseIds,
     dataSourceLabel: `MET Norway 予報 + NASA POWER 履歴（${cropLabel}${demoNote}）`,

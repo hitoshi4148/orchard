@@ -178,6 +178,51 @@
   color: #4b5563;
 }
 
+.apple-risk-bloom-field {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #d1d5db;
+  max-width: 320px;
+}
+
+.apple-risk-bloom-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #14532d;
+  margin-bottom: 6px;
+}
+
+.apple-risk-bloom-input {
+  font-size: 1rem;
+  padding: 6px 8px;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 11rem;
+}
+
+.apple-risk-bloom-help {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.apple-risk-estimate-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  vertical-align: middle;
+}
+
+.apple-risk-onset-card--unset {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
 .apple-risk-meta strong {
   color: #111827;
 }

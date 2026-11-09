@@ -143,11 +143,30 @@ document.addEventListener("DOMContentLoaded", () => {
             : item.confidence === "中"
               ? "risk-caution"
               : "risk-low";
-        const demoTag = item.isDemo
-          ? '<span class="apple-risk-demo-badge">デモ表示</span> '
-          : "";
-        return `<article class="apple-risk-onset-card">
-          <h3>${demoTag}${escapeHtml(item.diseaseName)}</h3>
+        const isMarssoninaUnset =
+          item.diseaseId === "apple:marssonina" &&
+          item.marssoninaStatus === "bloom_date_unset";
+        const isMarssoninaPending =
+          item.diseaseId === "apple:marssonina" &&
+          item.marssoninaStatus === "onset_pending_model";
+        const estimateTag =
+          isMarssoninaUnset || isMarssoninaPending
+            ? ""
+            : item.isDemo
+              ? '<span class="apple-risk-demo-badge">デモ表示</span> '
+              : "";
+        const statusBadge = isMarssoninaUnset
+          ? '<span class="apple-risk-estimate-badge">未計算</span> '
+          : isMarssoninaPending
+            ? '<span class="apple-risk-estimate-badge">接続待ち</span> '
+            : "";
+        const confidenceRow = isMarssoninaUnset
+          ? ""
+          : `<dt>確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
+        return `<article class="apple-risk-onset-card${
+          isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
+        }">
+          <h3>${statusBadge}${estimateTag}${escapeHtml(item.diseaseName)}</h3>
           <dl class="apple-risk-onset-dl">
             <dt>推定感染日</dt><dd>${escapeHtml(item.estimatedInfectionDate)}</dd>
             <dt>感染後積算</dt><dd>${
@@ -156,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "—（未算出）"
             }</dd>
             <dt>発病予測時期</dt><dd>${escapeHtml(item.predictedOnsetWindow)}</dd>
-            <dt>確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>
+            ${confidenceRow}
           </dl>
           <p class="apple-risk-wet-est">${escapeHtml(item.note)}</p>
         </article>`;
@@ -177,6 +196,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <strong>20日間の発病予測タイムライン（仮）</strong>
       <div class="apple-risk-timeline-bar" aria-hidden="true">${segs}</div>
       <p class="apple-risk-timeline-legend">黄色: 発病ウィンドウが重なる日（デモ表示）</p>
+    </div>`;
+  }
+
+  function renderBloomStartField(dashboard) {
+    if (dashboard.cropId !== "apple") return "";
+    const value = dashboard.bloomStartApple || Model.loadBloomStartApple() || "";
+    return `<div class="apple-risk-bloom-field">
+      <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（一次感染推定の起点）</label>
+      <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(value)}">
+      <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）モデルは開花始期以降が対象です。生育ステージとは別に、実際の開花始めの日付を指定してください。</p>
     </div>`;
   }
 
@@ -253,6 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="apple-risk-header-actions">
             <button type="button" class="apple-risk-btn" id="apple-risk-location-btn-inline">地点を変更</button>
           </div>
+          ${renderBloomStartField(dashboard)}
         </div>
       </header>
 
@@ -309,6 +339,12 @@ document.addEventListener("DOMContentLoaded", () => {
         Model.saveGrowthStageId(dashboard.cropId, id);
         refreshDashboard(dashboard.cropId);
       });
+    });
+
+    const bloomInput = document.getElementById("apple-risk-bloom-start");
+    bloomInput?.addEventListener("change", () => {
+      Model.saveBloomStartApple(bloomInput.value);
+      refreshDashboard(dashboard.cropId);
     });
   }
 
