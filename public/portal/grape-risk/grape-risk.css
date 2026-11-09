@@ -1,0 +1,387 @@
+/* ぶどう病害リスク予報（UI のみ） */
+.grape-risk-page {
+  --grape-green: #15803d;
+  --grape-green-soft: #ecfdf5;
+  --grape-green-border: #86efac;
+  --grape-text: #1f2937;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 12px 16px 40px;
+  color: var(--grape-text);
+}
+
+.grape-risk-back {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+}
+
+.grape-risk-back a {
+  color: #166534;
+  text-decoration: none;
+}
+
+.grape-risk-back a:hover {
+  text-decoration: underline;
+}
+
+.grape-risk-header {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 55%, #fff 100%);
+  border: 1px solid var(--grape-green-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.grape-risk-header h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 4vw, 1.55rem);
+  color: #14532d;
+  font-weight: 800;
+}
+
+.grape-risk-subtitle {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.45;
+}
+
+.grape-risk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.84rem;
+  color: #4b5563;
+}
+
+.grape-risk-demo-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.grape-risk-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.grape-risk-panel--focus {
+  border-color: var(--grape-green-border);
+  box-shadow: 0 1px 0 rgba(21, 128, 61, 0.08);
+}
+
+.grape-risk-panel-title {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.grape-risk-lead {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.grape-risk-hint,
+.grape-muted {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.grape-risk-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px 12px;
+}
+
+.grape-risk-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.grape-risk-settings input,
+.grape-risk-settings select {
+  border: 1px solid var(--grape-green-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.grape-risk-table-wrap {
+  overflow-x: auto;
+}
+
+.grape-risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.grape-risk-table th,
+.grape-risk-table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.grape-risk-table th {
+  background: var(--grape-green-soft);
+  color: #14532d;
+  font-weight: 600;
+}
+
+.grape-risk-disease-row {
+  cursor: pointer;
+}
+
+.grape-risk-disease-row:hover,
+.grape-risk-disease-row.is-selected,
+.grape-heat-row.is-selected {
+  background: #f0fdf4;
+}
+
+.grape-disease-link {
+  color: #166534;
+  font-weight: 600;
+}
+
+.grape-risk-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.risk-low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risk-medium {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.risk-high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.grape-risk-detail {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--grape-green-border);
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.grape-risk-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+}
+
+.grape-risk-dl dt {
+  color: #6b7280;
+}
+
+.grape-risk-dl dd {
+  margin: 0;
+}
+
+.grape-heat-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.grape-heat-legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.grape-heat-table .grape-heat-cell {
+  text-align: center;
+  min-width: 44px;
+  padding: 10px 6px;
+}
+
+.grape-heat-disease-btn {
+  border: none;
+  background: none;
+  color: #166534;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
+  text-align: left;
+  padding: 0;
+}
+
+.grape-infection-focus {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.grape-infection-focus h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #14532d;
+}
+
+.grape-focus-list {
+  margin: 0 0 8px;
+  padding-left: 1.1rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.grape-rationale {
+  font-size: 0.85rem;
+  color: #374151;
+  background: #fffbeb;
+  border-left: 3px solid #fbbf24;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.grape-onset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.grape-onset-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+
+.grape-onset-card--na {
+  background: #f3f4f6;
+}
+
+.grape-onset-insufficient {
+  font-weight: 700;
+  color: #6b7280;
+  margin: 6px 0;
+}
+
+.grape-timeline {
+  margin-top: 14px;
+}
+
+.grape-timeline-bar {
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.grape-timeline-seg {
+  flex: 1 0 14px;
+  min-width: 14px;
+  height: 28px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  font-size: 0.6rem;
+  color: #6b7280;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.grape-timeline-seg.has-event {
+  background: #fde68a;
+}
+
+.grape-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 0.78rem;
+  margin-bottom: 8px;
+}
+
+.grape-chart-legend .lg-temp { color: #15803d; font-weight: 600; }
+.grape-chart-legend .lg-hum { color: #2563eb; font-weight: 600; }
+.grape-chart-legend .lg-pre { color: #6366f1; font-weight: 600; }
+.grape-chart-legend .lg-wet { color: #0891b2; font-weight: 600; }
+
+.grape-chart-wrap {
+  overflow-x: auto;
+}
+
+.grape-chart {
+  width: 100%;
+  min-width: 320px;
+  max-width: 640px;
+  height: auto;
+}
+
+.grape-chart-precip {
+  fill: #6366f1;
+}
+
+.grape-chart-wet {
+  fill: #0891b2;
+}
+
+.grape-chart-tick {
+  font-size: 9px;
+  fill: #6b7280;
+}
+
+.grape-tips-list {
+  margin: 0 0 10px;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  .grape-risk-table {
+    font-size: 0.78rem;
+  }
+
+  .grape-heat-table .grape-heat-cell {
+    min-width: 36px;
+    padding: 8px 4px;
+  }
+}

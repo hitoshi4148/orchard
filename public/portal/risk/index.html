@@ -3,60 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="気象条件から芝生の病害リスクを予測し、日本地図上に最大4施設分を表示します。">
-  <title>果実園しごと・病害リスク予報</title>
+  <meta name="description" content="りんご・なし栽培向けの感染危険予報と発病予測（気象データ連携は順次実装）">
+  <meta name="robots" content="noindex, nofollow">
+  <title>果樹園しごと・りんご・なし病害リスク予報</title>
   <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="../portal.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="apple-risk.css?v=20251112">
 </head>
 <body>
-  <div class="risk-page">
-    <p class="portal-back"><a href="/portal/">← ツールポータルに戻る</a></p>
+  <div class="apple-risk-page">
+    <p class="apple-risk-back"><a href="/portal/lab/">← 果樹園しごと（実験）</a></p>
 
-    <header class="risk-header">
-      <h1>果実園しごと・病害リスク予報</h1>
-      <p class="risk-lead">明日の作業判断に使える、気象条件ベースの病害リスク指標です</p>
-      <p class="risk-sublead">各地点の円アイコンをクリックすると、病害ごとの詳細リスク（翌日・明後日 朝6:00）が表示されます</p>
-      <button type="button" id="settings-toggle-btn" class="risk-settings-btn">施設を設定</button>
-    </header>
+    <div id="apple-risk-root" aria-live="polite"></div>
 
-    <div id="facility-settings-panel" class="hidden"></div>
-
-    <div id="map-status" class="map-status hidden"></div>
-    <div class="risk-map-wrap">
-      <div id="risk-map" class="risk-map" aria-label="病害リスク地図"></div>
-    </div>
-
-    <footer class="risk-footer">
-      <p>表示施設: <span id="facility-summary">なし</span></p>
-      <p>データ取得: NASA POWER API（過去データ）、MET Norway API（予報データ）</p>
-      <p class="footer-gp">
-        <a href="https://www.turf-tools.jp/" target="_blank" rel="noopener noreferrer" class="footer-gp-link">
-          <img src="/portal/grow-and-progress-logo.png?v=2" alt="" class="footer-gp-logo" width="72" height="72">
-          <span class="footer-gp-name">グロウアンドプログレス</span>
-        </a>
-      </p>
-      <p class="risk-version">Version 2.2.0 ｜ 2026.07</p>
+    <footer class="risk-footer" style="margin-top:24px;text-align:center;font-size:0.8rem;color:#6b7280">
+      <p>気象データ: MET Norway（予報）+ NASA POWER（履歴・GDD） ｜ 一部病害は簡易モデル／未接続</p>
+      <p class="footer-version">りんご・なし病害リスク UI v0.2</p>
     </footer>
   </div>
 
-  <div id="disease-logic-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="disease-logic-title">
-    <div id="disease-logic-backdrop" class="modal-backdrop"></div>
-    <div class="modal-panel disease-logic-panel">
-      <div class="modal-header">
-        <h2 id="disease-logic-title">判定ロジック</h2>
-        <button type="button" id="disease-logic-close-btn" class="modal-close" aria-label="閉じる">×</button>
+  <div id="apple-risk-location-modal" class="apple-risk-modal hidden" role="dialog" aria-modal="true" aria-labelledby="loc-modal-title">
+    <div id="apple-risk-modal-backdrop" class="apple-risk-modal-backdrop"></div>
+    <div class="apple-risk-modal-panel">
+      <h2 id="loc-modal-title" style="margin:0 0 8px;font-size:1.05rem;color:#14532d">予報地点の設定</h2>
+      <p style="margin:0 0 8px;font-size:0.82rem;color:#6b7280">都道府県・市町村と座標を保存します（端末のローカルストレージ）。</p>
+      <label for="loc-prefecture">都道府県</label>
+      <input type="text" id="loc-prefecture" autocomplete="address-level1" placeholder="例: 群馬県">
+      <label for="loc-municipality">市町村</label>
+      <input type="text" id="loc-municipality" autocomplete="address-level2" placeholder="例: 前橋市">
+      <label for="loc-lat">緯度（任意）</label>
+      <input type="text" id="loc-lat" inputmode="decimal" placeholder="例: 36.39">
+      <label for="loc-lon">経度（任意）</label>
+      <input type="text" id="loc-lon" inputmode="decimal" placeholder="例: 139.06">
+      <div class="apple-risk-modal-actions">
+        <button type="button" class="apple-risk-btn" id="apple-risk-modal-cancel">キャンセル</button>
+        <button type="button" class="apple-risk-btn" style="background:#15803d;color:#fff;border-color:#15803d" id="apple-risk-modal-save">保存</button>
       </div>
-      <div class="modal-body" id="disease-logic-body"></div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="../disease-risk-ui.js?v=20250727v007"></script>
-  <script src="facilities.js"></script>
-  <script src="golf-course-csv.js"></script>
-  <script src="facility-settings.js"></script>
-  <script src="app.js"></script>
+  <script src="apple-risk-model.js?v=20251112"></script>
+  <script src="apple-risk-app.js?v=20251110name"></script>
 </body>
 </html>

@@ -120,10 +120,11 @@ const RacEngine = (() => {
     return ready;
   }
 
-  function search(pesticideKeyword, targetKeyword) {
+  function search(pesticideKeyword, targetKeyword, cropKeyword = "") {
     const nPesticideKeyword = normalize(pesticideKeyword);
     const nTargetKeyword = normalize(targetKeyword);
-    if (!nPesticideKeyword && !nTargetKeyword) return [];
+    const nCropKeyword = normalize(cropKeyword);
+    if (!nPesticideKeyword && !nTargetKeyword && !nCropKeyword) return [];
 
     const unique = [];
     const seen = new Set();
@@ -154,10 +155,16 @@ const RacEngine = (() => {
         fieldValues.農薬名称,
       ]);
 
+      const cropSearchText = toSearchText([
+        fieldValues.作物名,
+        fieldValues.用途,
+        fieldValues.適用対象,
+      ]);
       const pesticideMatch = !nPesticideKeyword || pesticideSearchText.includes(nPesticideKeyword);
       const targetMatch = !nTargetKeyword || targetSearchText.includes(nTargetKeyword);
+      const cropMatch = !nCropKeyword || cropSearchText.includes(nCropKeyword);
 
-      if (!pesticideMatch || !targetMatch) return;
+      if (!pesticideMatch || !targetMatch || !cropMatch) return;
 
       const reg = String(e["登録番号"]);
       if (!seen.has(reg)) {

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ぶどう栽培向け病害リスク画面（サンプルデータ・気象API未接続）">
+  <meta name="robots" content="noindex, nofollow">
+  <title>果樹園しごと・ぶどう病害リスク予報</title>
+  <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
+  <link rel="stylesheet" href="../portal.css">
+  <link rel="stylesheet" href="grape-risk.css?v=20251109">
+</head>
+<body>
+  <div class="grape-risk-page">
+    <p class="grape-risk-back"><a href="/portal/lab/">← 果樹園しごと（実験）</a></p>
+
+    <div id="grape-risk-root" aria-live="polite"></div>
+
+    <footer class="grape-risk-footer" style="margin-top:24px;text-align:center;font-size:0.8rem;color:#6b7280">
+      <p>本画面は UI 検証用です。表示数値はすべてサンプルであり、実際の病害予測ではありません。</p>
+      <p>ぶどう病害リスク UI v0.1（画面のみ）</p>
+    </footer>
+  </div>
+
+  <script src="grape-risk-model.js?v=20251109"></script>
+  <script src="grape-risk-app.js?v=20251109"></script>
+</body>
+</html>

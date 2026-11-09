@@ -62,13 +62,13 @@ function aggregateHourlyToDaily(
   }));
 }
 
-function buildTargetDateTimeJst(daysFromToday: number, hour = 6): string {
+export function buildTargetDateTimeJst(daysFromToday: number, hour = 6): string {
   const dateStr = addDaysToDateString(jstTodayString(), daysFromToday);
   const hourText = String(hour).padStart(2, "0");
   return `${dateStr}T${hourText}:00:00+09:00`;
 }
 
-function prepareWeatherAtTarget(
+export function prepareWeatherAtTarget(
   nasaDaily: DailyWeatherRecord[],
   nasaHourly: HourlyWeatherRecord[],
   forecastHourly: HourlyWeatherRecord[],

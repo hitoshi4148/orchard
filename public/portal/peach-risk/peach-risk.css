@@ -1,0 +1,367 @@
+/* 桃病害リスク予報（UI のみ） */
+.peach-risk-page {
+  --peach-green: #15803d;
+  --peach-green-soft: #ecfdf5;
+  --peach-green-border: #86efac;
+  --peach-text: #1f2937;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 12px 16px 40px;
+  color: var(--peach-text);
+}
+
+.peach-risk-back a {
+  color: #166534;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.peach-risk-back a:hover {
+  text-decoration: underline;
+}
+
+.peach-risk-header {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 55%, #fff 100%);
+  border: 1px solid var(--peach-green-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.peach-risk-header h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 4vw, 1.55rem);
+  color: #14532d;
+  font-weight: 800;
+}
+
+.peach-risk-subtitle {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  color: #374151;
+}
+
+.peach-risk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.84rem;
+  color: #4b5563;
+}
+
+.peach-risk-demo-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.peach-risk-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.peach-risk-panel--focus {
+  border-color: var(--peach-green-border);
+}
+
+.peach-risk-panel-title {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.peach-subheading {
+  margin: 14px 0 8px;
+  font-size: 0.92rem;
+  color: #14532d;
+}
+
+.peach-risk-lead,
+.peach-risk-hint,
+.peach-muted {
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.peach-risk-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.peach-risk-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.peach-risk-settings input,
+.peach-risk-settings select {
+  border: 1px solid var(--peach-green-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.peach-risk-table-wrap {
+  overflow-x: auto;
+}
+
+.peach-risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.peach-risk-table th,
+.peach-risk-table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.peach-risk-table th {
+  background: var(--peach-green-soft);
+  color: #14532d;
+}
+
+.peach-risk-disease-row {
+  cursor: pointer;
+}
+
+.peach-risk-disease-row:hover,
+.peach-risk-disease-row.is-selected,
+.peach-heat-row.is-selected {
+  background: #f0fdf4;
+}
+
+.peach-disease-link {
+  color: #166534;
+  font-weight: 600;
+}
+
+.peach-risk-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.risk-low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risk-medium {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.risk-high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.peach-risk-detail {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--peach-green-border);
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.peach-risk-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 0.85rem;
+}
+
+.peach-risk-dl dt {
+  color: #6b7280;
+}
+
+.peach-risk-dl dd {
+  margin: 0;
+}
+
+.peach-heat-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.peach-heat-legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+
+.peach-heat-table .peach-heat-cell {
+  text-align: center;
+  min-width: 42px;
+}
+
+.peach-heat-disease-btn {
+  border: none;
+  background: none;
+  color: #166534;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.peach-infection-focus h3 {
+  font-size: 0.95rem;
+  color: #14532d;
+}
+
+.peach-focus-list {
+  margin: 8px 0;
+  padding-left: 1.1rem;
+  font-size: 0.86rem;
+}
+
+.peach-wind-emphasis {
+  background: #fff7ed;
+  border-left: 3px solid #f97316;
+  padding: 4px 8px;
+  margin-left: -8px;
+  list-style: none;
+}
+
+.peach-rationale {
+  font-size: 0.85rem;
+  background: #fffbeb;
+  border-left: 3px solid #fbbf24;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.peach-onset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.peach-onset-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.peach-onset-card--na {
+  background: #f3f4f6;
+}
+
+.peach-onset-insufficient {
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.peach-timeline-bar {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.peach-timeline-seg {
+  flex: 1 0 14px;
+  height: 28px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.peach-timeline-seg.has-event {
+  background: #fde68a;
+}
+
+.peach-annual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 6px;
+}
+
+.peach-annual-cell {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 0.75rem;
+  text-align: center;
+  background: #f9fafb;
+}
+
+.peach-annual-cell strong {
+  display: block;
+  color: #14532d;
+}
+
+.peach-chart-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.peach-chart-toggle input {
+  margin-right: 4px;
+}
+
+.peach-chart-wrap {
+  overflow-x: auto;
+}
+
+.peach-chart {
+  width: 100%;
+  min-width: 320px;
+  max-width: 640px;
+}
+
+.peach-chart-precip {
+  fill: #6366f1;
+}
+
+.peach-chart-wet {
+  fill: #0891b2;
+}
+
+.peach-chart-tick {
+  font-size: 9px;
+  fill: #6b7280;
+}
+
+.peach-tips-list {
+  margin: 0 0 10px;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}

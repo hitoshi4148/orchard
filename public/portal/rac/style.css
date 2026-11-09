@@ -126,6 +126,29 @@ body {
   font-size: 0.95em;
 }
 
+.rac-search-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.rac-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rac-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rac-select {
+  max-width: none;
+}
+
 .rac-search-row {
   display: flex;
   flex-wrap: wrap;

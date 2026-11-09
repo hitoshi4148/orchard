@@ -4,16 +4,19 @@
 
 画面上のブランド名は **果実園しごと**、キャッチコピーは「果樹園経営を、もっとシンプルに。」です。
 
-**現在のバージョン: v1.2.2**
+**現在のバージョン: v0.1.0**
 
 ## 本番 URL
 
 | URL | 内容 |
 |-----|------|
-| https://orchard-aa7.pages.dev/portal/ | 果樹園しごとポータル TOP（本番） |
+| https://orchard-aa7.pages.dev/portal/ | **卸値ナビ**（果物卸売・小売価格） |
+| https://orchard-aa7.pages.dev/portal/lab/ | **果樹園しごと**（天気・病害リンク・農薬検索・ノート・AI） |
+| https://orchard-aa7.pages.dev/portal/risk/ | りんご・なし病害リスク予報（MET Norway + NASA POWER） |
+| https://orchard-aa7.pages.dev/portal/grape-risk/ | ぶどう病害リスク予報（UI・サンプル） |
+| https://orchard-aa7.pages.dev/portal/peach-risk/ | 桃病害リスク予報（UI・サンプル） |
 | https://orchard-aa7.pages.dev/portal/spray/ | ピンポイント天気で果実園しごと |
 | https://orchard-aa7.pages.dev/portal/rac/ | 楽RAC農薬ローテ |
-| https://orchard-aa7.pages.dev/portal/risk/ | 病害リスク予報 |
 | https://orchard-aa7.pages.dev/portal/diagnosis/ | 病害画像診断AI（ブラウザ内推論） |
 
 > `orchard-aa7` の `-aa7` は Cloudflare が付与した一意サフィックスで削除できません。
@@ -24,64 +27,60 @@
 
 | パス | 内容 |
 |------|------|
-| `/portal/` | 果樹園しごとポータル TOP |
+| `/portal/` | 卸値ナビ TOP（卸売・小売価格） |
+| `/portal/lab/` | 果樹園しごと（実験・`noindex`） |
 | `/portal/spray/` | ピンポイント天気で果実園しごと |
 | `/portal/rac/` | 楽RAC農薬ローテ（クライアント完結・FAMIC JSON） |
-| `/portal/risk/` | 病害リスク予報（Leaflet 地図・最大4施設） |
+| `/portal/risk/` | りんご・なし病害リスク予報 |
+| `/portal/grape-risk/` | ぶどう病害リスク予報（画面のみ） |
+| `/portal/peach-risk/` | 桃病害リスク予報（画面のみ） |
 | `/portal/diagnosis/` | 病害画像診断AI（ONNX Runtime Web・端末内推論） |
+| `/portal/api/orchard-risk` | 果樹病害リスク予報 API（MET + NASA・`crop`/`lat`/`lon`） |
 | `/portal/api/risk-map` | 病害リスク一括取得 API（地図用） |
-| `/portal/api/dashboard` | ポータル TOP 用まとめ取得 API |
-| `/portal/api/weather` | 天気予報 API（単体・デバッグ用） |
-| `/portal/api/disease-risk` | 病害リスク API（単体・デバッグ用） |
-| `/portal/api/growth-potential` | Growth Potential API（単体・デバッグ用） |
-| `/portal/api/gdd` | 積算温度（GDD）API |
+| `/portal/api/dashboard` | Lab 用まとめ取得 API（天気等） |
+| `/portal/api/weather` | 天気予報 API（MET Norway・単体） |
+| `/portal/api/disease-risk` | 芝生向け病害リスク API（単体） |
+| `/portal/api/growth-potential` | Growth Potential API（単体） |
+| `/portal/api/gdd` | 積算温度（GDD）API（NASA POWER） |
 | `/portal/api/chat` | AI質問箱 API（Gemini・果実栽培） |
 | `/portal/api/google-config` | 果実園しごとノート用 Google OAuth クライアント ID 取得 |
 | `/portal/api/geocode` | 逆ジオコーディング API |
 | `/portal/api/fruit-market` | 果物卸売相場（農水省日別 CSV・1日1回キャッシュ） |
+| `/portal/api/fruit-retail-trend` | 小売価格動向（果樹・JSON） |
 | `/portal/spray/api/forecast` | 散布予報 API |
 
-## ポータル TOP 機能
+## 卸値ナビ（`/portal/`）
 
-`/portal/` では以下を表示します。
+本番 TOP は **果物卸売・小売価格** に特化しています。フッターから `/portal/lab/`（果樹園しごと・実験）へ進めます。
 
-### レイアウト
+| 機能 | 説明 |
+|------|------|
+| 卸売相場 | 農水省「青果物卸売市場調査」日次データ（複数市場・産地別） |
+| 小売価格動向 | 農水省「食品価格動向調査（果樹）」PDF 由来（12ヶ月チャート・定期更新） |
+
+## 果樹園しごと（`/portal/lab/`）
+
+気象・病害・農薬・作業記録をまとめた実験ページです（`portal-flags-lab.js` で機能ON/OFF）。**気象**は `/portal/api/dashboard`・`/portal/api/weather`（MET Norway）、**りんご・なし病害**は `/portal/api/orchard-risk`（MET 予報 + NASA POWER 履歴）に接続します。
+
+### レイアウト（v0.1.0）
 
 ```
-[[果樹園名](地名)] [果実園しごと PNG ロゴ]          [⚙ 設定]
-[果樹園経営を、もっとシンプルに。 ℹ]
-[AI質問箱（果実栽培・入力欄・注意4カ条）]
-[48h 天気予報ウィジェット]  「もっと詳しく」→ /portal/spray/
-┌─────────────────┬─────────────────┐
-│ 病害リスク予測   │ 摘果適時・収穫時期予測 │
-└─────────────────┴─────────────────┘
-[果実園しごとノート（Google スプレッドシート連携）]
-┌─────────────────┬─────────────────┐
-│ 成長能(Growth   │ 農薬検索         │
-│  Potential)     │ → /portal/rac/  │
-└─────────────────┴─────────────────┘
-[果物の卸売相場（参考）— 東京・大阪・名古屋・福岡 / 産地別・品種展開]
-[果実園しごとシリーズ（2列カードグリッド）]
-[PR | ブログ | YouTube バナー（3列）]
-[フッター: 気象クレジット / グロウアンドプログレス / v1.2.2]
+[果樹園しごと PNG ロゴ]  [⚙ 設定]
+[ブランド説明 ℹ]  [AI質問箱]
+[48h 天気予報]  → /portal/spray/
+[病害リスク予報: りんご・なし / ぶどう / もも + ℹ]
+[果樹農薬検索 → /portal/rac/]
+[果樹園しごとノート]
+[フッター: MET Norway / NASA POWER · v0.1.0]
 ```
 
 | 機能 | 説明 |
 |------|------|
-| タイトル | `[果樹園名](地名)` + **果実園しごと PNG ロゴ**（横並び・中央寄せ）。地名は逆ジオコーディング（Nominatim）で取得し Cookie に保存 |
-| ブランドメッセージ | ロゴ下に「果樹園経営を、もっとシンプルに。」。右の **ℹ** でサイト説明（PC: ホバー、スマホ: タップ） |
-| 設定 | 果樹園名・緯度経度・栽培タイプ・植物タイプ・林檎品種・梨品種・AI回答モードなど（Cookie `portalSettings` に保存） |
-| AI質問箱 | タイトル下の入力欄から Gemini による果実栽培 Q&A（Cloudflare Functions） |
-| 天気予報 | 48h 横スクロールウィジェット。「もっと詳しく」から `/portal/spray/` へ（予報データはキャッシュ利用） |
-| 病害リスク予測 | 翌日・明後日 朝6:00 時点の5病害リスク（%）。各病害名横に「判定ロジック」モーダル |
-| 摘果適時・収穫時期予測 | 満開日からの DAFB（摘果適時）ゲージ、および満開日からの収穫適時積算温度（GDD）ゲージ |
-| 果実園しごとノート | Google 連携で作業履歴をスプレッドシートに保存（Growth Potential の上に表示） |
-| 成長能(Growth Potential) | 昨年の月平均気温から算出した GP 曲線。右隣に農薬検索パネル |
-| 農薬検索 | 農薬名・病害虫名で検索し `/portal/rac/` へ遷移して結果一覧を自動表示（URL クエリ `pesticide` / `target`） |
-| 果物の卸売相場（参考） | 農水省「青果物卸売市場調査」日別 CSV から、東京・大阪・名古屋・福岡の **卸売平均価格** を表示。市場比較サマリー＋産地別一覧（品種展開） |
-| 果実園しごとシリーズ | 関連アプリへのリンクカード（2列）。各カード名横の **ℹ** で説明文を表示 |
-| 関連バナー | PR・ブログ・YouTube を 3 列 1 行（最大幅 720px）でフッター上に表示 |
-| フッター | 気象データクレジット・グロウアンドプログレスリンク・**v1.2.2** |
+| 設定 | 果樹園名・緯度経度・品種など（Cookie `portalSettings`） |
+| 天気予報 | 48h ウィジェット（dashboard API） |
+| 病害リスク予報 | 3果樹アプリへの導線 |
+| 果樹農薬検索 | `crop` / `pesticide` / `target` で楽RACへ |
+| ノート | Google スプレッドシート連携 |
 
 ### 設定（⚙）
 
@@ -240,6 +239,14 @@ spray ページは `portalSettings` Cookie の緯度経度を優先して読み�
 
 > v1.0 以前の履歴は fork 元 [tool-portal](https://github.com/hitoshi4148/tool-portal)（芝しごとポータル）のものです。
 
+### v0.1.0（2026-11）
+
+- **構成**: `/portal/` を卸値ナビ、`/portal/lab/` を果樹園しごと（実験）に分離
+- **病害**: りんご・なし（気象API連携）、ぶどう・桃（UIサンプル）、Lab から導線
+- **API**: `GET /portal/api/orchard-risk`（MET Norway + NASA POWER）
+- **Lab UI**: 病害リスクリンクブロック・果樹農薬検索（`crop` 対応）・ノート。成長能/GP・シリーズ・旧病害パネルは非表示
+- **小売価格**: MAFF 果樹 PDF 同期・Cron 更新
+
 ### v1.2.2（2026-10）
 
 - **簡易認証**: user name ゲートを削除（`/portal/` を直接表示）
@@ -293,9 +300,12 @@ npm run dev
 ブラウザで以下を開いてください:
 
 - http://127.0.0.1:8790/portal/
+- http://127.0.0.1:8790/portal/lab/
+- http://127.0.0.1:8790/portal/risk/
+- http://127.0.0.1:8790/portal/grape-risk/
+- http://127.0.0.1:8790/portal/peach-risk/
 - http://127.0.0.1:8790/portal/spray/
 - http://127.0.0.1:8790/portal/rac/
-- http://127.0.0.1:8790/portal/risk/
 
 AI質問箱・果実園しごとノートをローカルで試す場合は `.dev.vars` に `GEMINI_API_KEY` / `GOOGLE_OAUTH_CLIENT_ID` が必要です。
 

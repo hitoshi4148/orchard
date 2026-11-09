@@ -490,6 +490,78 @@ section h2 {
     margin-bottom: 12px;
 }
 
+.fruit-disease-risk-nav {
+    background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 55%);
+    border: 1px solid #86efac;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+
+.fruit-disease-risk-nav-title {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #14532d;
+}
+
+.fruit-disease-risk-nav-lead {
+    margin: 0 0 12px;
+    font-size: 0.82rem;
+    color: #4b5563;
+    line-height: 1.45;
+}
+
+.fruit-disease-risk-nav-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: center;
+}
+
+.fruit-disease-risk-nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.fruit-disease-risk-nav-item .series-info-popover {
+    z-index: 40;
+}
+
+.fruit-disease-risk-nav-item:last-child .series-info-popover {
+    left: auto;
+    right: 0;
+}
+
+.fruit-disease-risk-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 7.5rem;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid #86efac;
+    background: #fff;
+    color: #166534;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.fruit-disease-risk-nav-btn:hover {
+    background: #15803d;
+    border-color: #15803d;
+    color: #fff;
+}
+
+.fruit-disease-risk-nav-btn:focus-visible {
+    outline: 2px solid #15803d;
+    outline-offset: 2px;
+}
+
 .weather-more-link {
     position: absolute;
     top: 12px;
@@ -606,12 +678,12 @@ section h2 {
 
 .weather-hour-row {
     display: flex;
-    min-height: 150px;
+    min-height: 0;
 }
 
 .weather-hour-cell {
-    flex: 0 0 72px;
-    padding: 10px 6px;
+    flex: 0 0 68px;
+    padding: 6px 4px 8px;
     text-align: center;
     border-right: 1px solid #eee;
     background: white;
@@ -622,35 +694,35 @@ section h2 {
 }
 
 .weather-hour-time {
-    font-size: 0.82em;
+    font-size: 0.78em;
     font-weight: 600;
     color: #2c3e50;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
 }
 
 .weather-hour-icon {
-    font-size: 1.6em;
+    font-size: 1.35em;
     line-height: 1;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
 }
 
 .weather-hour-temp {
-    font-size: 1.05em;
+    font-size: 0.95em;
     font-weight: 700;
     color: #2c3e50;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .weather-hour-meta {
-    font-size: 0.75em;
+    font-size: 0.7em;
     color: #6c757d;
-    line-height: 1.35;
+    line-height: 1.25;
 }
 
 .weather-hour-precip {
-    font-size: 0.72em;
+    font-size: 0.68em;
     color: #667eea;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .disease-risk-section {
@@ -909,6 +981,23 @@ section h2 {
     font-weight: bold;
     border-bottom: 2px solid #E5E7EB;
     padding-bottom: 6px;
+}
+
+.portal-rac-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.portal-rac-field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.portal-rac-select {
+    cursor: pointer;
 }
 
 .portal-rac-input {
@@ -1968,6 +2057,102 @@ section h2 {
 @media (max-width: 768px) {
     .fruit-market-summary-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 実験ページ（/portal/lab/） */
+.portal-header--lab {
+    margin-bottom: 8px;
+}
+
+.portal-header--lab .portal-header-text {
+    overflow: visible;
+}
+
+.portal-lab-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 14px;
+    margin: 0 0 4px;
+    width: 100%;
+}
+
+.portal-title--lab {
+    margin: 0;
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.portal-title-logo-track--lab {
+    overflow: visible;
+    max-width: min(100%, 720px);
+}
+
+.portal-title-logo--lab {
+    width: min(100%, 720px);
+    max-height: none;
+    margin: 0;
+    animation: none;
+}
+
+.portal-title-logo-track--lab::after {
+    display: none;
+}
+
+.portal-lab-subtitle {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #9ca3af;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    white-space: nowrap;
+    align-self: center;
+}
+
+.portal-title-prefix:not(.hidden) + .portal-title-logo-track--lab .portal-title-logo--lab {
+    width: min(100%, 640px);
+}
+
+.series-grid--lab {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.portal-lab-entry {
+    margin: 0 0 10px;
+    padding: 0;
+    text-align: center;
+}
+
+.footer-lab-entry {
+    margin-bottom: 6px;
+}
+
+.portal-lab-entry-link {
+    font-size: 0.7rem;
+    color: #d1d5db;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+}
+
+.portal-lab-entry-link:hover,
+.portal-lab-entry-link:focus-visible {
+    color: #9ca3af;
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .portal-lab-title-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .portal-lab-subtitle {
+        align-self: center;
     }
 }
 

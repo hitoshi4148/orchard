@@ -1,0 +1,575 @@
+/* りんご・なし病害リスク予報 */
+.apple-risk-page {
+  --apple-green: #15803d;
+  --apple-green-soft: #ecfdf5;
+  --apple-green-border: #86efac;
+  --apple-text: #1f2937;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 16px 32px;
+  color: var(--apple-text);
+}
+
+.apple-risk-back {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+}
+
+.apple-risk-back a {
+  color: #166534;
+  text-decoration: none;
+}
+
+.apple-risk-back a:hover {
+  text-decoration: underline;
+}
+
+.apple-risk-header {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 55%, #ffffff 100%);
+  border: 1px solid var(--apple-green-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.apple-risk-header h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 4vw, 1.55rem);
+  color: #14532d;
+  font-weight: 800;
+}
+
+.apple-risk-subtitle {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  color: #374151;
+  line-height: 1.45;
+}
+
+.apple-risk-crop-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.apple-risk-crop-tab {
+  border: 1px solid var(--apple-green-border);
+  background: #fff;
+  color: #166534;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.apple-risk-crop-tab.is-active {
+  background: var(--apple-green);
+  border-color: var(--apple-green);
+  color: #fff;
+}
+
+.apple-risk-variety {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.apple-risk-variety-select {
+  border: 1px solid var(--apple-green-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.84rem;
+  background: #fff;
+}
+
+.apple-risk-stage-emphasis {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.apple-risk-header-stages {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--apple-green-border);
+}
+
+.apple-risk-header-stages-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.apple-risk-header-stages-lead {
+  margin-bottom: 10px;
+}
+
+.apple-risk-header-actions {
+  margin-top: 12px;
+}
+
+.apple-risk-loading {
+  text-align: center;
+  padding: 24px;
+  color: #166534;
+  font-size: 0.95rem;
+}
+
+.apple-risk-fetch-error {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 0.85rem;
+}
+
+.apple-risk-fetch-ok {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  background: #ecfdf5;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  color: #14532d;
+  font-size: 0.82rem;
+}
+
+.apple-risk-rationale-block {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.apple-risk-rationale-block summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #14532d;
+}
+
+.apple-risk-inline-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+}
+
+.apple-risk-inline-dl dt {
+  color: #6b7280;
+}
+
+.apple-risk-inline-dl dd {
+  margin: 0;
+}
+
+.apple-risk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  font-size: 0.84rem;
+  color: #4b5563;
+}
+
+.apple-risk-meta strong {
+  color: #111827;
+}
+
+.apple-risk-demo-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.apple-risk-btn {
+  border: 1px solid var(--apple-green-border);
+  background: #fff;
+  color: var(--apple-green);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.apple-risk-btn:hover {
+  background: var(--apple-green-soft);
+}
+
+.apple-risk-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.apple-risk-section h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: #14532d;
+}
+
+.apple-risk-section-lead {
+  margin: 0 0 12px;
+  font-size: 0.84rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.apple-risk-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.apple-risk-summary-card {
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+}
+
+.apple-risk-summary-card .card-day {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.apple-risk-summary-card .card-level {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.apple-risk-summary-card .card-note {
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+.risk-low {
+  background: #ecfdf5;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.risk-caution {
+  background: #fefce8;
+  border-color: #fde047;
+  color: #a16207;
+}
+
+.risk-high {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.apple-risk-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.apple-risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 520px;
+}
+
+.apple-risk-table th,
+.apple-risk-table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.apple-risk-table th {
+  background: var(--apple-green-soft);
+  color: #14532d;
+  font-weight: 600;
+}
+
+.apple-risk-table td:first-child,
+.apple-risk-table th:first-child {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.apple-risk-table .disease-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #166534;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.apple-risk-pill {
+  display: inline-block;
+  min-width: 2.6em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.apple-risk-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.apple-risk-stage {
+  flex: 1 1 120px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.78rem;
+  text-align: center;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.apple-risk-stage.is-current {
+  background: var(--apple-green-soft);
+  border-color: var(--apple-green);
+  color: #14532d;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
+}
+
+.apple-risk-stage selectable {
+  cursor: pointer;
+}
+
+button.apple-risk-stage {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.apple-risk-weather-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.apple-risk-weather-row {
+  display: grid;
+  grid-template-columns: 64px repeat(6, 1fr);
+  gap: 4px;
+  font-size: 0.75rem;
+  align-items: center;
+}
+
+.apple-risk-weather-row .label {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.apple-risk-weather-head {
+  font-weight: 700;
+  color: #14532d;
+  background: var(--apple-green-soft);
+  border-radius: 6px;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.apple-risk-weather-cell {
+  text-align: center;
+  padding: 6px 2px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.apple-risk-wet-est {
+  font-size: 0.65rem;
+  color: #9ca3af;
+}
+
+.apple-risk-onset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.apple-risk-onset-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.apple-risk-onset-card h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #14532d;
+}
+
+.apple-risk-onset-dl {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.apple-risk-onset-dl dt {
+  color: #6b7280;
+}
+
+.apple-risk-onset-dl dd {
+  margin: 0;
+  color: #111827;
+}
+
+.apple-risk-timeline {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.apple-risk-timeline-bar {
+  display: flex;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f3f4f6;
+  margin-top: 8px;
+}
+
+.apple-risk-timeline-seg {
+  flex: 1;
+  background: #d1fae5;
+  border-right: 1px solid #fff;
+  font-size: 0.55rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2px;
+  color: #047857;
+}
+
+.apple-risk-timeline-seg.has-event {
+  background: #fde68a;
+  color: #92400e;
+}
+
+.apple-risk-timeline-legend {
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+.apple-risk-rationale {
+  margin: 0;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-left: 3px solid var(--apple-green);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.apple-risk-details {
+  margin-top: 12px;
+  border: 1px solid var(--apple-green-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--apple-green-soft);
+}
+
+.apple-risk-details h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #14532d;
+}
+
+.apple-risk-details ul {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+  font-size: 0.84rem;
+}
+
+.apple-risk-details .model-note {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.apple-risk-modal.hidden {
+  display: none;
+}
+
+.apple-risk-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.apple-risk-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.apple-risk-modal-panel {
+  position: relative;
+  width: min(100%, 420px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.apple-risk-modal-panel label {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.apple-risk-modal-panel input,
+.apple-risk-modal-panel select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.apple-risk-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .apple-risk-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .apple-risk-weather-row {
+    grid-template-columns: 56px repeat(6, minmax(44px, 1fr));
+    font-size: 0.68rem;
+  }
+}

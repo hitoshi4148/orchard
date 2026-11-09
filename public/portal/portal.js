@@ -27,28 +27,22 @@ const AGROMAP_COOKIE_DAYS = 365;
 const LOCATION_NOT_SET_MESSAGE =
   "果樹園の場所が未設定です。右上の「⚙ 設定」から緯度・経度を入力してください";
 
-/** TOP の病害リスク予測・摘果適時・収穫時期予測パネル */
-const SHOW_PORTAL_INSIGHTS = false;
-/** TOP の果樹園しごとノート */
-const SHOW_WORK_MEMO = false;
-/** TOP の成長能(Growth Potential) */
-const SHOW_GROWTH_POTENTIAL = false;
-/** TOP の農薬検索 */
-const SHOW_RAC_SEARCH = false;
-/** TOP の「果実園しごとシリーズ」リンク一覧 */
-const SHOW_PORTAL_SERIES = false;
-/** TOP の設定ボタン（設定モーダル） */
-const SHOW_PORTAL_SETTINGS = false;
-/** TOP の AI 質問欄 */
-const SHOW_AI_ADVISOR = false;
-/** TOP の天気予報 */
-const SHOW_WEATHER = false;
-/** タイトル左の施設名・エリア表示 */
-const SHOW_PORTAL_TITLE_PREFIX = false;
-/** フッターの気象データ提供クレジット */
-const SHOW_FOOTER_WEATHER_CREDIT = false;
-/** ヘッダーサブタイトル横の i 説明 */
-const SHOW_PORTAL_BRAND_INFO = false;
+/** `/portal/lab/` では `portal-flags-lab.js` が各フラグを true にする */
+const PORTAL_PAGE = window.PORTAL_PAGE ?? {};
+const PORTAL_FEATURES = PORTAL_PAGE.features ?? {};
+const PORTAL_DOCUMENT_TITLE = PORTAL_PAGE.documentTitle ?? "果樹園しごと";
+
+const SHOW_PORTAL_INSIGHTS = PORTAL_FEATURES.insights === true;
+const SHOW_WORK_MEMO = PORTAL_FEATURES.workMemo === true;
+const SHOW_GROWTH_POTENTIAL = PORTAL_FEATURES.growthPotential === true;
+const SHOW_RAC_SEARCH = PORTAL_FEATURES.racSearch === true;
+const SHOW_PORTAL_SERIES = PORTAL_FEATURES.series === true;
+const SHOW_PORTAL_SETTINGS = PORTAL_FEATURES.settings === true;
+const SHOW_AI_ADVISOR = PORTAL_FEATURES.aiAdvisor === true;
+const SHOW_WEATHER = PORTAL_FEATURES.weather === true;
+const SHOW_PORTAL_TITLE_PREFIX = PORTAL_FEATURES.titlePrefix === true;
+const SHOW_FOOTER_WEATHER_CREDIT = PORTAL_FEATURES.footerWeatherCredit === true;
+const SHOW_PORTAL_BRAND_INFO = PORTAL_FEATURES.brandInfo === true;
 
 const SHOW_DISEASE_RISK_SECTION =
   SHOW_PORTAL_INSIGHTS ||
@@ -231,8 +225,7 @@ function updatePortalTitle(settings = loadSettings()) {
     }
   }
 
-  // GA4 のページタイトル集計を施設名・地名で分割しないため、document.title は固定のままにする。
-  document.title = "卸値ナビ";
+  document.title = PORTAL_DOCUMENT_TITLE;
 }
 
 const WARM_GRASS_LEGACY = {
@@ -499,7 +492,6 @@ function renderWeatherWidget(hourly, days) {
         <div class="weather-hour-time">${formatHourLabel(row.hour)}</div>
         <div class="weather-hour-icon">${hourIcon}</div>
         <div class="weather-hour-temp">${row.temp.toFixed(0)}°</div>
-        <div class="weather-hour-meta">${Math.round(row.humidity)}%</div>
         <div class="weather-hour-meta">${row.wind.toFixed(1)}m/s</div>
         <div class="weather-hour-precip">${row.precip.toFixed(1)}mm</div>
       </div>`;
@@ -585,12 +577,12 @@ async function loadPortalData() {
     renderWeatherPlaceholder("");
   }
   if (SHOW_PORTAL_INSIGHTS) {
-    insightsLoading.classList.remove("hidden");
+    insightsLoading?.classList.remove("hidden");
   }
   if (SHOW_DISEASE_RISK_SECTION) {
-    diseaseError.classList.add("hidden");
-    gddError.classList.add("hidden");
-    gpError.classList.add("hidden");
+    diseaseError?.classList.add("hidden");
+    gddError?.classList.add("hidden");
+    gpError?.classList.add("hidden");
   }
   if (SHOW_PORTAL_INSIGHTS) {
     renderDiseaseRiskPlaceholder("");
@@ -638,8 +630,10 @@ async function loadPortalData() {
       renderWeatherPlaceholder("天気予報を表示できませんでした。");
     }
     if (SHOW_PORTAL_INSIGHTS) {
-      diseaseError.textContent = err.message;
-      diseaseError.classList.remove("hidden");
+      if (diseaseError) {
+        diseaseError.textContent = err.message;
+        diseaseError.classList.remove("hidden");
+      }
       renderDiseaseRiskPlaceholder("病害リスクを表示できませんでした。");
     }
     if (SHOW_GROWTH_POTENTIAL) {
@@ -658,7 +652,7 @@ async function loadPortalData() {
     try {
       await gddPromise;
     } finally {
-      insightsLoading.classList.add("hidden");
+      insightsLoading?.classList.add("hidden");
     }
   }
 }
@@ -1431,18 +1425,24 @@ async function refreshAllGdd(settings = loadSettings()) {
   ]);
 }
 
-function validatePortalRacSearch(pesticideKeyword, targetKeyword) {
+function validatePortalRacSearch(pesticideKeyword, targetKeyword, cropKeyword = "") {
   const pesticide = pesticideKeyword.trim();
   const target = targetKeyword.trim();
+  const crop = cropKeyword.trim();
   const hasOneCharKeyword =
     (pesticide.length > 0 && pesticide.length < 2) ||
     (target.length > 0 && target.length < 2);
 
-  if ((!pesticide && !target) || hasOneCharKeyword) {
-    return { ok: false, message: "2文字以上で検索してください" };
+  if ((!pesticide && !target && !crop) || hasOneCharKeyword) {
+    return {
+      ok: false,
+      message: crop
+        ? "農薬名・病害虫名は2文字以上で入力してください"
+        : "対象果樹を選ぶか、2文字以上のキーワードを入力してください",
+    };
   }
 
-  return { ok: true, pesticide, target };
+  return { ok: true, pesticide, target, crop };
 }
 
 function initPortalRacSearch() {
@@ -1455,11 +1455,13 @@ function initPortalRacSearch() {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    const cropInput = document.getElementById("portal-rac-crop");
     const pesticideInput = document.getElementById("portal-rac-pesticide");
     const targetInput = document.getElementById("portal-rac-target");
     const result = validatePortalRacSearch(
       pesticideInput?.value ?? "",
-      targetInput?.value ?? ""
+      targetInput?.value ?? "",
+      cropInput?.value ?? ""
     );
 
     if (!result.ok) {
@@ -1477,6 +1479,9 @@ function initPortalRacSearch() {
     }
     if (result.target) {
       params.set("target", result.target);
+    }
+    if (result.crop) {
+      params.set("crop", result.crop);
     }
 
     const query = params.toString();
@@ -1568,6 +1573,14 @@ function applyPortalFeatureVisibility() {
   setPortalBlockVisibility("settings-open-btn", SHOW_PORTAL_SETTINGS);
   setPortalBlockVisibility("ai-advisor-section", SHOW_AI_ADVISOR);
   setPortalBlockVisibility("weather-section", SHOW_WEATHER);
+  setPortalBlockVisibility("weather-more-link", SHOW_WEATHER);
+  setPortalBlockVisibility("disease-risk-section", SHOW_DISEASE_RISK_SECTION);
+  setPortalBlockVisibility("portal-insights-row", SHOW_PORTAL_INSIGHTS);
+  setPortalBlockVisibility("portal-work-memo-row", SHOW_WORK_MEMO);
+  setPortalBlockVisibility(
+    "portal-gp-row",
+    SHOW_GROWTH_POTENTIAL || SHOW_RAC_SEARCH
+  );
   setPortalBlockVisibility("portal-title-prefix", SHOW_PORTAL_TITLE_PREFIX);
   setPortalBlockVisibility("footer-weather-credit", SHOW_FOOTER_WEATHER_CREDIT);
   setPortalBlockVisibility("portal-brand-info-anchor", SHOW_PORTAL_BRAND_INFO);
@@ -1582,9 +1595,12 @@ function initPortalApp() {
     document.getElementById("get-current-location-btn").addEventListener("click", getCurrentLocation);
     document.getElementById("save-settings-btn").addEventListener("click", handleSaveSettings);
   }
-  if (SHOW_DISEASE_RISK_SECTION) {
+  if (SHOW_DISEASE_RISK_SECTION && SHOW_PORTAL_INSIGHTS) {
     DiseaseRiskUI.init();
-    DiseaseRiskUI.bindLogicButtons(document.getElementById("disease-risk-area"));
+    const diseaseArea = document.getElementById("disease-risk-area");
+    if (diseaseArea) {
+      DiseaseRiskUI.bindLogicButtons(diseaseArea);
+    }
   }
   if (SHOW_WORK_MEMO) {
     WorkMemoUI.init(document.getElementById("work-memo-area"), loadSettings());

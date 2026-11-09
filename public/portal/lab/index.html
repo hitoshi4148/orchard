@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>果樹園しごと</title>
+    <link rel="icon" type="image/png" href="/portal/portal-title-logo.png?v=20251030oroshine">
+    <link rel="stylesheet" href="/portal/portal.css?v=20251110rac">
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+</head>
+<body class="portal-page-lab">
+    <div id="portal-main" class="portal-main">
+    <div class="container">
+        <div class="portal-header portal-header--lab">
+            <div class="portal-header-text">
+                <div class="portal-lab-title-row">
+                    <h1 id="portal-title" class="portal-title portal-title--lab">
+                        <span id="portal-title-prefix" class="portal-title-prefix hidden" hidden aria-hidden="true"></span>
+                        <span class="portal-title-logo-track portal-title-logo-track--lab">
+                            <img
+                                src="/portal/shigoto-title-logo.png?v=20251109"
+                                alt="果樹園しごと"
+                                class="portal-title-logo portal-title-logo--lab"
+                                width="1024"
+                                height="559"
+                            >
+                        </span>
+                    </h1>
+                    <span class="portal-lab-subtitle" aria-hidden="false">実験中</span>
+                </div>
+                <p class="portal-brand-line">
+                    <span class="portal-brand-message">果樹園経営に役立つ気象・病害・農薬・AI・データを、一か所にまとめたWebサイトです。</span>
+                    <span id="portal-brand-info-anchor" class="portal-brand-info-anchor hidden" hidden aria-hidden="true">
+                        <button type="button" class="portal-brand-info-btn" aria-label="果実園しごとについて">i</button>
+                        <span class="portal-brand-info-popover" role="tooltip">
+                            果実園しごとは、果樹園経営に役立つ気象・病害・農薬・AI・データを、一か所にまとめたWebサイトです。<br>
+                            現場で役立つことを第一に考え、すべて無料で公開しています。<br>
+                            個人情報は取得しません。設定などの情報は、お使いの端末のCookieに保存されます。<br>
+                            無料でサービスを継続するため、一部のアプリでは起動まで少し時間がかかる場合があります。ご理解・ご協力をお願いいたします。<br>
+                            皆さまからのご意見・ご要望をもとに、より使いやすいサービスを目指して改善を続けています。<br>
+                            <br>
+                            グロウアンドプログレス代表　吉信仁司
+                        </span>
+                    </span>
+                </p>
+            </div>
+            <button type="button" id="settings-open-btn" class="settings-btn hidden" aria-label="設定" hidden aria-hidden="true">
+                ⚙ 設定
+            </button>
+        </div>
+
+        <section class="ai-advisor-section hidden" id="ai-advisor-section" aria-label="AI質問" hidden aria-hidden="true">
+            <div class="ai-advisor-chat" id="ai-advisor-chat">
+                <div class="ai-advisor-messages collapsed" id="ai-advisor-messages" aria-live="polite"></div>
+                <div class="ai-advisor-input-row">
+                    <div class="ai-advisor-input-wrap">
+                        <textarea id="ai-advisor-input" rows="1" placeholder="果実栽培に関する質問を入力..." aria-label="AIへの質問"></textarea>
+                    </div>
+                    <button type="button" id="ai-advisor-send" class="btn-primary ai-advisor-send-btn">AIに質問</button>
+                </div>
+                <p class="ai-advisor-notice-line">
+                    <span class="ai-advisor-notice-anchor">
+                        <button type="button" class="ai-advisor-notice-btn" aria-label="AI利用時の注意4カ条を表示">ℹ 注意</button>
+                        <span class="ai-advisor-notice-popover" role="tooltip">
+                            <strong>AI利用時の注意4カ条</strong>
+                            ① 個人の名前や連絡先は入力しない<br>
+                            ② お客様の情報は入力しない<br>
+                            ③ 施設の管理計画や記録は入力しない<br>
+                            ④ 入力した内容は外部に送信されます
+                        </span>
+                    </span>
+                    <span class="ai-advisor-notice-brief">個人情報・顧客情報・管理記録は入力しないでください</span>
+                </p>
+            </div>
+        </section>
+
+        <section class="weather-section hidden" id="weather-section" hidden aria-hidden="true">
+            <a href="/portal/spray/" id="weather-more-link" class="weather-more-link hidden" title="ピンポイント天気で果実園しごと" hidden aria-hidden="true">もっと詳しく</a>
+            <div id="weather-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>気象データを取得中...</p>
+            </div>
+            <div id="weather-error" class="error hidden"></div>
+            <div id="weather-area">
+                <p class="weather-placeholder">読み込み中...</p>
+            </div>
+        </section>
+
+        <section class="fruit-disease-risk-nav" id="fruit-disease-risk-nav" aria-labelledby="fruit-disease-risk-nav-heading">
+            <h2 id="fruit-disease-risk-nav-heading" class="fruit-disease-risk-nav-title">病害リスク予報</h2>
+            <p class="fruit-disease-risk-nav-lead">果樹ごとの感染危険・発病予測アプリを開きます。</p>
+            <div class="fruit-disease-risk-nav-buttons">
+                <div class="fruit-disease-risk-nav-item">
+                    <a class="fruit-disease-risk-nav-btn" href="/portal/risk/">りんご・なし</a>
+                    <span class="series-info-anchor">
+                        <button type="button" class="series-info-btn" aria-label="りんご・なし病害リスク予報の説明">i</button>
+                        <span class="series-info-popover" role="tooltip">りんご・なしを切り替え。気象は MET Norway + NASA POWER。黒星病（りんご）は Mills 法、その他は順次モデル接続中。</span>
+                    </span>
+                </div>
+                <div class="fruit-disease-risk-nav-item">
+                    <a class="fruit-disease-risk-nav-btn" href="/portal/grape-risk/">ぶどう</a>
+                    <span class="series-info-anchor">
+                        <button type="button" class="series-info-btn" aria-label="ぶどう病害リスク予報の説明">i</button>
+                        <span class="series-info-popover" role="tooltip">5病害のリスク一覧・感染5日ヒートマップ・発病20日・気象グラフ（サンプルデータのみ）。</span>
+                    </span>
+                </div>
+                <div class="fruit-disease-risk-nav-item">
+                    <a class="fruit-disease-risk-nav-btn" href="/portal/peach-risk/">もも</a>
+                    <span class="series-info-anchor">
+                        <button type="button" class="series-info-btn" aria-label="桃病害リスク予報の説明">i</button>
+                        <span class="series-info-popover" role="tooltip">5病害・感染5日・発病20日・生育×病害ガイド・気象グラフ（サンプルのみ）。</span>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <section class="disease-risk-section hidden" id="disease-risk-section" hidden aria-hidden="true">
+            <div id="disease-risk-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>GPを取得中...</p>
+            </div>
+            <div id="disease-risk-error" class="error hidden" hidden aria-hidden="true"></div>
+            <div id="gdd-error" class="error hidden" hidden aria-hidden="true"></div>
+            <div id="portal-gp-row" class="portal-gp-row portal-gp-rac-row hidden" hidden aria-hidden="true">
+                <div class="portal-rac-search-col">
+                    <form id="portal-rac-search-form" class="portal-rac-search-panel" action="/portal/rac/" method="get" novalidate>
+                        <h3 class="portal-rac-search-title">果樹農薬検索</h3>
+                        <label class="portal-rac-field" for="portal-rac-crop">
+                            <span class="portal-rac-field-label">対象果樹</span>
+                            <select id="portal-rac-crop" name="crop" class="portal-rac-input portal-rac-select">
+                                <option value="">指定なし</option>
+                                <option value="りんご">りんご</option>
+                                <option value="なし">なし</option>
+                                <option value="桃">桃</option>
+                                <option value="ぶどう">ぶどう</option>
+                                <option value="かき">かき</option>
+                                <option value="みかん">みかん</option>
+                                <option value="果樹">果樹（広め）</option>
+                            </select>
+                        </label>
+                        <label class="portal-rac-field" for="portal-rac-pesticide">
+                            <span class="portal-rac-field-label">農薬名・メーカー名</span>
+                            <input type="text" id="portal-rac-pesticide" name="pesticide" class="portal-rac-input" placeholder="例: ポリラム" autocomplete="off">
+                        </label>
+                        <label class="portal-rac-field" for="portal-rac-target">
+                            <span class="portal-rac-field-label">病害名・害虫名・雑草名</span>
+                            <input type="text" id="portal-rac-target" name="target" class="portal-rac-input" placeholder="例: 黒星病" autocomplete="off">
+                        </label>
+                        <button type="submit" class="btn-primary portal-rac-search-btn">楽RACで検索</button>
+                        <p class="portal-rac-search-desc"><a href="/portal/rac/">果樹園しごと・楽RAC農薬ローテ</a>を開き、RACコードをもとにローテーション候補を確認できます。</p>
+                        <p id="portal-rac-search-error" class="portal-rac-search-error hidden" role="alert"></p>
+                    </form>
+                </div>
+            </div>
+            <div id="portal-work-memo-row" class="portal-work-memo-row hidden" hidden aria-hidden="true">
+                <div id="work-memo-area"></div>
+            </div>
+        </section>
+
+        <footer>
+            <p id="footer-weather-credit" class="hidden" hidden aria-hidden="true">気象データ提供: <a href="https://www.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> / <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER</a></p>
+            <p class="footer-gp">
+                <span class="footer-gp-link footer-gp-brand">
+                    <img src="/portal/farmlabo-logo.jpg?v=20251030" alt="FarmLabo" class="footer-gp-logo" width="200" height="200">
+                    <span class="footer-gp-name">FarmLabo</span>
+                </span>
+            </p>
+            <p class="footer-version">v0.1.0</p>
+        </footer>
+    </div>
+
+    <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div id="settings-backdrop" class="modal-backdrop"></div>
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h2 id="settings-title">設定</h2>
+                <button type="button" id="settings-close-btn" class="modal-close" aria-label="閉じる">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="settings-facility-name">果樹園名</label>
+                    <input type="text" id="settings-facility-name" placeholder="例: ○○果樹園">
+                </div>
+
+                <div class="setting-group">
+                    <h3>場所</h3>
+                    <label for="settings-lat">緯度 (Latitude)</label>
+                    <input type="number" id="settings-lat" step="0.0001" placeholder="例: 35.5">
+
+                    <label for="settings-lon">経度 (Longitude)</label>
+                    <input type="number" id="settings-lon" step="0.0001" placeholder="例: 139.6">
+
+                    <p class="help-text">※Googleマップ等で右クリック → 「座標をコピー」で取得できます。</p>
+                    <button type="button" id="get-current-location-btn" class="btn-secondary">現在地を取得</button>
+                    <div id="location-status" class="location-status"></div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>栽培タイプ</h3>
+                    <div class="radio-group">
+                        <label><input type="radio" name="locationType" value="未指定" checked> 未指定</label>
+                        <label><input type="radio" name="locationType" value="ハウス栽培"> ハウス栽培</label>
+                        <label><input type="radio" name="locationType" value="露地栽培"> 露地栽培</label>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>植物タイプ</h3>
+                    <div class="radio-group">
+                        <label><input type="radio" name="greenType" value="未指定" checked> 未指定</label>
+                        <label><input type="radio" name="greenType" value="仁科類"> 仁科類</label>
+                        <label><input type="radio" name="greenType" value="核果類"> 核果類</label>
+                        <label><input type="radio" name="greenType" value="漿果類"> 漿果類</label>
+                        <label><input type="radio" name="greenType" value="柑橘類"> 柑橘類</label>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label for="warmGrass">林檎品種</label>
+                    <select id="warmGrass">
+                        <option value="未指定">未指定</option>
+                        <option value="ぐんま名月">ぐんま名月</option>
+                        <option value="陽光">陽光</option>
+                        <option value="おぜの紅">おぜの紅</option>
+                        <option value="紅鶴">紅鶴</option>
+                        <option value="あかぎ">あかぎ</option>
+                        <option value="スリムレッド">スリムレッド</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label for="coolGrass">梨品種</label>
+                    <select id="coolGrass">
+                        <option value="未指定">未指定</option>
+                        <option value="幸水">幸水</option>
+                        <option value="豊水">豊水</option>
+                        <option value="あきづき">あきづき</option>
+                        <option value="新高">新高</option>
+                        <option value="群馬N2号">群馬N2号</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <h3>AI 回答モード</h3>
+                    <div class="radio-group">
+                        <label><input type="radio" name="responseMode" value="未指定"> 未指定</label>
+                        <label><input type="radio" name="responseMode" value="慎重に回答" checked> 慎重に回答</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="save-settings-btn" class="btn-primary">設定を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="disease-logic-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="disease-logic-title">
+        <div id="disease-logic-backdrop" class="modal-backdrop"></div>
+        <div class="modal-panel disease-logic-panel">
+            <div class="modal-header">
+                <h2 id="disease-logic-title">判定ロジック</h2>
+                <button type="button" id="disease-logic-close-btn" class="modal-close" aria-label="閉じる">×</button>
+            </div>
+            <div class="modal-body" id="disease-logic-body"></div>
+        </div>
+    </div>
+    </div>
+
+    <script src="/portal/portal-flags-lab.js?v=20251110nogp"></script>
+    <script src="/portal/disease-risk-ui.js?v=20250727v007"></script>
+    <script src="/portal/work-memo-ui.js?v=20250807v001"></script>
+    <script src="/portal/portal.js?v=20251110rac"></script>
+</body>
+</html>
