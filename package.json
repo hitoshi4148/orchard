@@ -6,7 +6,7 @@
     "dev": "wrangler pages dev public --port 8790",
     "deploy": "npm run sync:fruit-retail && wrangler pages deploy public --project-name=orchard --commit-dirty=true",
     "pages:deploy": "wrangler pages deploy public --project-name=orchard --commit-dirty=true",
-    "test:marssonina": "tsx --test src/orchard-risk/marssonina-infection.test.ts",
+    "test:marssonina": "tsx --test src/orchard-risk/marssonina-infection.test.ts src/orchard-risk/marssonina-gdd.test.ts",
     "test:marssonina:integration": "tsx --test src/orchard-risk/marssonina-infection.integration.test.ts",
     "deploy:router": "wrangler deploy --config workers/turf-tools-router/wrangler.toml",
     "deploy:fruit-retail-cron": "wrangler deploy --config workers/fruit-retail-cron/wrangler.toml"

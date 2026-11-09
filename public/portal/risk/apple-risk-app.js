@@ -196,10 +196,24 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<dt>気象探索</dt><dd>一部のみ・未探索期間あり（${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}・${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
               : `<dt>気象探索</dt><dd>${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}（${item.marssoninaNasaWindow.hourlyCount} 件・全期間）</dd>`
             : "";
+        const gdd = item.marssoninaGdd;
+        const gddDetail = gdd
+          ? `<dt>基準 / 目安</dt><dd>${gdd.baseTempC}℃ / ${gdd.thresholdDayC} 日℃（猫塚 2023 参考・未検証）</dd>
+            <dt>159日℃ 到達</dt><dd>${escapeHtml(gdd.thresholdStatusLabel)}</dd>
+            <dt>実測積算期間</dt><dd>${escapeHtml(gdd.measuredPeriodStart)}〜${escapeHtml(gdd.measuredPeriodEnd)}（${gdd.measuredGddDayC} 日℃）</dd>
+            <dt>予報積算期間</dt><dd>${
+              gdd.forecastPeriodStart
+                ? `${escapeHtml(gdd.forecastPeriodStart)}〜${escapeHtml(gdd.forecastPeriodEnd)}（+${gdd.forecastGddDayC} 日℃）`
+                : "—"
+            }</dd>
+            <dt>欠測日数</dt><dd>${gdd.missingDailyCount} 日（0℃ 扱いなし）</dd>
+            <dt>データ品質</dt><dd>${escapeHtml(gdd.dataQuality)}</dd>
+            <dt>モデル信頼度</dt><dd>${escapeHtml(gdd.modelConfidence)}</dd>`
+          : "";
         const confidenceRow =
           isMarssoninaUnset || isMarssoninaNoData
             ? ""
-            : `<dt>確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
+            : `<dt>表示上の確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
         }">
@@ -210,10 +224,13 @@ document.addEventListener("DOMContentLoaded", () => {
             ${coverageDetail}
             <dt>感染後積算</dt><dd>${
               item.gddSinceInfectionDayC != null
-                ? `${item.gddSinceInfectionDayC} 日℃（仮）`
-                : "—（GDD 未接続）"
+                ? `${item.gddSinceInfectionDayC} 日℃（実測・候補翌日起算）`
+                : isMarssoninaPartialRef
+                  ? "—（参考候補のため未計算）"
+                  : "—"
             }</dd>
-            <dt>発病予測時期</dt><dd>${escapeHtml(item.predictedOnsetWindow)}</dd>
+            ${gddDetail}
+            <dt>発病時期（推定）</dt><dd>${escapeHtml(item.predictedOnsetWindow)}</dd>
             ${confidenceRow}
           </dl>
           <p class="apple-risk-wet-est">${escapeHtml(item.note)}</p>

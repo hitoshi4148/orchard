@@ -71,6 +71,27 @@ export interface OrchardOnsetRow {
     hourlyCount: number;
     requestedDays: number;
   };
+  marssoninaGdd?: {
+    gddStartDate: string;
+    gddStartAssumption: string;
+    baseTempC: number;
+    thresholdDayC: number;
+    measuredGddDayC: number;
+    forecastGddDayC: number;
+    totalGddThroughForecastDayC: number;
+    missingDailyCount: number;
+    measuredPeriodStart: string;
+    measuredPeriodEnd: string;
+    forecastPeriodStart: string | null;
+    forecastPeriodEnd: string | null;
+    thresholdStatusLabel: string;
+    estimatedOnsetDate: string | null;
+    onsetSource: "measured" | "forecast" | null;
+    dataQuality: "full" | "degraded" | "insufficient";
+    modelConfidence: "低" | "中";
+  };
+  dataQuality?: "full" | "degraded" | "insufficient";
+  modelConfidence?: "低" | "中";
 }
 
 export interface OrchardRiskForecast {

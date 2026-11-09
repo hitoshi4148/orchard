@@ -4,6 +4,7 @@ import {
   addDaysToDateString,
   jstTodayString,
 } from "../disease/met-norway-forecast";
+import { MarssoninaGddEstimate } from "./marssonina-gdd";
 import { MarssoninaInfectionSearchResult } from "./marssonina-infection";
 import { OrchardOnsetRow, RiskLevel } from "./types";
 import { percentToInfectionLevel } from "./risk-level";
@@ -38,15 +39,52 @@ export function buildMarssoninaBloomUnsetOnset(): OrchardOnsetRow {
   };
 }
 
-/** P2: 気象探索結果から褐斑発病行を組み立て（GDD・発病日は未接続） */
+function marssoninaGddFields(gdd: MarssoninaGddEstimate | null) {
+  if (!gdd) {
+    return {
+      gddSinceInfectionDayC: null as number | null,
+      marssoninaGdd: undefined,
+      dataQuality: undefined,
+      modelConfidence: undefined as "低" | "中" | undefined,
+    };
+  }
+  return {
+    gddSinceInfectionDayC: gdd.measuredGddDayC,
+    marssoninaGdd: {
+      gddStartDate: gdd.gddStartDate,
+      gddStartAssumption: gdd.gddStartAssumption,
+      baseTempC: gdd.baseTempC,
+      thresholdDayC: gdd.thresholdDayC,
+      measuredGddDayC: gdd.measuredGddDayC,
+      forecastGddDayC: gdd.forecastGddDayC,
+      totalGddThroughForecastDayC: gdd.totalGddThroughForecastDayC,
+      missingDailyCount: gdd.missingDailyCount,
+      measuredPeriodStart: gdd.measuredPeriodStart,
+      measuredPeriodEnd: gdd.measuredPeriodEnd,
+      forecastPeriodStart: gdd.forecastPeriodStart,
+      forecastPeriodEnd: gdd.forecastPeriodEnd,
+      thresholdStatusLabel: gdd.thresholdStatusLabel,
+      estimatedOnsetDate: gdd.estimatedOnsetDate,
+      onsetSource: gdd.onsetSource,
+      dataQuality: gdd.dataQuality,
+      modelConfidence: gdd.modelConfidence,
+    },
+    dataQuality: gdd.dataQuality,
+    modelConfidence: gdd.modelConfidence,
+  };
+}
+
+/** P2+P3: 気象探索と GDD による発病時期推定 */
 export function buildMarssoninaOnsetFromSearch(
   bloomStart: string,
-  search: MarssoninaInfectionSearchResult
+  search: MarssoninaInfectionSearchResult,
+  gdd: MarssoninaGddEstimate | null = null
 ): OrchardOnsetRow {
+  const gddFields = marssoninaGddFields(gdd);
   const base = {
     diseaseId: "apple:marssonina" as const,
-    gddSinceInfectionDayC: null,
-    confidence: "低" as const,
+    ...gddFields,
+    confidence: (gdd?.modelConfidence ?? "低") as "低" | "中",
     modelStatus: "gdd" as const,
     isDemo: false,
     bloomStart,
@@ -61,15 +99,23 @@ export function buildMarssoninaOnsetFromSearch(
     },
   };
 
+  const gddAssumptionNote =
+    "積算起算: 一次感染候補日の翌日（論文定義は未確認の仮定）。猫塚（2023）159日℃・基準4.6℃は参考値であり論文再現ではありません。";
+
   if (search.marssoninaStatus === "primary_infection_estimated" && search.primary) {
     const p = search.primary;
+  const predicted =
+      gdd?.predictedOnsetWindow ?? "—（積算データ未取得）";
     return {
       ...base,
       estimatedInfectionDate: p.infectionDate,
-      predictedOnsetWindow: "—（発病予測・GDD は次フェーズ）",
+      predictedOnsetWindow: predicted,
       note:
-        `一次感染候補（推定）: 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・濡れ中平均 ${p.wetAvgTempC}℃（葉面濡れ推定）。` +
-        `候補日は濡れ期間終了日（JST）。猫塚（2023）閾値参考・論文日付定義との一致は未確認。1st 飛散ピークの確定ではありません。`,
+        `一次感染候補（推定）: 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・濡れ中平均 ${p.wetAvgTempC}℃。` +
+        ` ${gddAssumptionNote}` +
+        (gdd
+          ? ` 感染後積算（実測）${gdd.measuredGddDayC} 日℃、予報込 ${gdd.totalGddThroughForecastDayC} 日℃。欠測日 ${gdd.missingDailyCount} 日。データ品質=${gdd.dataQuality}、モデル信頼度=${gdd.modelConfidence}。`
+          : ""),
     };
   }
 
@@ -79,7 +125,7 @@ export function buildMarssoninaOnsetFromSearch(
     return {
       ...base,
       estimatedInfectionDate: p.infectionDate,
-      predictedOnsetWindow: "—（発病予測・GDD は次フェーズ）",
+      predictedOnsetWindow: "—（一次感染候補が参考のため GDD 未接続）",
       note:
         `取得範囲内の感染候補（参考）: 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・平均 ${p.wetAvgTempC}℃。` +
         `開花始期 ${search.nasaWindow.bloomStart}〜${search.nasaWindow.fetchEnd} の全時刻を取得できていないため、正式な一次感染候補とはしません（欠損おおよそ ${Math.max(0, missing)} 時間）。`,

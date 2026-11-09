@@ -25,6 +25,7 @@ import {
   calcNashiScabPlaceholder,
   calcWetTempHeuristic,
 } from "./infection-calculators";
+import { computeMarssoninaGddEstimate } from "./marssonina-gdd";
 import {
   fetchMarssoninaExplorationHourly,
   resolveMarssoninaNasaWindow,
@@ -128,7 +129,8 @@ function calculateForDisease(
 function buildOnsetRows(
   cropId: OrchardCropId,
   bloomStart: string | null,
-  marssoninaSearch: ReturnType<typeof searchPrimaryMarssoninaInfection> | null
+  marssoninaSearch: ReturnType<typeof searchPrimaryMarssoninaInfection> | null,
+  marssoninaGdd: ReturnType<typeof computeMarssoninaGddEstimate> | null
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -142,7 +144,13 @@ function buildOnsetRows(
       if (cropId !== "apple" || !bloomStart) {
         rows.push(buildMarssoninaBloomUnsetOnset());
       } else if (marssoninaSearch) {
-        rows.push(buildMarssoninaOnsetFromSearch(bloomStart, marssoninaSearch));
+        rows.push(
+          buildMarssoninaOnsetFromSearch(
+            bloomStart,
+            marssoninaSearch,
+            marssoninaGdd
+          )
+        );
       } else {
         rows.push(buildMarssoninaBloomUnsetOnset());
       }
@@ -210,6 +218,31 @@ export async function fetchOrchardRiskForecast(
           marssoninaFetchFailed
         )
       : null;
+
+  let marssoninaGdd = null as ReturnType<
+    typeof computeMarssoninaGddEstimate
+  > | null;
+
+  if (
+    cropId === "apple" &&
+    marssoninaSearch?.marssoninaStatus === "primary_infection_estimated" &&
+    marssoninaSearch.primary
+  ) {
+    const infectionDate = marssoninaSearch.primary.infectionDate;
+    const gddStart = addDaysToDateString(infectionDate, 1);
+    try {
+      const gddDaily = await fetchNasaPowerDaily(lat, lon, gddStart, endDate);
+      marssoninaGdd = computeMarssoninaGddEstimate(
+        infectionDate,
+        gddDaily,
+        forecastHourly,
+        endDate,
+        today
+      );
+    } catch {
+      marssoninaGdd = null;
+    }
+  }
 
   const weather5d = buildSixDayWeather(forecastHourly);
   const varietyFactor = getVarietyFactor(cropId, variety);
@@ -292,7 +325,8 @@ export async function fetchOrchardRiskForecast(
     onset: buildOnsetRows(
       cropId,
       cropId === "apple" ? bloomStart : null,
-      marssoninaSearch
+      marssoninaSearch,
+      marssoninaGdd
     ),
     modelStatusByDisease,
     demoDiseaseIds,
