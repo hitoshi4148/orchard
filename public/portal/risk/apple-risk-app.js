@@ -152,13 +152,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const isMarssoninaCandidate =
           item.diseaseId === "apple:marssonina" &&
           item.marssoninaStatus === "primary_infection_estimated";
+        const isMarssoninaPartialRef =
+          item.diseaseId === "apple:marssonina" &&
+          item.marssoninaStatus === "partial_infection_reference";
         const isMarssoninaNoData =
           item.diseaseId === "apple:marssonina" &&
           (item.marssoninaStatus === "insufficient_weather" ||
             item.marssoninaStatus === "insufficient_weather_coverage");
         const primary = item.primaryInfection;
         const estimateTag =
-          isMarssoninaUnset || isMarssoninaPending || isMarssoninaCandidate
+          isMarssoninaUnset ||
+          isMarssoninaPending ||
+          isMarssoninaCandidate ||
+          isMarssoninaPartialRef
             ? ""
             : item.isDemo
               ? '<span class="apple-risk-demo-badge">デモ表示</span> '
@@ -169,6 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ? '<span class="apple-risk-estimate-badge">接続待ち</span> '
             : isMarssoninaCandidate
               ? '<span class="apple-risk-estimate-badge">一次感染候補（推定）</span> '
+              : isMarssoninaPartialRef
+                ? '<span class="apple-risk-estimate-badge">取得範囲内の感染候補（参考）</span> '
               : isMarssoninaNoData
                 ? '<span class="apple-risk-estimate-badge">予測データ不足</span> '
                 : item.marssoninaStatus === "no_infection_event"
@@ -176,16 +184,18 @@ document.addEventListener("DOMContentLoaded", () => {
                   : "";
         const infectionLabel = isMarssoninaCandidate
           ? "一次感染候補日（推定）"
-          : "推定感染日";
+          : isMarssoninaPartialRef
+            ? "取得範囲内の候補日（参考）"
+            : "推定感染日";
         const wetDetail =
           primary &&
-          `<dt>推定濡れ</dt><dd>${primary.wetDurationHours} h（平均 ${primary.wetAvgTempC}℃・葉面濡れ推定）</dd>`;
+          `<dt>推定濡れ</dt><dd>${primary.wetDurationHours} h（${escapeHtml(primary.periodStart)}〜${escapeHtml(primary.periodEnd)}・平均 ${primary.wetAvgTempC}℃）</dd>`;
         const coverageDetail =
-          item.weatherCoverage === "partial" && item.marssoninaNasaWindow
-            ? `<dt>気象探索</dt><dd>一部のみ（${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}・${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
-            : item.marssoninaNasaWindow
-              ? `<dt>気象探索</dt><dd>${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}（${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
-              : "";
+          item.marssoninaNasaWindow
+            ? item.weatherCoverage === "partial"
+              ? `<dt>気象探索</dt><dd>一部のみ・未探索期間あり（${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}・${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
+              : `<dt>気象探索</dt><dd>${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}（${item.marssoninaNasaWindow.hourlyCount} 件・全期間）</dd>`
+            : "";
         const confidenceRow =
           isMarssoninaUnset || isMarssoninaNoData
             ? ""

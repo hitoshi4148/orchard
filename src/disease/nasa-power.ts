@@ -52,9 +52,42 @@ function normalizeDaily(rawData: {
     });
 }
 
-function normalizeHourly(rawData: {
-  properties?: { parameter?: Record<string, Record<string, number>> };
-}): HourlyWeatherRecord[] {
+export type NasaPowerTimeStandard = "UTC" | "LST";
+
+export interface FetchNasaPowerHourlyOptions {
+  /** NASA hourly の時刻基準。褐斑探索では UTC を推奨 */
+  timeStandard?: NasaPowerTimeStandard;
+}
+
+function nasaUtcHourKeyToJstIso(timestamp: string): string {
+  const year = Number(timestamp.substring(0, 4));
+  const month = Number(timestamp.substring(4, 6));
+  const day = Number(timestamp.substring(6, 8));
+  const hour = Number(timestamp.substring(8, 10));
+  const utcMs = Date.UTC(year, month - 1, day, hour);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(utcMs));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  const y = get("year");
+  const m = get("month");
+  const d = get("day");
+  let h = get("hour");
+  if (h === "24") h = "00";
+  return `${y}-${m}-${d}T${h}:00:00+09:00`;
+}
+
+function normalizeHourly(
+  rawData: {
+    properties?: { parameter?: Record<string, Record<string, number>> };
+  },
+  timeStandard: NasaPowerTimeStandard
+): HourlyWeatherRecord[] {
   const parameter = rawData.properties?.parameter;
   if (!parameter) {
     throw new Error("Invalid NASA POWER hourly response");
@@ -67,21 +100,28 @@ function normalizeHourly(rawData: {
   return Object.keys(t2m)
     .sort()
     .map((timestamp) => {
-      const year = timestamp.substring(0, 4);
-      const month = timestamp.substring(4, 6);
-      const day = timestamp.substring(6, 8);
-      const hour = timestamp.substring(8, 10);
-      const utcDate = new Date(`${year}-${month}-${day}T${hour}:00:00Z`);
-      const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
-      const jstYear = jstDate.getUTCFullYear();
-      const jstMonth = String(jstDate.getUTCMonth() + 1).padStart(2, "0");
-      const jstDay = String(jstDate.getUTCDate()).padStart(2, "0");
-      const jstHour = String(jstDate.getUTCHours()).padStart(2, "0");
       const toNumber = (value: number | undefined) =>
         value !== null && value !== undefined ? Number(value) : null;
 
+      const datetime =
+        timeStandard === "UTC"
+          ? nasaUtcHourKeyToJstIso(timestamp)
+          : (() => {
+              const year = timestamp.substring(0, 4);
+              const month = timestamp.substring(4, 6);
+              const day = timestamp.substring(6, 8);
+              const hour = timestamp.substring(8, 10);
+              const utcDate = new Date(`${year}-${month}-${day}T${hour}:00:00Z`);
+              const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+              const jstYear = jstDate.getUTCFullYear();
+              const jstMonth = String(jstDate.getUTCMonth() + 1).padStart(2, "0");
+              const jstDay = String(jstDate.getUTCDate()).padStart(2, "0");
+              const jstHour = String(jstDate.getUTCHours()).padStart(2, "0");
+              return `${jstYear}-${jstMonth}-${jstDay}T${jstHour}:00:00+09:00`;
+            })();
+
       return {
-        datetime: `${jstYear}-${jstMonth}-${jstDay}T${jstHour}:00:00+09:00`,
+        datetime,
         temperature: toNumber(t2m[timestamp]),
         humidity: toNumber(rh2m[timestamp]),
         precipitation_mm: toNumber(prectot[timestamp]),
@@ -139,8 +179,10 @@ export async function fetchNasaPowerHourly(
   latitude: number,
   longitude: number,
   startDate: string,
-  endDate: string
+  endDate: string,
+  options?: FetchNasaPowerHourlyOptions
 ): Promise<HourlyWeatherRecord[]> {
+  const timeStandard = options?.timeStandard ?? "LST";
   const params = new URLSearchParams({
     parameters: "T2M,RH2M,PRECTOTCORR",
     community: "AG",
@@ -149,10 +191,11 @@ export async function fetchNasaPowerHourly(
     start: formatDateForNasa(startDate),
     end: formatDateForNasa(endDate),
     format: "JSON",
+    "time-standard": timeStandard,
   });
 
   const data = await fetchRaw(
     `https://power.larc.nasa.gov/api/temporal/hourly/point?${params.toString()}`
   );
-  return normalizeHourly(data);
+  return normalizeHourly(data, timeStandard);
 }

@@ -7,5 +7,8 @@ export const MARSSONINA_WET_DURATION_MIN_H = 6;
 export const MARSSONINA_GDD_BASE_C = 4.6;
 export const MARSSONINA_GDD_THRESHOLD_DAYC = 159;
 
-/** P2 以降: NASA 時別取得の上限日数（設計 v0.2） */
-export const NASA_HOURLY_MAX_DAYS_MARSSONINA = 120;
+/**
+ * NASA API 呼び出し時の暦日バッファ（JST 境界の 9h 欠測対策）。
+ * 探索範囲そのものの切り捨てには使わない。
+ */
+export const NASA_HOURLY_API_BUFFER_DAYS = 1;

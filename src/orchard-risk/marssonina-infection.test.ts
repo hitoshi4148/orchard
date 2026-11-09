@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  assessExplorationHourlyCompleteness,
+  filterHourlyForExploration,
   listMarssoninaQualifyingPeriods,
+  listExpectedExplorationHourKeys,
   resolveMarssoninaNasaWindow,
   searchPrimaryMarssoninaInfection,
 } from "./marssonina-infection";
 import { HourlyWeatherRecord } from "../disease/nasa-power";
-import { NASA_HOURLY_MAX_DAYS_MARSSONINA } from "./marssonina-constants";
 
 function wetHour(date: string, hour: number, temp: number): HourlyWeatherRecord {
   const h = String(hour).padStart(2, "0");
@@ -26,6 +28,10 @@ function dryHour(date: string, hour: number, temp: number): HourlyWeatherRecord 
     humidity: 50,
     precipitation_mm: 0,
   };
+}
+
+function fullDayHours(date: string, temp = 20): HourlyWeatherRecord[] {
+  return Array.from({ length: 24 }, (_, h) => dryHour(date, h, temp));
 }
 
 describe("marssonina-infection P2", () => {
@@ -69,10 +75,30 @@ describe("marssonina-infection P2", () => {
     assert.equal(events.length, 2);
     assert.equal(events[0].infectionDate, "2026-05-12");
 
-    const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-25");
-    const search = searchPrimaryMarssoninaInfection(series, win, false);
+    const win = resolveMarssoninaNasaWindow("2026-05-10", "2026-05-20");
+    const filled: HourlyWeatherRecord[] = [];
+    for (let d = 10; d <= 20; d += 1) {
+      const date = `2026-05-${String(d).padStart(2, "0")}`;
+      if (d === 12) {
+        filled.push(...fullDayHours(date));
+        for (let i = 0; i < 6; i++) filled.push(wetHour(date, 8 + i, 15));
+        continue;
+      }
+      if (d === 15) {
+        filled.push(...fullDayHours(date));
+        continue;
+      }
+      if (d === 20) {
+        filled.push(...fullDayHours(date));
+        for (let i = 0; i < 6; i++) filled.push(wetHour(date, 8 + i, 15));
+        continue;
+      }
+      filled.push(...fullDayHours(date));
+    }
+    const search = searchPrimaryMarssoninaInfection(filled, win, false);
     assert.equal(search.primary?.infectionDate, "2026-05-12");
     assert.equal(search.candidateCount, 2);
+    assert.equal(search.marssoninaStatus, "primary_infection_estimated");
   });
 
   it("excludes periods before bloom start", () => {
@@ -83,32 +109,41 @@ describe("marssonina-infection P2", () => {
     assert.equal(events.length, 0);
   });
 
-  it("marks partial coverage when bloom older than max days", () => {
-    const yesterday = "2026-11-08";
-    const bloom = addDaysBack(yesterday, NASA_HOURLY_MAX_DAYS_MARSSONINA + 10);
-    const win = resolveMarssoninaNasaWindow(bloom, yesterday);
-    assert.equal(win.coverage, "partial");
-    assert.ok(win.fetchStart > bloom);
+  it("resolves full exploration window from bloom to yesterday", () => {
+    const win = resolveMarssoninaNasaWindow("2026-04-25", "2026-11-08");
+    assert.equal(win.fetchStart, "2026-04-25");
+    assert.equal(win.fetchEnd, "2026-11-08");
+    assert.equal(win.coverage, "full");
+    assert.equal(win.requestedDays, 198);
+    assert.equal(win.nasaApiStart, "2026-04-24");
+    assert.equal(win.nasaApiEnd, "2026-11-09");
+  });
+
+  it("partial data with candidate -> partial_infection_reference", () => {
+    const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-03");
+    const incomplete = [...fullDayHours("2026-05-01").slice(0, 12)];
+    const res = searchPrimaryMarssoninaInfection(incomplete, win, false);
+    assert.equal(res.coverage, "partial");
+    assert.equal(res.marssoninaStatus, "insufficient_weather_coverage");
+  });
+
+  it("partial data with wet candidate uses reference status", () => {
+    const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-02");
+    const day1 = fullDayHours("2026-05-01");
+    const wet = Array.from({ length: 6 }, (_, i) => wetHour("2026-05-02", 8 + i, 15));
+    const partial = [...day1.slice(0, 10), ...wet];
+    const res = searchPrimaryMarssoninaInfection(partial, win, false);
+    assert.equal(res.coverage, "partial");
+    assert.equal(res.marssoninaStatus, "partial_infection_reference");
+    assert.ok(res.primary);
   });
 
   it("no candidate with full coverage -> no_infection_event", () => {
-    const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-20");
-    const dry = Array.from({ length: 24 }, (_, i) =>
-      dryHour("2026-05-10", i % 24, 20)
-    );
-    const res = searchPrimaryMarssoninaInfection(dry, win, false);
+    const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-02");
+    const full = [...fullDayHours("2026-05-01"), ...fullDayHours("2026-05-02")];
+    const res = searchPrimaryMarssoninaInfection(full, win, false);
     assert.equal(res.marssoninaStatus, "no_infection_event");
-  });
-
-  it("no candidate with partial coverage -> insufficient_weather_coverage", () => {
-    const yesterday = "2026-11-08";
-    const bloom = addDaysBack(yesterday, NASA_HOURLY_MAX_DAYS_MARSSONINA + 5);
-    const win = resolveMarssoninaNasaWindow(bloom, yesterday);
-    const dry = Array.from({ length: 48 }, (_, i) =>
-      dryHour(win.fetchStart, (8 + i) % 24, 20)
-    );
-    const res = searchPrimaryMarssoninaInfection(dry, win, false);
-    assert.equal(res.marssoninaStatus, "insufficient_weather_coverage");
+    assert.equal(res.coverage, "full");
   });
 
   it("fetch failed is not no_infection_event", () => {
@@ -116,12 +151,23 @@ describe("marssonina-infection P2", () => {
     const res = searchPrimaryMarssoninaInfection([], win, true);
     assert.equal(res.marssoninaStatus, "insufficient_weather");
   });
+
+  it("complete synthetic grid has no missing hours", () => {
+    const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-02");
+    const full = [...fullDayHours("2026-05-01"), ...fullDayHours("2026-05-02")];
+    const filtered = filterHourlyForExploration(
+      full,
+      win.fetchStart,
+      win.fetchEnd
+    );
+    const c = assessExplorationHourlyCompleteness(
+      filtered,
+      win.fetchStart,
+      win.fetchEnd
+    );
+    assert.equal(c.missingHourKeys.length, 0);
+    assert.equal(c.coverage, "full");
+    assert.equal(listExpectedExplorationHourKeys("2026-05-01", "2026-05-02").length, 48);
+  });
 });
 
-function addDaysBack(end: string, days: number): string {
-  const [y, m, d] = end.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  dt.setUTCDate(dt.getUTCDate() - days);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
-}

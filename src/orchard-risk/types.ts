@@ -14,6 +14,7 @@ export type MarssoninaOnsetStatus =
   | "bloom_date_unset"
   | "onset_pending_model"
   | "primary_infection_estimated"
+  | "partial_infection_reference"
   | "insufficient_weather"
   | "insufficient_weather_coverage"
   | "no_infection_event"

@@ -63,17 +63,26 @@ export function buildMarssoninaOnsetFromSearch(
 
   if (search.marssoninaStatus === "primary_infection_estimated" && search.primary) {
     const p = search.primary;
-    const coverageNote =
-      search.coverage === "partial"
-        ? ` 気象取得は直近${search.nasaWindow.fetchStart}〜${search.nasaWindow.fetchEnd}のみ（開花始期以前は未探索）。`
-        : "";
     return {
       ...base,
       estimatedInfectionDate: p.infectionDate,
       predictedOnsetWindow: "—（発病予測・GDD は次フェーズ）",
       note:
-        `一次感染候補（推定）: 濡れ ${p.wetDurationHours}h・濡れ中平均 ${p.wetAvgTempC}℃（葉面濡れ推定）。` +
-        `猫塚（2023）閾値参考。1st 飛散ピークの確定ではありません。${coverageNote}`,
+        `一次感染候補（推定）: 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・濡れ中平均 ${p.wetAvgTempC}℃（葉面濡れ推定）。` +
+        `候補日は濡れ期間終了日（JST）。猫塚（2023）閾値参考・論文日付定義との一致は未確認。1st 飛散ピークの確定ではありません。`,
+    };
+  }
+
+  if (search.marssoninaStatus === "partial_infection_reference" && search.primary) {
+    const p = search.primary;
+    const missing = search.nasaWindow.expectedExplorationHours - search.hourlyCount;
+    return {
+      ...base,
+      estimatedInfectionDate: p.infectionDate,
+      predictedOnsetWindow: "—（発病予測・GDD は次フェーズ）",
+      note:
+        `取得範囲内の感染候補（参考）: 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・平均 ${p.wetAvgTempC}℃。` +
+        `開花始期 ${search.nasaWindow.bloomStart}〜${search.nasaWindow.fetchEnd} の全時刻を取得できていないため、正式な一次感染候補とはしません（欠損おおよそ ${Math.max(0, missing)} 時間）。`,
     };
   }
 
@@ -95,8 +104,8 @@ export function buildMarssoninaOnsetFromSearch(
       predictedOnsetWindow: "—",
       primaryInfection: null,
       note:
-        `予測データ不足: 開花始期 ${search.nasaWindow.bloomStart} から昨日までの全区間を探索できていません（取得上限 ${search.nasaWindow.fetchStart} 〜 ${search.nasaWindow.fetchEnd}）。` +
-        `一次感染が未探索期間にある可能性があります。候補なしと断定しません。`,
+        `予測データ不足: 開花始期 ${search.nasaWindow.bloomStart}〜${search.nasaWindow.fetchEnd} の時別データが欠損があり、全期間の探索が完了していません。` +
+        `候補なしと断定しません。`,
     };
   }
 

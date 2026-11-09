@@ -26,6 +26,7 @@ import {
   calcWetTempHeuristic,
 } from "./infection-calculators";
 import {
+  fetchMarssoninaExplorationHourly,
   resolveMarssoninaNasaWindow,
   searchPrimaryMarssoninaInfection,
 } from "./marssonina-infection";
@@ -188,11 +189,10 @@ export async function fetchOrchardRiskForecast(
 
   if (cropId === "apple" && bloomStart) {
     marssoninaWindow = resolveMarssoninaNasaWindow(bloomStart, endDate);
-    fetchPromises[3] = fetchNasaPowerHourly(
+    fetchPromises[3] = fetchMarssoninaExplorationHourly(
       lat,
       lon,
-      marssoninaWindow.fetchStart,
-      endDate
+      marssoninaWindow
     ).catch(() => {
       marssoninaFetchFailed = true;
       return [];
