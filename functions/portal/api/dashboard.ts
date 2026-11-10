@@ -1,9 +1,12 @@
-import { fetchPortalDashboard } from "../../../src/portal/fetch-dashboard";
+import {
+  fetchPortalDashboard,
+  parsePortalDashboardNeed,
+} from "../../../src/portal/fetch-dashboard";
 
 const DASHBOARD_CACHE_TTL_SECONDS = 30 * 60;
 const DASHBOARD_LOCK_TTL_SECONDS = 120;
 const CACHE_POLL_INTERVAL_MS = 500;
-const CACHE_POLL_MAX_ATTEMPTS = 60;
+const CACHE_POLL_MAX_ATTEMPTS = 24;
 
 const inFlightByUrl = new Map<string, Promise<Response>>();
 
@@ -130,11 +133,13 @@ async function buildDashboardResponse(request: Request): Promise<Response> {
       return jsonResponse({ success: false, error: "Invalid lat/lon" }, 400);
     }
 
+    const need = parsePortalDashboardNeed(url.searchParams.get("need"));
     const dashboard = await fetchPortalDashboard(
       lat,
       lon,
       warmGrass,
-      coolGrass
+      coolGrass,
+      need
     );
 
     const payload = {

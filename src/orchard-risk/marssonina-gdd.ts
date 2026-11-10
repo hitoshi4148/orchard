@@ -9,8 +9,12 @@ import {
   MARSSONINA_GDD_THRESHOLD_DAYC,
 } from "./marssonina-constants";
 
-/** 猫塚（2023）の起算日定義は未確認。P3 仮定: 候補日の翌日から積算（候補日当日は含めない） */
-export const MARSSONINA_GDD_START_ASSUMPTION = "day_after_infection_candidate" as const;
+/**
+ * 猫塚ほか（2023）日植病報 89(4):215–224 に合わせ、一次感染開始日（推定）当日から積算する。
+ * P2 の `infectionDate` を一次感染開始日（推定）の代理とする（降水日との厳密一致は P2 側で未整理）。
+ */
+export const MARSSONINA_GDD_START_ASSUMPTION =
+  "primary_infection_start_inclusive" as const;
 
 export type MarssoninaGddDataQuality = "full" | "degraded" | "insufficient";
 export type MarssoninaGddOnsetSource = "measured" | "forecast" | null;
@@ -77,9 +81,9 @@ function roundDayC(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-/** 感染候補日（濡れ終了日）から GDD・発病時期を推定 */
+/** 一次感染開始日（推定・暦日）から GDD・初発日（推定）を算出（到達日＝初発日） */
 export function computeMarssoninaGddEstimate(
-  infectionCandidateDate: string,
+  primaryInfectionStartDate: string,
   nasaDaily: DailyWeatherRecord[],
   forecastHourly: HourlyWeatherRecord[],
   yesterday: string,
@@ -87,7 +91,7 @@ export function computeMarssoninaGddEstimate(
 ): MarssoninaGddEstimate {
   const base = MARSSONINA_GDD_BASE_C;
   const threshold = MARSSONINA_GDD_THRESHOLD_DAYC;
-  const gddStartDate = addDaysToDateString(infectionCandidateDate, 1);
+  const gddStartDate = primaryInfectionStartDate;
 
   const measuredEnd = yesterday;
   const measuredDates =

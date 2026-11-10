@@ -3,12 +3,14 @@ import {
   HourlyWeatherRecord,
 } from "../disease/nasa-power";
 import { addDaysToDateString } from "../disease/met-norway-forecast";
-import { findWetPeriods } from "../disease/wetness";
 import {
-  MARSSONINA_WET_AVG_TEMP_MIN_C,
-  MARSSONINA_WET_DURATION_MIN_H,
   NASA_HOURLY_API_BUFFER_DAYS,
 } from "./marssonina-constants";
+import {
+  listQualifyingMarssoninaPrecipDays,
+  MarssoninaPrecipDayMode,
+  MarssoninaPrecipDayStats,
+} from "./marssonina-precip-day";
 import { MarssoninaOnsetStatus } from "./types";
 
 export type WeatherCoverage = "full" | "partial";
@@ -29,13 +31,19 @@ export interface MarssoninaNasaWindow {
 }
 
 export interface MarssoninaInfectionEvent {
-  /** 候補日（濡れ期間終了日・JST）。論文定義との一致は未確認 */
+  /** 一次感染開始日（推定）: 条件を満たした最初の降水日（JST 暦日） */
   infectionDate: string;
   periodStart: string;
   periodEnd: string;
   wetDurationHours: number;
   wetAvgTempC: number;
+  /** 時別 PRECTOTCORR ≥ 0.5 mm/h の時間数（当該降水日） */
+  precipWetHourCount: number;
+  /** 当該日の探索枠内欠測時刻数（欠測は乾燥扱いしない） */
+  missingHourCount: number;
   leafWetIsEstimated: true;
+  wetnessRule: "precip_0.5mm_phase1" | "precip_0.5mm_suzuki_phase2";
+  weatherSource: "nasa_power_grid";
 }
 
 export interface MarssoninaInfectionSearchResult {
@@ -140,53 +148,73 @@ export function assessExplorationHourlyCompleteness(
   presentHours: number;
   missingHourKeys: string[];
 } {
-  const expectedKeys = listExpectedExplorationHourKeys(
-    bloomStart,
-    explorationEnd
-  );
+  const expectedHours = daysBetweenInclusive(bloomStart, explorationEnd) * 24;
   const present = new Set(hourly.map((r) => hourKeyFromIso(r.datetime)));
-  const missingHourKeys = expectedKeys.filter((k) => !present.has(k));
+  const missingHourKeys: string[] = [];
+  let presentHours = 0;
+  let d = bloomStart;
+  while (d <= explorationEnd) {
+    for (let h = 0; h < 24; h += 1) {
+      const k = `${d}T${String(h).padStart(2, "0")}`;
+      if (present.has(k)) {
+        presentHours += 1;
+      } else {
+        missingHourKeys.push(k);
+      }
+    }
+    d = addDaysToDateString(d, 1);
+  }
   const coverage: WeatherCoverage =
     missingHourKeys.length === 0 ? "full" : "partial";
   return {
     coverage,
-    expectedHours: expectedKeys.length,
-    presentHours: expectedKeys.length - missingHourKeys.length,
+    expectedHours,
+    presentHours,
     missingHourKeys,
   };
 }
 
-/** 閾値を満たし、感染候補日が開花始期以降の濡れ期間を列挙 */
+function statsToInfectionEvent(
+  day: MarssoninaPrecipDayStats,
+  wetnessRule: MarssoninaInfectionEvent["wetnessRule"]
+): MarssoninaInfectionEvent {
+  return {
+    infectionDate: day.precipDay,
+    periodStart: day.periodStart ?? day.precipDay,
+    periodEnd: day.periodEnd ?? day.precipDay,
+    wetDurationHours: day.wetDurationHours,
+    wetAvgTempC: day.wetAvgTempC ?? 0,
+    precipWetHourCount: day.precipWetHourCount,
+    missingHourCount: day.missingHourCount,
+    leafWetIsEstimated: true,
+    wetnessRule,
+    weatherSource: "nasa_power_grid",
+  };
+}
+
+/** P2c+ Phase 1: 開花始期以降で条件を満たした降水日を昇順で列挙 */
 export function listMarssoninaQualifyingPeriods(
   hourly: HourlyWeatherRecord[],
-  bloomStart: string
+  bloomStart: string,
+  explorationEnd?: string,
+  mode: MarssoninaPrecipDayMode = "phase2"
 ): MarssoninaInfectionEvent[] {
-  const periods = findWetPeriods(hourly);
-  const events: MarssoninaInfectionEvent[] = [];
-
-  for (const period of periods) {
-    if (period.durationHours < MARSSONINA_WET_DURATION_MIN_H) {
-      continue;
-    }
-    if (period.averageTemperature < MARSSONINA_WET_AVG_TEMP_MIN_C) {
-      continue;
-    }
-    const infectionDate = datePartFromIso(period.endDateTime);
-    if (infectionDate < bloomStart) {
-      continue;
-    }
-    events.push({
-      infectionDate,
-      periodStart: period.startDateTime,
-      periodEnd: period.endDateTime,
-      wetDurationHours: period.durationHours,
-      wetAvgTempC: Math.round(period.averageTemperature * 10) / 10,
-      leafWetIsEstimated: true,
-    });
-  }
-
-  events.sort((a, b) => a.infectionDate.localeCompare(b.infectionDate));
-  return events;
+  const end =
+    explorationEnd ??
+    (hourly.length > 0
+      ? datePartFromIso(hourly[hourly.length - 1].datetime)
+      : bloomStart);
+  const qualifying = listQualifyingMarssoninaPrecipDays(
+    hourly,
+    bloomStart,
+    end,
+    mode
+  );
+  const rule =
+    mode === "phase1"
+      ? "precip_0.5mm_phase1"
+      : "precip_0.5mm_suzuki_phase2";
+  return qualifying.map((d) => statsToInfectionEvent(d, rule));
 }
 
 const MIN_HOURLY_FOR_SEARCH = 12;
@@ -194,7 +222,8 @@ const MIN_HOURLY_FOR_SEARCH = 12;
 export function searchPrimaryMarssoninaInfection(
   hourly: HourlyWeatherRecord[],
   window: MarssoninaNasaWindow,
-  fetchFailed: boolean
+  fetchFailed: boolean,
+  mode: MarssoninaPrecipDayMode = "phase2"
 ): MarssoninaInfectionSearchResult {
   if (fetchFailed) {
     return {
@@ -232,7 +261,9 @@ export function searchPrimaryMarssoninaInfection(
 
   const candidates = listMarssoninaQualifyingPeriods(
     filtered,
-    window.bloomStart
+    window.bloomStart,
+    window.fetchEnd,
+    mode
   );
   const primary = candidates[0] ?? null;
   const nasaWindow = { ...window, coverage };

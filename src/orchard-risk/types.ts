@@ -63,6 +63,10 @@ export interface OrchardOnsetRow {
     periodEnd: string;
     wetDurationHours: number;
     wetAvgTempC: number;
+    precipWetHourCount?: number;
+    missingHourCount?: number;
+    wetnessRule?: string;
+    weatherSource?: string;
     leafWetIsEstimated: true;
   } | null;
   marssoninaNasaWindow?: {

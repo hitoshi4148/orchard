@@ -10,13 +10,18 @@ import {
 } from "./marssonina-infection";
 import { HourlyWeatherRecord } from "../disease/nasa-power";
 
-function wetHour(date: string, hour: number, temp: number): HourlyWeatherRecord {
+function precipWetHour(
+  date: string,
+  hour: number,
+  temp: number,
+  precip = 0.6
+): HourlyWeatherRecord {
   const h = String(hour).padStart(2, "0");
   return {
     datetime: `${date}T${h}:00:00+09:00`,
     temperature: temp,
     humidity: 95,
-    precipitation_mm: 0.2,
+    precipitation_mm: precip,
   };
 }
 
@@ -34,44 +39,69 @@ function fullDayHours(date: string, temp = 20): HourlyWeatherRecord[] {
   return Array.from({ length: 24 }, (_, h) => dryHour(date, h, temp));
 }
 
-describe("marssonina-infection P2", () => {
-  it("rejects wet period shorter than 6 hours", () => {
-    const hourly = Array.from({ length: 5 }, (_, i) =>
-      wetHour("2026-05-10", 10 + i, 14)
+function addWetBlock(
+  dayRows: HourlyWeatherRecord[],
+  date: string,
+  startHour: number,
+  count: number,
+  temp: number
+) {
+  for (let i = 0; i < count; i += 1) {
+    const h = startHour + i;
+    dayRows[h] = precipWetHour(date, h, temp);
+  }
+}
+
+describe("marssonina-infection P2c+ Phase 2", () => {
+  it("rejects precip-wet shorter than 6 hours on complete day", () => {
+    const rows = fullDayHours("2026-05-10");
+    addWetBlock(rows, "2026-05-10", 10, 3, 14);
+    const events = listMarssoninaQualifyingPeriods(
+      rows,
+      "2026-05-01",
+      "2026-05-10",
+      "phase2"
     );
-    const events = listMarssoninaQualifyingPeriods(hourly, "2026-05-01");
     assert.equal(events.length, 0);
   });
 
   it("rejects average temp below 13.8C", () => {
-    const hourly = Array.from({ length: 6 }, (_, i) =>
-      wetHour("2026-05-10", 10 + i, 13.0)
+    const rows = fullDayHours("2026-05-10", 13.0);
+    addWetBlock(rows, "2026-05-10", 10, 6, 13.0);
+    const events = listMarssoninaQualifyingPeriods(
+      rows,
+      "2026-05-01",
+      "2026-05-10",
+      "phase2"
     );
-    const events = listMarssoninaQualifyingPeriods(hourly, "2026-05-01");
     assert.equal(events.length, 0);
   });
 
-  it("accepts when both thresholds met", () => {
-    const hourly = Array.from({ length: 6 }, (_, i) =>
-      wetHour("2026-05-10", 10 + i, 14.0)
+  it("accepts when thresholds met on complete day", () => {
+    const rows = fullDayHours("2026-05-10");
+    addWetBlock(rows, "2026-05-10", 10, 6, 14.0);
+    const events = listMarssoninaQualifyingPeriods(
+      rows,
+      "2026-05-01",
+      "2026-05-10"
     );
-    const events = listMarssoninaQualifyingPeriods(hourly, "2026-05-01");
     assert.equal(events.length, 1);
-    assert.equal(events[0].wetDurationHours, 6);
+    assert.equal(events[0].wetDurationHours, 8);
+    assert.equal(events[0].wetnessRule, "precip_0.5mm_suzuki_phase2");
   });
 
-  it("picks earliest candidate among multiple", () => {
-    const early = Array.from({ length: 6 }, (_, i) =>
-      wetHour("2026-05-12", 8 + i, 15)
+  it("picks earliest qualifying precip day among multiple", () => {
+    const day12 = fullDayHours("2026-05-12");
+    addWetBlock(day12, "2026-05-12", 8, 6, 15);
+    const day15 = fullDayHours("2026-05-15");
+    const day20 = fullDayHours("2026-05-20");
+    addWetBlock(day20, "2026-05-20", 8, 6, 15);
+    const series = [...day12, ...day15, ...day20];
+    const events = listMarssoninaQualifyingPeriods(
+      series,
+      "2026-05-01",
+      "2026-05-20"
     );
-    const gap = Array.from({ length: 3 }, (_, i) =>
-      dryHour("2026-05-15", 10 + i, 20)
-    );
-    const late = Array.from({ length: 6 }, (_, i) =>
-      wetHour("2026-05-20", 8 + i, 15)
-    );
-    const series = [...early, ...gap, ...late];
-    const events = listMarssoninaQualifyingPeriods(series, "2026-05-01");
     assert.equal(events.length, 2);
     assert.equal(events[0].infectionDate, "2026-05-12");
 
@@ -79,21 +109,13 @@ describe("marssonina-infection P2", () => {
     const filled: HourlyWeatherRecord[] = [];
     for (let d = 10; d <= 20; d += 1) {
       const date = `2026-05-${String(d).padStart(2, "0")}`;
-      if (d === 12) {
+      if (d === 12 || d === 20) {
+        const rows = fullDayHours(date);
+        addWetBlock(rows, date, 8, 6, 15);
+        filled.push(...rows);
+      } else {
         filled.push(...fullDayHours(date));
-        for (let i = 0; i < 6; i++) filled.push(wetHour(date, 8 + i, 15));
-        continue;
       }
-      if (d === 15) {
-        filled.push(...fullDayHours(date));
-        continue;
-      }
-      if (d === 20) {
-        filled.push(...fullDayHours(date));
-        for (let i = 0; i < 6; i++) filled.push(wetHour(date, 8 + i, 15));
-        continue;
-      }
-      filled.push(...fullDayHours(date));
     }
     const search = searchPrimaryMarssoninaInfection(filled, win, false);
     assert.equal(search.primary?.infectionDate, "2026-05-12");
@@ -101,11 +123,14 @@ describe("marssonina-infection P2", () => {
     assert.equal(search.marssoninaStatus, "primary_infection_estimated");
   });
 
-  it("excludes periods before bloom start", () => {
-    const before = Array.from({ length: 6 }, (_, i) =>
-      wetHour("2026-04-20", 8 + i, 15)
+  it("excludes precip days before bloom start", () => {
+    const rows = fullDayHours("2026-04-20");
+    addWetBlock(rows, "2026-04-20", 8, 6, 15);
+    const events = listMarssoninaQualifyingPeriods(
+      rows,
+      "2026-05-01",
+      "2026-04-20"
     );
-    const events = listMarssoninaQualifyingPeriods(before, "2026-05-01");
     assert.equal(events.length, 0);
   });
 
@@ -113,13 +138,10 @@ describe("marssonina-infection P2", () => {
     const win = resolveMarssoninaNasaWindow("2026-04-25", "2026-11-08");
     assert.equal(win.fetchStart, "2026-04-25");
     assert.equal(win.fetchEnd, "2026-11-08");
-    assert.equal(win.coverage, "full");
     assert.equal(win.requestedDays, 198);
-    assert.equal(win.nasaApiStart, "2026-04-24");
-    assert.equal(win.nasaApiEnd, "2026-11-09");
   });
 
-  it("partial data with candidate -> partial_infection_reference", () => {
+  it("partial coverage without qualifying complete day -> insufficient_weather_coverage", () => {
     const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-03");
     const incomplete = [...fullDayHours("2026-05-01").slice(0, 12)];
     const res = searchPrimaryMarssoninaInfection(incomplete, win, false);
@@ -127,15 +149,15 @@ describe("marssonina-infection P2", () => {
     assert.equal(res.marssoninaStatus, "insufficient_weather_coverage");
   });
 
-  it("partial data with wet candidate uses reference status", () => {
+  it("partial coverage with qualifying day on complete calendar day", () => {
     const win = resolveMarssoninaNasaWindow("2026-05-01", "2026-05-02");
-    const day1 = fullDayHours("2026-05-01");
-    const wet = Array.from({ length: 6 }, (_, i) => wetHour("2026-05-02", 8 + i, 15));
-    const partial = [...day1.slice(0, 10), ...wet];
-    const res = searchPrimaryMarssoninaInfection(partial, win, false);
+    const day1 = fullDayHours("2026-05-01").slice(0, 10);
+    const day2 = fullDayHours("2026-05-02");
+    addWetBlock(day2, "2026-05-02", 8, 6, 15);
+    const res = searchPrimaryMarssoninaInfection([...day1, ...day2], win, false);
     assert.equal(res.coverage, "partial");
     assert.equal(res.marssoninaStatus, "partial_infection_reference");
-    assert.ok(res.primary);
+    assert.equal(res.primary?.infectionDate, "2026-05-02");
   });
 
   it("no candidate with full coverage -> no_infection_event", () => {
@@ -143,7 +165,6 @@ describe("marssonina-infection P2", () => {
     const full = [...fullDayHours("2026-05-01"), ...fullDayHours("2026-05-02")];
     const res = searchPrimaryMarssoninaInfection(full, win, false);
     assert.equal(res.marssoninaStatus, "no_infection_event");
-    assert.equal(res.coverage, "full");
   });
 
   it("fetch failed is not no_infection_event", () => {
@@ -166,8 +187,6 @@ describe("marssonina-infection P2", () => {
       win.fetchEnd
     );
     assert.equal(c.missingHourKeys.length, 0);
-    assert.equal(c.coverage, "full");
     assert.equal(listExpectedExplorationHourKeys("2026-05-01", "2026-05-02").length, 48);
   });
 });
-

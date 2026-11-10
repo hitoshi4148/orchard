@@ -178,37 +178,43 @@ export async function fetchOrchardRiskForecast(
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
 
-  const fetchPromises: [
-    Promise<DailyWeatherRecord[]>,
-    Promise<HourlyWeatherRecord[]>,
-    Promise<HourlyWeatherRecord[]>,
-    Promise<HourlyWeatherRecord[] | null>,
-  ] = [
-    fetchNasaPowerDaily(lat, lon, startDate, endDate),
-    fetchNasaPowerHourly(lat, lon, startDate, endDate),
-    fetchMetNorwayFromToday(lat, lon, 168),
-    Promise.resolve(null),
-  ];
-
   let marssoninaWindow = null as ReturnType<
     typeof resolveMarssoninaNasaWindow
   > | null;
   let marssoninaFetchFailed = false;
+  let marssoninaGddDailyPromise: Promise<DailyWeatherRecord[] | null> =
+    Promise.resolve(null);
 
   if (cropId === "apple" && bloomStart) {
     marssoninaWindow = resolveMarssoninaNasaWindow(bloomStart, endDate);
-    fetchPromises[3] = fetchMarssoninaExplorationHourly(
+    marssoninaGddDailyPromise = fetchNasaPowerDaily(
       lat,
       lon,
-      marssoninaWindow
-    ).catch(() => {
-      marssoninaFetchFailed = true;
-      return [];
-    });
+      bloomStart,
+      endDate
+    ).catch(() => null);
   }
 
-  const [nasaDaily, nasaHourly, forecastHourly, marssoninaHourlyRaw] =
-    await Promise.all(fetchPromises);
+  const [
+    nasaDaily,
+    nasaHourly,
+    forecastHourly,
+    marssoninaHourlyRaw,
+    marssoninaGddDailyPrefetched,
+  ] = await Promise.all([
+    fetchNasaPowerDaily(lat, lon, startDate, endDate),
+    fetchNasaPowerHourly(lat, lon, startDate, endDate),
+    fetchMetNorwayFromToday(lat, lon, 168),
+    cropId === "apple" && marssoninaWindow
+      ? fetchMarssoninaExplorationHourly(lat, lon, marssoninaWindow).catch(
+          () => {
+            marssoninaFetchFailed = true;
+            return [];
+          }
+        )
+      : Promise.resolve(null),
+    marssoninaGddDailyPromise,
+  ]);
 
   const marssoninaSearch =
     cropId === "apple" && bloomStart && marssoninaWindow
@@ -228,12 +234,24 @@ export async function fetchOrchardRiskForecast(
     marssoninaSearch?.marssoninaStatus === "primary_infection_estimated" &&
     marssoninaSearch.primary
   ) {
-    const infectionDate = marssoninaSearch.primary.infectionDate;
-    const gddStart = addDaysToDateString(infectionDate, 1);
+    const primaryStartDate = marssoninaSearch.primary.infectionDate;
     try {
-      const gddDaily = await fetchNasaPowerDaily(lat, lon, gddStart, endDate);
+      let gddDaily = marssoninaGddDailyPrefetched;
+      if (gddDaily) {
+        gddDaily = gddDaily.filter(
+          (row) =>
+            row.date >= primaryStartDate && row.date <= endDate
+        );
+      } else {
+        gddDaily = await fetchNasaPowerDaily(
+          lat,
+          lon,
+          primaryStartDate,
+          endDate
+        );
+      }
       marssoninaGdd = computeMarssoninaGddEstimate(
-        infectionDate,
+        primaryStartDate,
         gddDaily,
         forecastHourly,
         endDate,

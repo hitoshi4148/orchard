@@ -8,7 +8,7 @@
   <title>果樹園しごと・りんご・日本なし病害リスク予報</title>
   <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
   <link rel="stylesheet" href="../portal.css">
-  <link rel="stylesheet" href="apple-risk.css?v=20251109p1">
+  <link rel="stylesheet" href="apple-risk.css?v=20251110set3">
 </head>
 <body>
   <div class="apple-risk-page">
@@ -18,23 +18,31 @@
 
     <footer class="risk-footer" style="margin-top:24px;text-align:center;font-size:0.8rem;color:#6b7280">
       <p>気象データ: MET Norway（予報）+ NASA POWER（履歴・GDD） ｜ 一部病害は簡易モデル／未接続</p>
-      <p class="footer-version">りんご・日本なし病害リスク UI v0.2</p>
+      <p class="footer-version">りんご・日本なし病害リスク UI v0.3</p>
     </footer>
   </div>
 
-  <div id="apple-risk-location-modal" class="apple-risk-modal hidden" role="dialog" aria-modal="true" aria-labelledby="loc-modal-title">
+  <div id="apple-risk-settings-modal" class="apple-risk-modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
     <div id="apple-risk-modal-backdrop" class="apple-risk-modal-backdrop"></div>
     <div class="apple-risk-modal-panel">
-      <h2 id="loc-modal-title" style="margin:0 0 8px;font-size:1.05rem;color:#14532d">予報地点の設定</h2>
-      <p style="margin:0 0 8px;font-size:0.82rem;color:#6b7280">都道府県・市町村と座標を保存します（端末のローカルストレージ）。</p>
-      <label for="loc-prefecture">都道府県</label>
-      <input type="text" id="loc-prefecture" autocomplete="address-level1" placeholder="例: 群馬県">
-      <label for="loc-municipality">市町村</label>
-      <input type="text" id="loc-municipality" autocomplete="address-level2" placeholder="例: 前橋市">
-      <label for="loc-lat">緯度（任意）</label>
-      <input type="text" id="loc-lat" inputmode="decimal" placeholder="例: 36.39">
-      <label for="loc-lon">経度（任意）</label>
-      <input type="text" id="loc-lon" inputmode="decimal" placeholder="例: 139.06">
+      <h2 id="settings-modal-title" style="margin:0 0 8px;font-size:1.05rem;color:#14532d">設定</h2>
+      <p style="margin:0 0 12px;font-size:0.82rem;color:#6b7280">地点は果樹園しごとと同じ Cookie に保存されます。品種・栽培方式はこの端末に保存されます。</p>
+      <fieldset style="border:0;padding:0;margin:0 0 12px">
+        <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">場所</legend>
+        <label for="pome-lat">緯度</label>
+        <input type="text" id="pome-lat" inputmode="decimal" placeholder="例: 35.5353">
+        <label for="pome-lon">経度</label>
+        <input type="text" id="pome-lon" inputmode="decimal" placeholder="例: 139.4931">
+        <button type="button" class="apple-risk-btn apple-risk-btn--locate" id="pome-get-location">現在地を取得</button>
+      </fieldset>
+      <label for="pome-apple-variety">りんご品種</label>
+      <select id="pome-apple-variety"></select>
+      <label for="pome-nashi-variety">日本なし品種</label>
+      <select id="pome-nashi-variety"></select>
+      <fieldset style="border:0;padding:0;margin:12px 0">
+        <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">栽培方式</legend>
+        <div id="pome-cultivation-radios" class="apple-risk-cultivation-radios"></div>
+      </fieldset>
       <div class="apple-risk-modal-actions">
         <button type="button" class="apple-risk-btn" id="apple-risk-modal-cancel">キャンセル</button>
         <button type="button" class="apple-risk-btn" style="background:#15803d;color:#fff;border-color:#15803d" id="apple-risk-modal-save">保存</button>
@@ -42,7 +50,8 @@
     </div>
   </div>
 
-  <script src="apple-risk-model.js?v=20251109p3"></script>
-  <script src="apple-risk-app.js?v=20251109p3"></script>
+  <script src="/portal/orchard-location-cookie.js?v=20251110set5"></script>
+  <script src="apple-risk-model.js?v=20251110set6"></script>
+  <script src="apple-risk-app.js?v=20251110set6"></script>
 </body>
 </html>

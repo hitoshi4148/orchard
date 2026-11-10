@@ -13,7 +13,7 @@ describe("marssonina-infection integration", () => {
   const end = "2026-11-08";
 
   it(
-    "Hirosaki 40.82/140.74 — full coverage and primary candidate",
+    "Hirosaki 40.82/140.74 — full coverage and Phase2 primary",
     { timeout: 120_000 },
     async () => {
       const win = resolveMarssoninaNasaWindow(bloom, end);
@@ -42,9 +42,11 @@ describe("marssonina-infection integration", () => {
       const res = searchPrimaryMarssoninaInfection(raw, win, false);
       assert.equal(res.coverage, "full");
       assert.equal(res.marssoninaStatus, "primary_infection_estimated");
-      assert.equal(res.primary?.infectionDate, "2026-05-25");
-      assert.equal(res.primary?.wetDurationHours, 22);
-      assert.equal(res.primary?.wetAvgTempC, 14.7);
+      assert.equal(res.primary?.infectionDate, "2026-05-24");
+      assert.equal(res.primary?.wetDurationHours, 7);
+      assert.equal(res.primary?.wetAvgTempC, 16.5);
+      assert.equal(res.primary?.precipWetHourCount, 5);
+      assert.equal(res.primary?.wetnessRule, "precip_0.5mm_suzuki_phase2");
       assert.ok(res.primary?.periodStart);
       assert.ok(res.primary?.periodEnd);
     }
@@ -65,9 +67,11 @@ describe("marssonina-infection integration", () => {
       const res = searchPrimaryMarssoninaInfection(raw, win, false);
       assert.equal(res.coverage, "full");
       assert.equal(res.marssoninaStatus, "primary_infection_estimated");
-      assert.equal(res.primary?.infectionDate, "2026-05-08");
-      assert.equal(res.primary?.wetDurationHours, 9);
-      assert.equal(res.primary?.wetAvgTempC, 13.9);
+      assert.equal(res.primary?.infectionDate, "2026-05-21");
+      assert.equal(res.primary?.wetDurationHours, 18);
+      assert.equal(res.primary?.wetAvgTempC, 16.5);
+      assert.equal(res.primary?.precipWetHourCount, 15);
+      assert.equal(res.primary?.wetnessRule, "precip_0.5mm_suzuki_phase2");
     }
   );
 });

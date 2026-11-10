@@ -560,6 +560,9 @@ button.apple-risk-stage {
 }
 
 .apple-risk-modal {
+  --apple-green: #15803d;
+  --apple-green-soft: #ecfdf5;
+  --apple-green-border: #86efac;
   position: fixed;
   inset: 0;
   z-index: 9000;
@@ -591,7 +594,7 @@ button.apple-risk-stage {
   font-weight: 600;
 }
 
-.apple-risk-modal-panel input,
+.apple-risk-modal-panel input:not([type="radio"]):not([type="checkbox"]),
 .apple-risk-modal-panel select {
   width: 100%;
   padding: 8px;
@@ -601,11 +604,59 @@ button.apple-risk-stage {
   box-sizing: border-box;
 }
 
+.apple-risk-cultivation-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apple-risk-cultivation-radios .apple-risk-cultivation-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 8px;
+  font-weight: 400;
+  font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.apple-risk-cultivation-radios .apple-risk-cultivation-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  flex-shrink: 0;
+}
+
 .apple-risk-modal-actions {
   display: flex;
   gap: 8px;
   margin-top: 14px;
   justify-content: flex-end;
+}
+
+.apple-risk-modal-panel .apple-risk-btn--locate {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  background: var(--apple-green-soft);
+  border-color: var(--apple-green);
+  color: #14532d;
+  font-weight: 600;
+  text-align: center;
+}
+
+.apple-risk-modal-panel .apple-risk-btn--locate:hover {
+  background: #d1fae5;
+  border-color: #166534;
+}
+
+.apple-risk-modal-panel .apple-risk-btn--locate:focus-visible {
+  outline: 2px solid var(--apple-green);
+  outline-offset: 2px;
 }
 
 @media (max-width: 640px) {

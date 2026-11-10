@@ -5,16 +5,50 @@ const Facilities = (() => {
   const COOKIE_USER_FACILITIES = "userFacilities";
   const LEGACY_COOKIE_USER_FACILITY = "userFacility";
   const PORTAL_SETTINGS_COOKIE = "portalSettings";
+  const ORCHARD_LOCATION_COOKIE = "orchardLocation";
 
   function loadPortalSettingsAsFacilityItem() {
     const cookies = document.cookie.split(";");
-    const match = cookies.find((c) =>
-      c.trim().startsWith(`${PORTAL_SETTINGS_COOKIE}=`)
+    const orchardMatch = cookies.find((c) =>
+      c.trim().startsWith(`${ORCHARD_LOCATION_COOKIE}=`)
     );
-    if (!match) return null;
+  const portalMatch = cookies.find((c) =>
+    c.trim().startsWith(`${PORTAL_SETTINGS_COOKIE}=`)
+  );
 
     try {
-      const jsonStr = decodeURIComponent(match.split("=").slice(1).join("="));
+      if (orchardMatch) {
+        const jsonStr = decodeURIComponent(
+          orchardMatch.split("=").slice(1).join("=")
+        );
+        const loc = JSON.parse(jsonStr);
+        const lat = parseFloat(loc.lat);
+        const lon = parseFloat(loc.lon);
+        if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+          let facilityName = "果樹園";
+          if (portalMatch) {
+            const portal = JSON.parse(
+              decodeURIComponent(portalMatch.split("=").slice(1).join("="))
+            );
+            facilityName = String(portal.facilityName || facilityName).trim();
+          }
+          const name =
+            String(loc.locationName || facilityName).trim() || "果樹園地点";
+          return {
+            source: "manual",
+            id: "portal:settings",
+            name,
+            latitude: lat,
+            longitude: lon,
+            fromPortalSettings: true,
+          };
+        }
+      }
+
+      if (!portalMatch) return null;
+      const jsonStr = decodeURIComponent(
+        portalMatch.split("=").slice(1).join("=")
+      );
       const settings = JSON.parse(jsonStr);
       const lat = parseFloat(settings.lat);
       const lon = parseFloat(settings.lon);
@@ -33,7 +67,7 @@ const Facilities = (() => {
         fromPortalSettings: true,
       };
     } catch (e) {
-      console.error("portalSettings Cookie解析エラー:", e);
+      console.error("地点 Cookie 解析エラー:", e);
       return null;
     }
   }

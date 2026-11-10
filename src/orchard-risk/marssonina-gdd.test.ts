@@ -27,12 +27,12 @@ function metHour(date: string, hour: number, temp: number): HourlyWeatherRecord 
 describe("marssonina-gdd P3", () => {
   it("reaches threshold in measured data only", () => {
     const infection = "2026-05-01";
-    const gddStart = "2026-05-02";
+    const gddStart = "2026-05-01";
     const yesterday = "2026-05-10";
     const today = "2026-05-11";
     const records: DailyWeatherRecord[] = [];
-    for (let i = 0; i < 9; i++) {
-      const d = `2026-05-${String(2 + i).padStart(2, "0")}`;
+    for (let i = 0; i < 10; i++) {
+      const d = `2026-05-${String(1 + i).padStart(2, "0")}`;
       records.push(daily(d, 23));
     }
     const res = computeMarssoninaGddEstimate(
@@ -55,6 +55,7 @@ describe("marssonina-gdd P3", () => {
     const yesterday = "2026-05-05";
     const today = "2026-05-06";
     const records = [
+      daily("2026-05-01", 15),
       daily("2026-05-02", 15),
       daily("2026-05-03", 15),
       daily("2026-05-04", 15),
@@ -85,6 +86,7 @@ describe("marssonina-gdd P3", () => {
     const yesterday = "2026-06-03";
     const today = "2026-06-04";
     const records = [
+      daily("2026-06-01", 10),
       daily("2026-06-02", 10),
       daily("2026-06-03", 10),
     ];
@@ -106,7 +108,7 @@ describe("marssonina-gdd P3", () => {
     const yesterday = "2026-07-21";
     const today = "2026-07-22";
     const records: DailyWeatherRecord[] = [];
-    for (let d = 2; d <= 21; d += 1) {
+    for (let d = 1; d <= 21; d += 1) {
       if (d === 5 || d === 12) continue;
       records.push(daily(`2026-07-${String(d).padStart(2, "0")}`, 20));
     }
@@ -118,7 +120,7 @@ describe("marssonina-gdd P3", () => {
       today
     );
     assert.equal(res.missingDailyCount, 2);
-    assert.equal(res.measuredGddDayC, 277.2);
+    assert.equal(res.measuredGddDayC, 292.6);
     assert.equal(res.dataQuality, "degraded");
   });
 

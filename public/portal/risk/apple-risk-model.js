@@ -8,8 +8,48 @@ const OrchardRiskModel = (() => {
   const STORAGE_VARIETY_PREFIX = "orchardRiskVariety:";
   const STORAGE_STAGE_PREFIX = "orchardRiskStage:";
   const STORAGE_BLOOM_START_APPLE = "orchardRiskBloomStart:apple";
+  const STORAGE_POME_SETTINGS = "orchardRiskPomeSettings";
   const LEGACY_STAGE_KEY = "appleRiskGrowthStage";
   const LEGACY_LOCATION_KEY = "appleRiskLocation";
+
+  const POME_APPLE_VARIETIES = [
+    "ふじ",
+    "ぐんま名月",
+    "陽光",
+    "おぜの紅",
+    "紅鶴",
+    "あかぎ",
+    "スリムレッド",
+    "つがる",
+    "王林",
+    "未指定",
+  ];
+  const POME_CULTIVATION = [
+    { id: "open", label: "露地栽培" },
+    { id: "house", label: "ハウス栽培" },
+  ];
+
+  const POME_CULTIVATION_DEFAULT_ID = "open";
+
+  function normalizePomeCultivationId(id) {
+    if (POME_CULTIVATION.some((c) => c.id === id)) return id;
+    return POME_CULTIVATION_DEFAULT_ID;
+  }
+
+  function pomeCultivationLabel(id) {
+    const found = POME_CULTIVATION.find((c) => c.id === normalizePomeCultivationId(id));
+    return found?.label ?? POME_CULTIVATION[0].label;
+  }
+
+  const POME_NASHI_VARIETIES = [
+    "幸水",
+    "豊水",
+    "あきづき",
+    "新高",
+    "群馬N2号",
+    "二十世紀",
+    "未指定",
+  ];
 
   const RISK = {
     low: { label: "低", className: "risk-low" },
@@ -30,13 +70,13 @@ const OrchardRiskModel = (() => {
     apple: {
       id: "apple",
       label: "りんご",
-      varieties: ["ふじ", "つがる", "王林", "ジョナゴールド", "その他"],
+      varieties: POME_APPLE_VARIETIES,
       defaultVariety: "ふじ",
     },
     nashi: {
       id: "nashi",
       label: "日本なし",
-      varieties: ["幸水", "豊水", "新高", "二十世紀", "あきづき", "その他"],
+      varieties: POME_NASHI_VARIETIES,
       defaultVariety: "幸水",
     },
   };
@@ -508,14 +548,59 @@ const OrchardRiskModel = (() => {
     });
   }
 
+  function loadPomeSettings() {
+    const defaults = {
+      cultivationId: POME_CULTIVATION_DEFAULT_ID,
+      appleVariety: "ふじ",
+      nashiVariety: "幸水",
+    };
+    try {
+      const raw = localStorage.getItem(STORAGE_POME_SETTINGS);
+      if (!raw) return defaults;
+      const parsed = { ...defaults, ...JSON.parse(raw) };
+      parsed.cultivationId = normalizePomeCultivationId(parsed.cultivationId);
+      return parsed;
+    } catch {
+      return defaults;
+    }
+  }
+
+  function savePomeSettings(partial) {
+    const next = { ...loadPomeSettings(), ...partial };
+    localStorage.setItem(STORAGE_POME_SETTINGS, JSON.stringify(next));
+    if (partial.appleVariety && CROPS.apple.varieties.includes(partial.appleVariety)) {
+      localStorage.setItem(`${STORAGE_VARIETY_PREFIX}apple`, partial.appleVariety);
+    }
+    if (partial.nashiVariety && CROPS.nashi.varieties.includes(partial.nashiVariety)) {
+      localStorage.setItem(`${STORAGE_VARIETY_PREFIX}nashi`, partial.nashiVariety);
+    }
+  }
+
+  function loadCultivationId() {
+    return loadPomeSettings().cultivationId;
+  }
+
   function loadLocation() {
+    if (typeof OrchardLocationCookie !== "undefined") {
+      const loc = OrchardLocationCookie.load();
+      if (OrchardLocationCookie.hasCoordinates(loc)) {
+        return {
+          prefecture: "",
+          municipality: "",
+          label: OrchardLocationCookie.formatLabel(loc),
+          lat: loc.lat,
+          lon: loc.lon,
+          source: "orchardLocation",
+        };
+      }
+    }
     try {
       const raw = localStorage.getItem(STORAGE_LOCATION);
       if (!raw) return { ...DEFAULT_LOCATION };
       const parsed = JSON.parse(raw);
       return {
-        prefecture: parsed.prefecture || DEFAULT_LOCATION.prefecture,
-        municipality: parsed.municipality || DEFAULT_LOCATION.municipality,
+        prefecture: parsed.prefecture || "",
+        municipality: parsed.municipality || "",
         label:
           parsed.label ||
           `${parsed.prefecture || ""} ${parsed.municipality || ""}`.trim(),
@@ -528,38 +613,34 @@ const OrchardRiskModel = (() => {
     }
   }
 
-  function saveLocation(location) {
-    localStorage.setItem(
-      STORAGE_LOCATION,
-      JSON.stringify({
-        ...location,
-        label: `${location.prefecture} ${location.municipality}`.trim(),
-      })
-    );
+  function saveSharedLocation(lat, lon, locationName = "") {
+    if (typeof OrchardLocationCookie === "undefined") {
+      return false;
+    }
+    OrchardLocationCookie.save({
+      lat: String(lat).trim(),
+      lon: String(lon).trim(),
+      locationName: String(locationName || "").trim(),
+    });
+    return true;
   }
 
   function tryLoadPortalLocation() {
-    const cookies = document.cookie.split(";");
-    const match = cookies.find((c) => c.trim().startsWith("portalSettings="));
-    if (!match) return null;
-    try {
-      const jsonStr = decodeURIComponent(match.split("=").slice(1).join("="));
-      const settings = JSON.parse(jsonStr);
-      const lat = String(settings.lat || "").trim();
-      const lon = String(settings.lon || "").trim();
-      if (!lat || !lon) return null;
-      const place = String(settings.locationName || "").trim();
-      return {
-        prefecture: place || "ポータル設定",
-        municipality: "",
-        label: place || `緯度 ${lat} / 経度 ${lon}`,
-        lat,
-        lon,
-        source: "portalSettings",
-      };
-    } catch {
+    if (typeof OrchardLocationCookie === "undefined") {
       return null;
     }
+    const loc = OrchardLocationCookie.load();
+    if (!OrchardLocationCookie.hasCoordinates(loc)) {
+      return null;
+    }
+    return {
+      prefecture: "",
+      municipality: "",
+      label: OrchardLocationCookie.formatLabel(loc),
+      lat: loc.lat,
+      lon: loc.lon,
+      source: "orchardLocation",
+    };
   }
 
   function getDiseasesForCrop(cropId) {
@@ -647,6 +728,33 @@ const OrchardRiskModel = (() => {
     };
   }
 
+  function parseOrchardRiskJson(text) {
+    const trimmed = text.trim();
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+      return null;
+    }
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+
+  function orchardRiskHttpErrorMessage(text, status) {
+    const trimmed = text.trim();
+    if (trimmed.includes("error code: 1102")) {
+      return "サーバー処理時間の上限に達しました。数十秒待ってから再読み込みしてください。";
+    }
+    const head = trimmed.slice(0, 64).toLowerCase();
+    if (head.startsWith("<!doctype") || head.startsWith("<html")) {
+      return `気象 API が一時的に応答できませんでした（HTTP ${status}）。Cloudflare 側のタイムアウトや障害の可能性があります。数十秒後に再読み込みするか、ローカル確認時は npm run dev（ポート 8790）を使ってください。`;
+    }
+    if (trimmed) {
+      return trimmed.length > 160 ? `${trimmed.slice(0, 160)}…` : trimmed;
+    }
+    return `気象 API エラー（HTTP ${status}）`;
+  }
+
   async function fetchServerForecast(cropId = loadCropId()) {
     const loc = loadLocation();
     const lat = parseFloat(String(loc.lat));
@@ -667,12 +775,36 @@ const OrchardRiskModel = (() => {
         params.set("bloom_start", bloom);
       }
     }
-    const res = await fetch(`/portal/api/orchard-risk?${params.toString()}`);
-    const json = await res.json();
-    if (!json.success) {
-      throw new Error(json.error || "気象 API の取得に失敗しました");
+    const url = `/portal/api/orchard-risk?${params.toString()}`;
+    const retryable = new Set([502, 503, 504, 520, 524, 525]);
+    let lastError = null;
+    for (let attempt = 0; attempt <= 3; attempt += 1) {
+      const res = await fetch(url);
+      const text = await res.text();
+      const json = parseOrchardRiskJson(text);
+      if (json && typeof json === "object" && "success" in json) {
+        if (!json.success) {
+          throw new Error(json.error || "気象 API の取得に失敗しました");
+        }
+        return json.forecast;
+      }
+      if (text.includes("error code: 1102")) {
+        throw new Error(orchardRiskHttpErrorMessage(text, res.status));
+      }
+      if (retryable.has(res.status)) {
+        lastError = new Error(orchardRiskHttpErrorMessage(text, res.status));
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 1500 * 2 ** attempt));
+          continue;
+        }
+        throw lastError;
+      }
+      if (!res.ok) {
+        throw new Error(orchardRiskHttpErrorMessage(text, res.status));
+      }
+      throw new Error("気象 API の応答が不正です。しばらく待って再試行してください。");
     }
-    return json.forecast;
+    throw lastError ?? new Error("気象 API の取得に失敗しました");
   }
 
   async function buildDashboardLive(cropId = loadCropId()) {
@@ -739,6 +871,7 @@ const OrchardRiskModel = (() => {
       dataSourceLabel: `デモ表示（${crop.label}・気象 API 未接続）`,
       updatedAt,
       location: loadLocation(),
+      cultivationId: loadCultivationId(),
       growthStageId: loadGrowthStageId(cropId),
       growthStages: GROWTH_STAGES,
       infectionByDisease,
@@ -759,7 +892,14 @@ const OrchardRiskModel = (() => {
     loadVariety,
     saveVariety,
     loadLocation,
-    saveLocation,
+    saveSharedLocation,
+    loadPomeSettings,
+    savePomeSettings,
+    loadCultivationId,
+    POME_CULTIVATION,
+    pomeCultivationLabel,
+    POME_APPLE_VARIETIES,
+    POME_NASHI_VARIETIES,
     loadGrowthStageId,
     saveGrowthStageId,
     loadBloomStartApple,

@@ -100,7 +100,7 @@ export function buildMarssoninaOnsetFromSearch(
   };
 
   const gddAssumptionNote =
-    "積算起算: 一次感染候補日の翌日（論文定義は未確認の仮定）。猫塚（2023）159日℃・基準4.6℃は参考値であり論文再現ではありません。";
+    "積算起算: 一次感染開始日（推定）当日を含む（猫塚ほか 2023・159日℃・基準4.6℃）。一次感染開始日は P2c+ Phase1（降水日・時別≥0.5mm/h・NASA POWER 格子）による推定です。";
 
   if (search.marssoninaStatus === "primary_infection_estimated" && search.primary) {
     const p = search.primary;
@@ -111,7 +111,7 @@ export function buildMarssoninaOnsetFromSearch(
       estimatedInfectionDate: p.infectionDate,
       predictedOnsetWindow: predicted,
       note:
-        `一次感染候補（推定）: 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・濡れ中平均 ${p.wetAvgTempC}℃。` +
+        `一次感染開始日（推定）: 降水日 ${p.infectionDate}・時別≥0.5mm 濡れ ${p.wetDurationHours}h（${p.periodStart}〜${p.periodEnd}）・平均 ${p.wetAvgTempC}℃（NASA 格子）。` +
         ` ${gddAssumptionNote}` +
         (gdd
           ? ` 感染後積算（実測）${gdd.measuredGddDayC} 日℃、予報込 ${gdd.totalGddThroughForecastDayC} 日℃。欠測日 ${gdd.missingDailyCount} 日。データ品質=${gdd.dataQuality}、モデル信頼度=${gdd.modelConfidence}。`

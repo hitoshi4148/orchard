@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const Model = typeof OrchardRiskModel !== "undefined" ? OrchardRiskModel : AppleRiskModel;
   const root = document.getElementById("apple-risk-root");
-  const modal = document.getElementById("apple-risk-location-modal");
+  const modal = document.getElementById("apple-risk-settings-modal");
   const modalBackdrop = document.getElementById("apple-risk-modal-backdrop");
   const modalCancel = document.getElementById("apple-risk-modal-cancel");
   const modalSave = document.getElementById("apple-risk-modal-save");
@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
           : isMarssoninaPending
             ? '<span class="apple-risk-estimate-badge">接続待ち</span> '
             : isMarssoninaCandidate
-              ? '<span class="apple-risk-estimate-badge">一次感染候補（推定）</span> '
+              ? '<span class="apple-risk-estimate-badge">一次感染開始日（推定）</span> '
               : isMarssoninaPartialRef
                 ? '<span class="apple-risk-estimate-badge">取得範囲内の感染候補（参考）</span> '
               : isMarssoninaNoData
@@ -183,13 +183,17 @@ document.addEventListener("DOMContentLoaded", () => {
                   ? '<span class="apple-risk-estimate-badge">候補なし</span> '
                   : "";
         const infectionLabel = isMarssoninaCandidate
-          ? "一次感染候補日（推定）"
+          ? "一次感染開始日（推定）"
           : isMarssoninaPartialRef
             ? "取得範囲内の候補日（参考）"
             : "推定感染日";
+        const wetRuleNote =
+          primary?.wetnessRule === "precip_0.5mm_suzuki_phase2"
+            ? "・降水後2h／20時以降は翌7時までの簡易延長（二次文献ベース・未検証含む）"
+            : "";
         const wetDetail =
           primary &&
-          `<dt>推定濡れ</dt><dd>${primary.wetDurationHours} h（${escapeHtml(primary.periodStart)}〜${escapeHtml(primary.periodEnd)}・平均 ${primary.wetAvgTempC}℃）</dd>`;
+          `<dt>降水日・濡れ</dt><dd>時別≥0.5mm ${primary.precipWetHourCount ?? primary.wetDurationHours} h／合計濡れ ${primary.wetDurationHours} h（${escapeHtml(primary.periodStart)}〜${escapeHtml(primary.periodEnd)}・平均 ${primary.wetAvgTempC}℃・NASA POWER 格子${wetRuleNote}）</dd>`;
         const coverageDetail =
           item.marssoninaNasaWindow
             ? item.weatherCoverage === "partial"
@@ -224,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${coverageDetail}
             <dt>感染後積算</dt><dd>${
               item.gddSinceInfectionDayC != null
-                ? `${item.gddSinceInfectionDayC} 日℃（実測・候補翌日起算）`
+                ? `${item.gddSinceInfectionDayC} 日℃（実測・一次感染開始日起算・当日含む）`
                 : isMarssoninaPartialRef
                   ? "—（参考候補のため未計算）"
                   : "—"
@@ -317,6 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const stage =
       dashboard.growthStages.find((s) => s.id === dashboard.growthStageId)?.label ||
       "—";
+    const cultivationLabel = Model.pomeCultivationLabel(dashboard.cultivationId);
     root.innerHTML = `
       <header class="apple-risk-header">
         <h1>りんご・日本なし病害リスク予報</h1>
@@ -327,17 +332,16 @@ document.addEventListener("DOMContentLoaded", () => {
           <span><strong>対象:</strong> ${escapeHtml(dashboard.cropLabel)}</span>
           ${renderVarietySelect(dashboard)}
           <span><strong>地点:</strong> ${escapeHtml(loc.label || `${loc.prefecture} ${loc.municipality}`)}</span>
+          <span><strong>栽培方式:</strong> ${escapeHtml(cultivationLabel)}</span>
           <span class="apple-risk-stage-emphasis"><strong>現在の生育ステージ:</strong> ${escapeHtml(stage)}</span>
           <span><strong>更新:</strong> ${escapeHtml(dashboard.updatedAt)}（JST）</span>
           <span class="apple-risk-demo-badge">${escapeHtml(dashboard.dataSourceLabel)}</span>
+          <button type="button" class="apple-risk-btn" id="apple-risk-settings-btn">⚙ 設定</button>
         </div>
         <div class="apple-risk-header-stages" aria-labelledby="stage-heading">
           <h2 id="stage-heading" class="apple-risk-header-stages-title">生育ステージ</h2>
           <p class="apple-risk-section-lead apple-risk-header-stages-lead">感染しやすい病害はステージによって異なります。${escapeHtml(dashboard.cropLabel)}ごとに保存されます（将来は気温から自動推定）。</p>
           <div class="apple-risk-stages" id="apple-risk-stages">${renderStages(dashboard)}</div>
-          <div class="apple-risk-header-actions">
-            <button type="button" class="apple-risk-btn" id="apple-risk-location-btn-inline">地点を変更</button>
-          </div>
           ${renderBloomStartField(dashboard)}
         </div>
       </header>
@@ -374,8 +378,8 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     document
-      .getElementById("apple-risk-location-btn-inline")
-      ?.addEventListener("click", openLocationModal);
+      .getElementById("apple-risk-settings-btn")
+      ?.addEventListener("click", openSettingsModal);
 
     const varietySelect = document.getElementById("apple-risk-variety-select");
     varietySelect?.addEventListener("change", () => {
@@ -425,43 +429,102 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshDashboard(cropId);
   });
 
-  function openLocationModal() {
-    const loc = Model.loadLocation();
-    document.getElementById("loc-prefecture").value = loc.prefecture;
-    document.getElementById("loc-municipality").value = loc.municipality;
-    document.getElementById("loc-lat").value = loc.lat || "";
-    document.getElementById("loc-lon").value = loc.lon || "";
-    modal.classList.remove("hidden");
+  function fillSelectOptions(selectEl, options, selected) {
+    if (!selectEl) return;
+    selectEl.innerHTML = options
+      .map(
+        (v) =>
+          `<option value="${escapeHtml(v)}"${v === selected ? " selected" : ""}>${escapeHtml(v)}</option>`
+      )
+      .join("");
   }
 
-  function closeLocationModal() {
-    modal.classList.add("hidden");
+  function fillCultivationRadios(selectedId) {
+    const host = document.getElementById("pome-cultivation-radios");
+    if (!host || !Array.isArray(Model.POME_CULTIVATION)) return;
+    host.innerHTML = Model.POME_CULTIVATION.map(
+      (opt) =>
+        `<label class="apple-risk-cultivation-option"><input type="radio" name="pomeCultivation" value="${escapeHtml(opt.id)}"${opt.id === selectedId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
+    ).join("");
   }
 
-  function saveLocationFromModal() {
-    const prefecture = document.getElementById("loc-prefecture").value.trim();
-    const municipality = document.getElementById("loc-municipality").value.trim();
-    const lat = document.getElementById("loc-lat").value.trim();
-    const lon = document.getElementById("loc-lon").value.trim();
-    if (!prefecture && !municipality) {
-      alert("都道府県または市町村を入力してください。");
+  function openSettingsModal() {
+    const loc =
+      typeof OrchardLocationCookie !== "undefined"
+        ? OrchardLocationCookie.load()
+        : { lat: "", lon: "" };
+    const pome = Model.loadPomeSettings();
+    document.getElementById("pome-lat").value = loc.lat || "";
+    document.getElementById("pome-lon").value = loc.lon || "";
+    fillSelectOptions(
+      document.getElementById("pome-apple-variety"),
+      Model.POME_APPLE_VARIETIES,
+      pome.appleVariety
+    );
+    fillSelectOptions(
+      document.getElementById("pome-nashi-variety"),
+      Model.POME_NASHI_VARIETIES,
+      pome.nashiVariety
+    );
+    fillCultivationRadios(pome.cultivationId);
+    modal?.classList.remove("hidden");
+  }
+
+  function closeSettingsModal() {
+    modal?.classList.add("hidden");
+  }
+
+  async function fetchLocationName(lat, lon) {
+    const res = await fetch(
+      `/portal/api/geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+    );
+    const json = await res.json();
+    if (!json.success) {
+      return "";
+    }
+    return json.name || "";
+  }
+
+  async function saveSettingsFromModal() {
+    const lat = document.getElementById("pome-lat").value.trim();
+    const lon = document.getElementById("pome-lon").value.trim();
+    if (!lat || !lon) {
+      alert("緯度と経度を入力してください。");
       return;
     }
-    Model.saveLocation({
-      prefecture,
-      municipality,
-      lat,
-      lon,
-      source: "user",
-    });
-    closeLocationModal();
+    let locationName = "";
+    try {
+      locationName = await fetchLocationName(lat, lon);
+    } catch {
+      locationName = "";
+    }
+    Model.saveSharedLocation(lat, lon, locationName);
+    const appleVariety = document.getElementById("pome-apple-variety").value;
+    const nashiVariety = document.getElementById("pome-nashi-variety").value;
+    const cultivationId =
+      document.querySelector('input[name="pomeCultivation"]:checked')?.value ||
+      Model.POME_CULTIVATION[0]?.id ||
+      "open";
+    Model.savePomeSettings({ appleVariety, nashiVariety, cultivationId });
+    closeSettingsModal();
     refreshDashboard(Model.loadCropId());
   }
 
   const portalLoc = Model.tryLoadPortalLocation();
   if (portalLoc && Model.loadLocation().source === "demo") {
-    Model.saveLocation(portalLoc);
+    Model.saveSharedLocation(portalLoc.lat, portalLoc.lon, portalLoc.label);
   }
+
+  document.getElementById("pome-get-location")?.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("このブラウザは位置情報に対応していません。");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition((pos) => {
+      document.getElementById("pome-lat").value = pos.coords.latitude.toFixed(4);
+      document.getElementById("pome-lon").value = pos.coords.longitude.toFixed(4);
+    });
+  });
 
   if (stageSelect) {
     const cropId = Model.loadCropId();
@@ -478,12 +541,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  modalBackdrop?.addEventListener("click", closeLocationModal);
-  modalCancel?.addEventListener("click", closeLocationModal);
-  modalSave?.addEventListener("click", saveLocationFromModal);
+  modalBackdrop?.addEventListener("click", closeSettingsModal);
+  modalCancel?.addEventListener("click", closeSettingsModal);
+  modalSave?.addEventListener("click", () => {
+    saveSettingsFromModal();
+  });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeLocationModal();
+    if (e.key === "Escape") closeSettingsModal();
   });
 
   refreshDashboard();
