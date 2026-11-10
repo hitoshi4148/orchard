@@ -148,14 +148,18 @@ const PeachRiskModel = (() => {
   ];
 
   const DEFAULT_SETTINGS = {
-    vineyardName: "第1園地",
-    prefecture: "山梨県",
-    municipality: "山梨市",
     variety: "白鳳",
     cultivationId: "open",
     growthStageId: "bloom",
     priorYearStatusId: "",
   };
+
+  function sharedLocationLabel() {
+    if (typeof OrchardLocationCookie !== "undefined") {
+      return OrchardLocationCookie.formatLabel();
+    }
+    return "未設定";
+  }
 
   const MOCK_CURRENT = {
     "peach:bacterial_shot_hole": {
@@ -323,27 +327,39 @@ const PeachRiskModel = (() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) {
-        return {
-          ...DEFAULT_SETTINGS,
-          locationLabel: `${DEFAULT_SETTINGS.prefecture} ${DEFAULT_SETTINGS.municipality}`,
-        };
+        return { ...DEFAULT_SETTINGS, locationLabel: sharedLocationLabel() };
       }
       const parsed = JSON.parse(raw);
       const merged = { ...DEFAULT_SETTINGS, ...parsed };
-      return {
-        ...merged,
-        locationLabel: `${merged.prefecture} ${merged.municipality}`.trim(),
-      };
+      return { ...merged, locationLabel: sharedLocationLabel() };
     } catch {
-      return {
-        ...DEFAULT_SETTINGS,
-        locationLabel: `${DEFAULT_SETTINGS.prefecture} ${DEFAULT_SETTINGS.municipality}`,
-      };
+      return { ...DEFAULT_SETTINGS, locationLabel: sharedLocationLabel() };
     }
   }
 
   function saveSettings(settings) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    const prev = loadSettings();
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        variety: settings.variety || prev.variety,
+        cultivationId: settings.cultivationId || prev.cultivationId,
+        growthStageId: settings.growthStageId || prev.growthStageId,
+        priorYearStatusId: settings.priorYearStatusId ?? prev.priorYearStatusId,
+      })
+    );
+  }
+
+  function saveSharedLocation(lat, lon, locationName = "") {
+    if (typeof OrchardLocationCookie === "undefined") {
+      return false;
+    }
+    OrchardLocationCookie.save({
+      lat: String(lat).trim(),
+      lon: String(lon).trim(),
+      locationName: String(locationName || "").trim(),
+    });
+    return true;
   }
 
   function getDayLabels() {
@@ -422,6 +438,7 @@ const PeachRiskModel = (() => {
     DISEASE_ORDER,
     loadSettings,
     saveSettings,
+    saveSharedLocation,
     buildViewState,
     getDayLabels,
   };

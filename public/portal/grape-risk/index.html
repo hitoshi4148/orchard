@@ -1,28 +1,108 @@
 <!DOCTYPE html>
+
 <html lang="ja">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <meta name="description" content="ぶどう栽培向け病害リスク画面（サンプルデータ・気象API未接続）">
+
   <meta name="robots" content="noindex, nofollow">
+
   <title>果樹園しごと・ぶどう病害リスク予報</title>
+
   <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
+
   <link rel="stylesheet" href="../portal.css">
-  <link rel="stylesheet" href="grape-risk.css?v=20251109">
+
+  <link rel="stylesheet" href="grape-risk.css?v=20251110set5">
+
 </head>
+
 <body>
+
   <div class="grape-risk-page">
+
     <p class="grape-risk-back"><a href="/portal/lab/">← 果樹園しごと（実験）</a></p>
+
+
 
     <div id="grape-risk-root" aria-live="polite"></div>
 
+
+
     <footer class="grape-risk-footer" style="margin-top:24px;text-align:center;font-size:0.8rem;color:#6b7280">
+
       <p>本画面は UI 検証用です。表示数値はすべてサンプルであり、実際の病害予測ではありません。</p>
-      <p>ぶどう病害リスク UI v0.1（画面のみ）</p>
+
+      <p>ぶどう病害リスク UI v0.2</p>
+
     </footer>
+
   </div>
 
-  <script src="grape-risk-model.js?v=20251109"></script>
-  <script src="grape-risk-app.js?v=20251109"></script>
+
+
+  <div id="grape-risk-settings-modal" class="grape-risk-modal hidden" role="dialog" aria-modal="true" aria-labelledby="grape-settings-title">
+
+    <div id="grape-risk-modal-backdrop" class="grape-risk-modal-backdrop"></div>
+
+    <div class="grape-risk-modal-panel">
+
+      <h2 id="grape-settings-title" style="margin:0 0 8px;font-size:1.05rem;color:#14532d">設定</h2>
+
+      <p style="margin:0 0 12px;font-size:0.82rem;color:#6b7280">地点は果樹園しごとと同じ Cookie に保存されます。品種・栽培方式はこの端末に保存されます。</p>
+
+      <fieldset style="border:0;padding:0;margin:0 0 12px">
+
+        <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">場所</legend>
+
+        <label for="grape-lat">緯度</label>
+
+        <input type="text" id="grape-lat" inputmode="decimal" placeholder="例: 35.5353">
+
+        <label for="grape-lon">経度</label>
+
+        <input type="text" id="grape-lon" inputmode="decimal" placeholder="例: 139.4931">
+
+        <button type="button" class="grape-risk-btn grape-risk-btn--locate" id="grape-get-location">現在地を取得</button>
+
+      </fieldset>
+
+      <label for="grape-variety">ぶどう品種</label>
+
+      <select id="grape-variety"></select>
+
+      <fieldset style="border:0;padding:0;margin:12px 0">
+
+        <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">栽培方式</legend>
+
+        <div id="grape-cultivation-radios" class="grape-risk-cultivation-radios"></div>
+
+      </fieldset>
+
+      <div class="grape-risk-modal-actions">
+
+        <button type="button" class="grape-risk-btn" id="grape-settings-cancel">キャンセル</button>
+
+        <button type="button" class="grape-risk-btn grape-risk-btn--save" id="grape-settings-save">保存</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <script src="/portal/orchard-location-cookie.js?v=20251110set5"></script>
+  <script src="grape-risk-model.js?v=20251110set5"></script>
+  <script src="grape-risk-app.js?v=20251110set5"></script>
+
 </body>
+
 </html>
+

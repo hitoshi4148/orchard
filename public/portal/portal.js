@@ -53,6 +53,9 @@ const SHOW_DISEASE_RISK_SECTION =
 const API_RETRYABLE_STATUSES = new Set([502, 503, 504, 520, 524, 525]);
 const API_MAX_INFRA_RETRIES = 5;
 const API_RETRY_BASE_MS = 2000;
+const DASHBOARD_API_MAX_RETRIES = 2;
+const DASHBOARD_API_TIMEOUT_MS = 45000;
+let portalDataLoadSeq = 0;
 
 function isHtmlApiBody(text) {
   const trimmed = text.trimStart();
@@ -96,14 +99,49 @@ function sleep(ms) {
 
 async function fetchApiJson(url, init = {}) {
   let lastError = null;
+  const maxRetries =
+    typeof init.maxRetries === "number" ? init.maxRetries : API_MAX_INFRA_RETRIES;
+  const timeoutMs =
+    typeof init.timeoutMs === "number" ? init.timeoutMs : 0;
+  const { maxRetries: _mr, timeoutMs: _tm, ...fetchInit } = init;
 
-  for (let attempt = 0; attempt <= API_MAX_INFRA_RETRIES; attempt += 1) {
-    const response = await fetch(url, init);
-    const text = await response.text();
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    const controller = timeoutMs > 0 ? new AbortController() : null;
+    const timer =
+      controller != null
+        ? setTimeout(() => controller.abort(), timeoutMs)
+        : null;
+    let response;
+    let text;
+    try {
+      response = await fetch(url, {
+        ...fetchInit,
+        signal: controller?.signal,
+      });
+      text = await response.text();
+    } catch (err) {
+      if (timer != null) {
+        clearTimeout(timer);
+      }
+      if (err instanceof Error && err.name === "AbortError") {
+        lastError = new Error(
+          `API が応答しませんでした（${Math.round(timeoutMs / 1000)}秒）。しばらく待って再読み込みしてください。`
+        );
+        if (attempt < maxRetries) {
+          await sleep(apiRetryDelayMs(attempt));
+          continue;
+        }
+        throw lastError;
+      }
+      throw err;
+    }
+    if (timer != null) {
+      clearTimeout(timer);
+    }
 
     if (shouldRetryInfraResponse(response.status, text)) {
       lastError = buildApiJsonError(response.status, text);
-      if (attempt < API_MAX_INFRA_RETRIES) {
+      if (attempt < maxRetries) {
         await sleep(apiRetryDelayMs(attempt));
         continue;
       }
@@ -185,15 +223,59 @@ function getCookie(name) {
 function getDefaultSettings() {
   return {
     facilityName: "",
-    lat: "",
-    lon: "",
-    locationType: "未指定",
-    greenType: "未指定",
-    warmGrass: "未指定",
-    coolGrass: "未指定",
-    locationName: "",
     responseMode: "慎重に回答",
   };
+}
+
+function loadOrchardLocation() {
+  if (typeof OrchardLocationCookie !== "undefined") {
+    return OrchardLocationCookie.load();
+  }
+  return { lat: "", lon: "", locationName: "" };
+}
+
+function saveOrchardLocation(location) {
+  if (typeof OrchardLocationCookie !== "undefined") {
+    OrchardLocationCookie.save(location);
+  }
+}
+
+function migratePortalSettingsCookie() {
+  if (typeof OrchardLocationCookie === "undefined") {
+    return;
+  }
+  const raw = getCookie(COOKIE_NAME);
+  if (!raw) {
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    const hasLegacyFields =
+      parsed.lat != null ||
+      parsed.lon != null ||
+      parsed.warmGrass != null ||
+      parsed.coolGrass != null ||
+      parsed.locationType != null ||
+      parsed.greenType != null ||
+      parsed.locationName != null;
+    if (!hasLegacyFields) {
+      return;
+    }
+    const portalOnly = {
+      facilityName: String(parsed.facilityName ?? ""),
+      responseMode: parsed.responseMode || "慎重に回答",
+    };
+    setCookie(COOKIE_NAME, JSON.stringify(portalOnly));
+    if (parsed.lat && parsed.lon && !OrchardLocationCookie.hasCoordinates()) {
+      OrchardLocationCookie.save({
+        lat: String(parsed.lat),
+        lon: String(parsed.lon),
+        locationName: String(parsed.locationName ?? ""),
+      });
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 function formatPortalTitle(facilityName, locationName = "") {
@@ -207,7 +289,7 @@ function formatPortalTitle(facilityName, locationName = "") {
 function updatePortalTitle(settings = loadSettings()) {
   const prefixEl = document.getElementById("portal-title-prefix");
   const name = (settings.facilityName ?? "").trim();
-  const place = (settings.locationName ?? "").trim();
+  const place = (loadOrchardLocation().locationName ?? "").trim();
   const placePart = place ? `(${place})` : "";
   const prefix = name ? `${name}${placePart}` : placePart;
 
@@ -306,33 +388,31 @@ function normalizeGrassSettings(settings) {
 }
 
 function loadSettings() {
+  migratePortalSettingsCookie();
   const defaults = getDefaultSettings();
-
-  const legacyLat = getCookie("forecast_lat");
-  const legacyLon = getCookie("forecast_lon");
-  if (legacyLat && legacyLon) {
-    defaults.lat = legacyLat;
-    defaults.lon = legacyLon;
-  }
-
   const raw = getCookie(COOKIE_NAME);
   if (!raw) {
     return defaults;
   }
-
   try {
-    const parsed = normalizeSettings({ ...defaults, ...JSON.parse(raw) });
-    if (!parsed.responseMode) {
-      parsed.responseMode = "慎重に回答";
-    }
-    return parsed;
+    const parsed = JSON.parse(raw);
+    return {
+      facilityName: String(parsed.facilityName ?? ""),
+      responseMode: parsed.responseMode || "慎重に回答",
+    };
   } catch {
     return defaults;
   }
 }
 
 function saveSettings(settings) {
-  setCookie(COOKIE_NAME, JSON.stringify(settings));
+  setCookie(
+    COOKIE_NAME,
+    JSON.stringify({
+      facilityName: String(settings.facilityName ?? ""),
+      responseMode: settings.responseMode || "慎重に回答",
+    })
+  );
 }
 
 function formatLocationKey(lat, lon) {
@@ -354,41 +434,66 @@ function cacheSprayForecast(lat, lon, results) {
   }
 }
 
-function hasLocation(settings) {
-  return settings.lat !== "" && settings.lon !== "";
+function hasLocation() {
+  if (typeof OrchardLocationCookie !== "undefined") {
+    return OrchardLocationCookie.hasCoordinates();
+  }
+  const loc = loadOrchardLocation();
+  return loc.lat !== "" && loc.lon !== "";
 }
 
 function applySettingsToForm(settings) {
+  const loc = loadOrchardLocation();
   document.getElementById("settings-facility-name").value = settings.facilityName ?? "";
-  document.getElementById("settings-lat").value = settings.lat;
-  document.getElementById("settings-lon").value = settings.lon;
-
-  document
-    .querySelector(`input[name="locationType"][value="${settings.locationType}"]`)
-    ?.click();
-  document
-    .querySelector(`input[name="greenType"][value="${settings.greenType}"]`)
-    ?.click();
-
-  document.getElementById("warmGrass").value = settings.warmGrass;
-  document.getElementById("coolGrass").value = settings.coolGrass;
+  document.getElementById("settings-lat").value = loc.lat;
+  document.getElementById("settings-lon").value = loc.lon;
   document
     .querySelector(`input[name="responseMode"][value="${settings.responseMode ?? "慎重に回答"}"]`)
     ?.click();
 }
 
+function parseCoordinateToken(raw) {
+  const trimmed = String(raw ?? "").trim();
+  if (!trimmed) {
+    return "";
+  }
+  const token = trimmed
+    .split(/[\s\u3000,、，;；]+/)
+    .find((part) => /^-?\d/.test(part));
+  if (!token) {
+    return trimmed;
+  }
+  const n = Number(token);
+  return Number.isFinite(n) ? String(n) : trimmed;
+}
+
+function normalizeLocationFields(latRaw, lonRaw) {
+  let lat = parseCoordinateToken(latRaw);
+  let lon = parseCoordinateToken(lonRaw);
+  if (!lon) {
+    const parts = String(latRaw ?? "")
+      .trim()
+      .split(/[\s\u3000,、，;；]+/)
+      .map((p) => Number(p))
+      .filter((n) => Number.isFinite(n));
+    if (parts.length >= 2) {
+      lat = String(parts[0]);
+      lon = String(parts[1]);
+    }
+  }
+  return { lat, lon };
+}
+
 function readSettingsFromForm() {
-  const previous = loadSettings();
+  const { lat, lon } = normalizeLocationFields(
+    document.getElementById("settings-lat").value,
+    document.getElementById("settings-lon").value
+  );
   return {
     facilityName: document.getElementById("settings-facility-name").value.trim(),
-    lat: document.getElementById("settings-lat").value.trim(),
-    lon: document.getElementById("settings-lon").value.trim(),
-    locationType: document.querySelector('input[name="locationType"]:checked').value,
-    greenType: document.querySelector('input[name="greenType"]:checked').value,
-    warmGrass: document.getElementById("warmGrass").value,
-    coolGrass: document.getElementById("coolGrass").value,
+    lat,
+    lon,
     responseMode: document.querySelector('input[name="responseMode"]:checked').value,
-    locationName: previous.locationName,
   };
 }
 
@@ -516,29 +621,53 @@ async function fetchLocationName(lat, lon) {
   return data.name || "";
 }
 
-async function ensureLocationName(settings) {
-  if (settings.locationName || !hasLocation(settings)) {
-    return settings;
+async function ensureLocationName(location = loadOrchardLocation()) {
+  if (location.locationName || !hasLocation()) {
+    return location;
   }
 
   try {
-    settings.locationName = await fetchLocationName(settings.lat, settings.lon);
-    if (settings.locationName) {
-      saveSettings(settings);
+    const name = await fetchLocationName(location.lat, location.lon);
+    const updated = { ...location, locationName: name || "" };
+    if (name) {
+      saveOrchardLocation(updated);
     }
+    return updated;
   } catch {
-    // 地名取得失敗時も天気予報は表示する
+    return location;
   }
-
-  return settings;
 }
 
 function portalNeedsDashboardData() {
   return SHOW_WEATHER || SHOW_PORTAL_INSIGHTS || SHOW_GROWTH_POTENTIAL;
 }
 
+function buildDashboardNeedParam() {
+  const parts = [];
+  if (SHOW_WEATHER) {
+    parts.push("weather");
+  }
+  if (SHOW_PORTAL_INSIGHTS) {
+    parts.push("disease");
+  }
+  if (SHOW_GROWTH_POTENTIAL) {
+    parts.push("gp");
+  }
+  if (SHOW_WEATHER) {
+    parts.push("spray");
+  }
+  return parts.length > 0 ? parts.join(",") : "weather,disease,gp,spray";
+}
+
 async function loadPortalData() {
-  let settings = loadSettings();
+  const loadSeq = ++portalDataLoadSeq;
+  const settings = loadSettings();
+  let location = loadOrchardLocation();
+  const { lat, lon } = normalizeLocationFields(location.lat, location.lon);
+  if (lat !== location.lat || lon !== location.lon) {
+    location = { ...location, lat, lon };
+    saveOrchardLocation(location);
+  }
   updatePortalTitle(settings);
 
   if (!portalNeedsDashboardData()) {
@@ -561,9 +690,6 @@ async function loadPortalData() {
     return;
   }
 
-  settings = await ensureLocationName(settings);
-  updatePortalTitle(settings);
-
   const weatherLoading = document.getElementById("weather-loading");
   const insightsLoading = document.getElementById("disease-risk-loading");
   const weatherError = document.getElementById("weather-error");
@@ -571,9 +697,11 @@ async function loadPortalData() {
   const gddError = document.getElementById("gdd-error");
   const gpError = document.getElementById("gp-chart-error");
 
+  const locationNamePromise = ensureLocationName({ ...location });
+
   if (SHOW_WEATHER) {
-    weatherLoading.classList.remove("hidden");
-    weatherError.classList.add("hidden");
+    weatherLoading?.classList.remove("hidden");
+    weatherError?.classList.add("hidden");
     renderWeatherPlaceholder("");
   }
   if (SHOW_PORTAL_INSIGHTS) {
@@ -593,19 +721,32 @@ async function loadPortalData() {
   }
 
   const params = new URLSearchParams({
-    lat: settings.lat,
-    lon: settings.lon,
-    warmGrass: settings.warmGrass,
-    coolGrass: settings.coolGrass,
+    lat: location.lat,
+    lon: location.lon,
+    warmGrass: "未指定",
+    coolGrass: "未指定",
+    need: buildDashboardNeedParam(),
   });
 
   const gddPromise = SHOW_PORTAL_INSIGHTS ? refreshAllGdd(settings) : Promise.resolve();
 
   try {
-    const data = await fetchApiJson(`${DASHBOARD_API}?${params.toString()}`);
+    const data = await fetchApiJson(`${DASHBOARD_API}?${params.toString()}`, {
+      maxRetries: DASHBOARD_API_MAX_RETRIES,
+      timeoutMs: DASHBOARD_API_TIMEOUT_MS,
+    });
+
+    if (loadSeq !== portalDataLoadSeq) {
+      return;
+    }
 
     if (!data.success) {
       throw new Error(data.error || "データの取得に失敗しました");
+    }
+
+    const namedSettings = await locationNamePromise;
+    if (loadSeq === portalDataLoadSeq) {
+      updatePortalTitle(namedSettings);
     }
 
     if (SHOW_WEATHER) {
@@ -621,7 +762,7 @@ async function loadPortalData() {
       renderGpChart(data.growthPotential);
     }
     if (data.sprayForecast) {
-      cacheSprayForecast(settings.lat, settings.lon, data.sprayForecast);
+      cacheSprayForecast(location.lat, location.lon, data.sprayForecast);
     }
   } catch (err) {
     if (SHOW_WEATHER) {
@@ -642,17 +783,21 @@ async function loadPortalData() {
       renderGpPlaceholder("GPを表示できませんでした。");
     }
   } finally {
-    if (SHOW_WEATHER) {
-      weatherLoading.classList.add("hidden");
+    if (loadSeq === portalDataLoadSeq && SHOW_WEATHER) {
+      weatherLoading?.classList.add("hidden");
     }
-    document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
+    if (loadSeq === portalDataLoadSeq) {
+      document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
+    }
   }
 
-  if (SHOW_PORTAL_INSIGHTS) {
+  if (SHOW_PORTAL_INSIGHTS && loadSeq === portalDataLoadSeq) {
     try {
       await gddPromise;
     } finally {
-      insightsLoading?.classList.add("hidden");
+      if (loadSeq === portalDataLoadSeq) {
+        insightsLoading?.classList.add("hidden");
+      }
     }
   }
 }
@@ -688,28 +833,34 @@ function getCurrentLocation() {
 }
 
 async function handleSaveSettings() {
-  const settings = readSettingsFromForm();
+  const form = readSettingsFromForm();
+  const settings = {
+    facilityName: form.facilityName,
+    responseMode: form.responseMode,
+  };
 
-  if (!settings.lat || !settings.lon) {
+  if (!form.lat || !form.lon) {
     showLocationStatus("緯度と経度を入力してください", true);
     return;
   }
 
   showLocationStatus("地名を取得中...");
+  let location = { lat: form.lat, lon: form.lon, locationName: "" };
   try {
-    settings.locationName = await fetchLocationName(settings.lat, settings.lon);
+    location.locationName = await fetchLocationName(form.lat, form.lon);
   } catch {
-    settings.locationName = "";
+    location.locationName = "";
   }
 
   saveSettings(settings);
+  saveOrchardLocation(location);
   updatePortalTitle(settings);
   if (SHOW_WORK_MEMO) {
     WorkMemoUI.updateFacilityName(settings.facilityName);
   }
   showLocationStatus(
-    settings.locationName
-      ? `設定を保存しました（${settings.locationName}）`
+    location.locationName
+      ? `設定を保存しました（${location.locationName}）`
       : "設定を保存しました"
   );
 
@@ -1386,14 +1537,15 @@ async function updateGerminationGdd(type, settings) {
     return;
   }
 
-  if (!hasLocation(settings)) {
+  const loc = loadOrchardLocation();
+  if (!hasLocation()) {
     return;
   }
 
   try {
     const gdd = await fetchProductGdd(
-      settings.lat,
-      settings.lon,
+      loc.lat,
+      loc.lon,
       startDate,
       config.baseTemp
     );
@@ -1633,14 +1785,12 @@ document.addEventListener("DOMContentLoaded", initPortalApp);
 
 function getAdvisorSettingsPayload() {
   const settings = loadSettings();
+  const loc = loadOrchardLocation();
   return {
     facilityName: settings.facilityName,
-    lat: settings.lat,
-    lon: settings.lon,
-    locationType: settings.locationType,
-    greenType: settings.greenType,
-    warmGrass: settings.warmGrass,
-    coolGrass: settings.coolGrass,
+    lat: loc.lat,
+    lon: loc.lon,
+    locationName: loc.locationName,
     responseMode: settings.responseMode ?? "慎重に回答",
   };
 }

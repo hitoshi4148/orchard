@@ -86,14 +86,17 @@ const GrapeRiskModel = (() => {
   ];
 
   const DEFAULT_SETTINGS = {
-    vineyardName: "第1園地",
-    locationLabel: "山梨県 甲府市（仮）",
-    prefecture: "山梨県",
-    municipality: "甲府市",
     variety: "シャインマスカット",
     cultivationId: "rain_shelter",
     growthStageId: "bloom",
   };
+
+  function sharedLocationLabel() {
+    if (typeof OrchardLocationCookie !== "undefined") {
+      return OrchardLocationCookie.formatLabel();
+    }
+    return "未設定";
+  }
 
   /** 現在リスク一覧（仮） */
   const MOCK_CURRENT = {
@@ -263,10 +266,23 @@ const GrapeRiskModel = (() => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        ...settings,
-        locationLabel: `${settings.prefecture} ${settings.municipality}`.trim(),
+        variety: settings.variety || DEFAULT_SETTINGS.variety,
+        cultivationId: settings.cultivationId || DEFAULT_SETTINGS.cultivationId,
+        growthStageId: settings.growthStageId || DEFAULT_SETTINGS.growthStageId,
       })
     );
+  }
+
+  function saveSharedLocation(lat, lon, locationName = "") {
+    if (typeof OrchardLocationCookie === "undefined") {
+      return false;
+    }
+    OrchardLocationCookie.save({
+      lat: String(lat).trim(),
+      lon: String(lon).trim(),
+      locationName: String(locationName || "").trim(),
+    });
+    return true;
   }
 
   function getDayLabels() {
@@ -279,6 +295,7 @@ const GrapeRiskModel = (() => {
       GROWTH_STAGES.find((s) => s.id === settings.growthStageId)?.label || "—";
     const cultivation =
       CULTIVATION.find((c) => c.id === settings.cultivationId)?.label || "—";
+    const locationLabel = sharedLocationLabel();
 
     const currentRisks = DISEASE_ORDER.map((id) => {
       const d = DISEASES[id];
@@ -311,7 +328,7 @@ const GrapeRiskModel = (() => {
     const selectedDetail = MOCK_DAY_DETAIL[selectedDiseaseId] || {};
 
     return {
-      settings,
+      settings: { ...settings, locationLabel },
       stageLabel: stage,
       cultivationLabel: cultivation,
       dataSourceLabel: "サンプル表示（予測モデル・気象 API 未接続）",
@@ -337,6 +354,7 @@ const GrapeRiskModel = (() => {
     DISEASE_ORDER,
     loadSettings,
     saveSettings,
+    saveSharedLocation,
     buildViewState,
     getDayLabels,
   };

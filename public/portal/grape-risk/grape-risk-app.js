@@ -14,37 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<span class="grape-risk-pill ${meta.className}">${meta.label}</span>`;
   }
 
-  function renderSettingsForm(state) {
-    const s = state.settings;
-    const varietyOpts = GrapeRiskModel.VARIETIES.map(
-      (v) =>
-        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${escapeHtml(v)}</option>`
-    ).join("");
-    const cultOpts = GrapeRiskModel.CULTIVATION.map(
-      (c) =>
-        `<option value="${c.id}"${c.id === s.cultivationId ? " selected" : ""}>${escapeHtml(c.label)}</option>`
-    ).join("");
-    const stageOpts = GrapeRiskModel.GROWTH_STAGES.map(
-      (st) =>
-        `<option value="${st.id}"${st.id === s.growthStageId ? " selected" : ""}>${escapeHtml(st.label)}</option>`
-    ).join("");
-
-    return `<section class="grape-risk-panel" aria-labelledby="settings-heading">
-      <h2 id="settings-heading" class="grape-risk-panel-title">園地・栽培条件</h2>
-      <form class="grape-risk-settings" id="grape-risk-settings-form">
-        <div class="grape-risk-settings-grid">
-          <label>園地名<input name="vineyardName" type="text" value="${escapeHtml(s.vineyardName)}"></label>
-          <label>都道府県<input name="prefecture" type="text" value="${escapeHtml(s.prefecture)}"></label>
-          <label>市町村<input name="municipality" type="text" value="${escapeHtml(s.municipality)}"></label>
-          <label>品種<select name="variety">${varietyOpts}</select></label>
-          <label>栽培方式<select name="cultivationId">${cultOpts}</select></label>
-          <label>生育ステージ<select name="growthStageId">${stageOpts}</select></label>
-        </div>
-        <p class="grape-risk-hint">※ 品種・ステージによるリスク計算は未実装です（選択内容は画面にのみ反映）。</p>
-      </form>
-    </section>`;
-  }
-
   function renderCurrentTable(state) {
     const rows = state.currentRisks
       .map(
@@ -268,30 +237,11 @@ document.addEventListener("DOMContentLoaded", () => {
       <h2 id="tips-heading" class="grape-risk-panel-title">今日の管理ポイント（サンプル）</h2>
       <p class="grape-risk-lead">防除指示・農薬使用は表示しません。気象と生育ステージ向けの注意例です。</p>
       <ul class="grape-tips-list">${items}</ul>
-      <p class="grape-muted">現在の設定: ${escapeHtml(state.settings.vineyardName)}／${escapeHtml(state.settings.variety)}／${escapeHtml(state.stageLabel)}／${escapeHtml(state.cultivationLabel)}</p>
+      <p class="grape-muted">現在の設定: ${escapeHtml(state.settings.locationLabel)}／${escapeHtml(state.settings.variety)}／${escapeHtml(state.cultivationLabel)}</p>
     </section>`;
   }
 
   function bindInteractions(state) {
-    const form = document.getElementById("grape-risk-settings-form");
-    form?.addEventListener("change", () => {
-      const fd = new FormData(form);
-      GrapeRiskModel.saveSettings({
-        vineyardName: String(fd.get("vineyardName") || ""),
-        prefecture: String(fd.get("prefecture") || ""),
-        municipality: String(fd.get("municipality") || ""),
-        variety: String(fd.get("variety") || ""),
-        cultivationId: String(fd.get("cultivationId") || "open"),
-        growthStageId: String(fd.get("growthStageId") || "bloom"),
-      });
-      render();
-    });
-    form?.addEventListener("input", (e) => {
-      if (e.target.name === "vineyardName" || e.target.name === "prefecture" || e.target.name === "municipality") {
-        form.dispatchEvent(new Event("change"));
-      }
-    });
-
     function pickDisease(id) {
       selectedDiseaseId = id;
       render();
@@ -323,10 +273,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="grape-risk-meta">
           <span class="grape-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>
+          <span><strong>品種:</strong> ${escapeHtml(state.settings.variety)}</span>
+          <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
+          <button type="button" class="grape-risk-btn" id="grape-risk-settings-btn">⚙ 設定</button>
         </div>
       </header>
-      ${renderSettingsForm(state)}
       ${renderCurrentTable(state)}
       ${renderHeatmap(state)}
       ${renderOnset(state)}
@@ -341,6 +293,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
     bindInteractions(state);
   }
+
+  const settingsModal = document.getElementById("grape-risk-settings-modal");
+  const settingsBackdrop = document.getElementById("grape-risk-modal-backdrop");
+
+  function openGrapeSettingsModal() {
+    const s = GrapeRiskModel.loadSettings();
+    const loc =
+      typeof OrchardLocationCookie !== "undefined"
+        ? OrchardLocationCookie.load()
+        : { lat: "", lon: "" };
+    document.getElementById("grape-lat").value = loc.lat || "";
+    document.getElementById("grape-lon").value = loc.lon || "";
+    const varietyEl = document.getElementById("grape-variety");
+    varietyEl.innerHTML = GrapeRiskModel.VARIETIES.map(
+      (v) =>
+        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${escapeHtml(v)}</option>`
+    ).join("");
+    const cultHost = document.getElementById("grape-cultivation-radios");
+    cultHost.innerHTML = (GrapeRiskModel.CULTIVATION || []).map(
+      (opt) =>
+        `<label class="grape-risk-cultivation-option"><input type="radio" name="grapeCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
+    ).join("");
+    settingsModal?.classList.remove("hidden");
+  }
+
+  function closeGrapeSettingsModal() {
+    settingsModal?.classList.add("hidden");
+  }
+
+  async function saveGrapeSettings() {
+    const lat = document.getElementById("grape-lat").value.trim();
+    const lon = document.getElementById("grape-lon").value.trim();
+    if (!lat || !lon) {
+      alert("緯度と経度を入力してください。");
+      return;
+    }
+    let locationName = "";
+    try {
+      const res = await fetch(
+        `/portal/api/geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+      );
+      const json = await res.json();
+      locationName = json.success ? json.name || "" : "";
+    } catch {
+      locationName = "";
+    }
+    GrapeRiskModel.saveSharedLocation(lat, lon, locationName);
+    GrapeRiskModel.saveSettings({
+      variety: document.getElementById("grape-variety").value,
+      cultivationId:
+        document.querySelector('input[name="grapeCultivation"]:checked')?.value ||
+        "unspecified",
+      growthStageId: GrapeRiskModel.loadSettings().growthStageId,
+    });
+    closeGrapeSettingsModal();
+    render();
+  }
+
+  document.addEventListener("click", (e) => {
+    if (e.target.id === "grape-risk-settings-btn") {
+      openGrapeSettingsModal();
+    }
+  });
+  document.getElementById("grape-settings-save")?.addEventListener("click", saveGrapeSettings);
+  document.getElementById("grape-settings-cancel")?.addEventListener("click", closeGrapeSettingsModal);
+  settingsBackdrop?.addEventListener("click", closeGrapeSettingsModal);
+  document.getElementById("grape-get-location")?.addEventListener("click", () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      document.getElementById("grape-lat").value = pos.coords.latitude.toFixed(4);
+      document.getElementById("grape-lon").value = pos.coords.longitude.toFixed(4);
+    });
+  });
 
   render();
 });

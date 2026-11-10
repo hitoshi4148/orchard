@@ -109,6 +109,20 @@
         }
 
         function loadPortalSettingsLocation() {
+            const orchardRaw = getCookie('orchardLocation');
+            if (orchardRaw) {
+                try {
+                    const loc = JSON.parse(orchardRaw);
+                    if (loc.lat && loc.lon) {
+                        return {
+                            lat: parseFloat(loc.lat),
+                            lon: parseFloat(loc.lon),
+                        };
+                    }
+                } catch {
+                    /* fall through */
+                }
+            }
             const raw = getCookie(PORTAL_SETTINGS_COOKIE);
             if (!raw) return null;
 

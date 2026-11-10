@@ -193,54 +193,9 @@
                     <label for="settings-lon">経度 (Longitude)</label>
                     <input type="number" id="settings-lon" step="0.0001" placeholder="例: 139.6">
 
-                    <p class="help-text">※Googleマップ等で右クリック → 「座標をコピー」で取得できます。</p>
+                    <p class="help-text">※Googleマップ等で右クリック → 「座標をコピー」で取得できます。地点は病害リスク予報とも共有されます（Cookie）。</p>
                     <button type="button" id="get-current-location-btn" class="btn-secondary">現在地を取得</button>
                     <div id="location-status" class="location-status"></div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>栽培タイプ</h3>
-                    <div class="radio-group">
-                        <label><input type="radio" name="locationType" value="未指定" checked> 未指定</label>
-                        <label><input type="radio" name="locationType" value="ハウス栽培"> ハウス栽培</label>
-                        <label><input type="radio" name="locationType" value="露地栽培"> 露地栽培</label>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>植物タイプ</h3>
-                    <div class="radio-group">
-                        <label><input type="radio" name="greenType" value="未指定" checked> 未指定</label>
-                        <label><input type="radio" name="greenType" value="仁科類"> 仁科類</label>
-                        <label><input type="radio" name="greenType" value="核果類"> 核果類</label>
-                        <label><input type="radio" name="greenType" value="漿果類"> 漿果類</label>
-                        <label><input type="radio" name="greenType" value="柑橘類"> 柑橘類</label>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label for="warmGrass">林檎品種</label>
-                    <select id="warmGrass">
-                        <option value="未指定">未指定</option>
-                        <option value="ぐんま名月">ぐんま名月</option>
-                        <option value="陽光">陽光</option>
-                        <option value="おぜの紅">おぜの紅</option>
-                        <option value="紅鶴">紅鶴</option>
-                        <option value="あかぎ">あかぎ</option>
-                        <option value="スリムレッド">スリムレッド</option>
-                    </select>
-                </div>
-
-                <div class="setting-group">
-                    <label for="coolGrass">梨品種</label>
-                    <select id="coolGrass">
-                        <option value="未指定">未指定</option>
-                        <option value="幸水">幸水</option>
-                        <option value="豊水">豊水</option>
-                        <option value="あきづき">あきづき</option>
-                        <option value="新高">新高</option>
-                        <option value="群馬N2号">群馬N2号</option>
-                    </select>
                 </div>
 
                 <div class="setting-group">
@@ -271,8 +226,9 @@
     </div>
 
     <script src="/portal/portal-flags-lab.js?v=20251110nogp"></script>
+    <script src="/portal/orchard-location-cookie.js?v=20251110set"></script>
     <script src="/portal/disease-risk-ui.js?v=20250727v007"></script>
     <script src="/portal/work-memo-ui.js?v=20250807v001"></script>
-    <script src="/portal/portal.js?v=20251110rac"></script>
+    <script src="/portal/portal.js?v=20251110set"></script>
 </body>
 </html>

@@ -1,25 +1,104 @@
 <!DOCTYPE html>
+
 <html lang="ja">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <meta name="description" content="もも栽培向け病害リスク画面（サンプルデータ・気象API未接続）">
+
   <meta name="robots" content="noindex, nofollow">
+
   <title>果樹園しごと・もも病害リスク予報</title>
+
   <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
+
   <link rel="stylesheet" href="../portal.css">
-  <link rel="stylesheet" href="peach-risk.css?v=20251109">
+
+  <link rel="stylesheet" href="peach-risk.css?v=20251110set5">
+
 </head>
+
 <body>
+
   <div class="peach-risk-page">
+
     <p class="peach-risk-back"><a href="/portal/lab/">← 果樹園しごと（実験）</a></p>
+
     <div id="peach-risk-root" aria-live="polite"></div>
+
     <footer style="margin-top:24px;text-align:center;font-size:0.8rem;color:#6b7280">
+
       <p>本画面は UI 検証用です。数値・判定はすべてサンプルであり、実際の病害予測ではありません。</p>
-      <p>もも病害リスク UI v0.1（画面のみ）</p>
+
+      <p>もも病害リスク UI v0.2</p>
+
     </footer>
+
   </div>
-  <script src="peach-risk-model.js?v=20251109"></script>
-  <script src="peach-risk-app.js?v=20251109"></script>
+
+
+
+  <div id="peach-risk-settings-modal" class="peach-risk-modal hidden" role="dialog" aria-modal="true" aria-labelledby="peach-settings-title">
+
+    <div id="peach-risk-modal-backdrop" class="peach-risk-modal-backdrop"></div>
+
+    <div class="peach-risk-modal-panel">
+
+      <h2 id="peach-settings-title" style="margin:0 0 8px;font-size:1.05rem;color:#14532d">設定</h2>
+
+      <p style="margin:0 0 12px;font-size:0.82rem;color:#6b7280">地点は果樹園しごとと同じ Cookie に保存されます。品種・栽培方式はこの端末に保存されます。</p>
+
+      <fieldset style="border:0;padding:0;margin:0 0 12px">
+
+        <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">場所</legend>
+
+        <label for="peach-lat">緯度</label>
+
+        <input type="text" id="peach-lat" inputmode="decimal" placeholder="例: 35.5353">
+
+        <label for="peach-lon">経度</label>
+
+        <input type="text" id="peach-lon" inputmode="decimal" placeholder="例: 139.4931">
+
+        <button type="button" class="peach-risk-btn peach-risk-btn--locate" id="peach-get-location">現在地を取得</button>
+
+      </fieldset>
+
+      <label for="peach-variety">もも品種</label>
+
+      <select id="peach-variety"></select>
+
+      <fieldset style="border:0;padding:0;margin:12px 0">
+
+        <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">栽培方式</legend>
+
+        <div id="peach-cultivation-radios" class="peach-risk-cultivation-radios"></div>
+
+      </fieldset>
+
+      <div class="peach-risk-modal-actions">
+
+        <button type="button" class="peach-risk-btn" id="peach-settings-cancel">キャンセル</button>
+
+        <button type="button" class="peach-risk-btn peach-risk-btn--save" id="peach-settings-save">保存</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <script src="/portal/orchard-location-cookie.js?v=20251110set5"></script>
+  <script src="peach-risk-model.js?v=20251110set5"></script>
+  <script src="peach-risk-app.js?v=20251110set5"></script>
+
 </body>
+
 </html>
+

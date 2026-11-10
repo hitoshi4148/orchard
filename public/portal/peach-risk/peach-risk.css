@@ -365,3 +365,132 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
 }
+
+.peach-risk-btn {
+  border: 1px solid var(--peach-green-border);
+  background: #fff;
+  color: var(--peach-green);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.peach-risk-btn:hover {
+  background: var(--peach-green-soft);
+}
+
+.peach-risk-modal.hidden {
+  display: none;
+}
+
+.peach-risk-modal {
+  --peach-green: #15803d;
+  --peach-green-soft: #ecfdf5;
+  --peach-green-border: #86efac;
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.peach-risk-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.peach-risk-modal-panel {
+  position: relative;
+  width: min(100%, 420px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.peach-risk-modal-panel label {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.peach-risk-modal-panel input:not([type="radio"]):not([type="checkbox"]),
+.peach-risk-modal-panel select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.peach-risk-cultivation-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.peach-risk-cultivation-radios .peach-risk-cultivation-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 8px;
+  font-weight: 400;
+  font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.peach-risk-cultivation-radios .peach-risk-cultivation-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  flex-shrink: 0;
+}
+
+.peach-risk-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: flex-end;
+}
+
+.peach-risk-modal-panel .peach-risk-btn--locate {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  background: var(--peach-green-soft);
+  border-color: var(--peach-green);
+  color: #14532d;
+  font-weight: 600;
+  text-align: center;
+}
+
+.peach-risk-modal-panel .peach-risk-btn--locate:hover {
+  background: #d1fae5;
+  border-color: #166534;
+}
+
+.peach-risk-modal-panel .peach-risk-btn--locate:focus-visible {
+  outline: 2px solid var(--peach-green);
+  outline-offset: 2px;
+}
+
+.peach-risk-modal-actions .peach-risk-btn--save {
+  background: #15803d;
+  color: #fff;
+  border-color: #15803d;
+}
+
+.peach-risk-modal-actions .peach-risk-btn--save:hover {
+  background: #166534;
+  border-color: #166534;
+}

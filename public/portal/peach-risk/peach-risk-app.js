@@ -21,42 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<span class="peach-risk-pill ${meta.className}">${meta.label}</span>`;
   }
 
-  function renderSettingsForm(state) {
-    const s = state.settings;
-    const varietyOpts = PeachRiskModel.VARIETIES.map(
-      (v) =>
-        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${escapeHtml(v)}</option>`
-    ).join("");
-    const cultOpts = PeachRiskModel.CULTIVATION.map(
-      (c) =>
-        `<option value="${c.id}"${c.id === s.cultivationId ? " selected" : ""}>${escapeHtml(c.label)}</option>`
-    ).join("");
-    const stageOpts = PeachRiskModel.GROWTH_STAGES.map(
-      (st) =>
-        `<option value="${st.id}"${st.id === s.growthStageId ? " selected" : ""}>${escapeHtml(st.label)}</option>`
-    ).join("");
-    const priorOpts = PeachRiskModel.PRIOR_YEAR_STATUS.map(
-      (p) =>
-        `<option value="${escapeHtml(p.id)}"${p.id === s.priorYearStatusId ? " selected" : ""}>${escapeHtml(p.label)}</option>`
-    ).join("");
-
-    return `<section class="peach-risk-panel" aria-labelledby="settings-heading">
-      <h2 id="settings-heading" class="peach-risk-panel-title">園地・栽培条件</h2>
-      <form class="peach-risk-settings" id="peach-risk-settings-form">
-        <div class="peach-risk-settings-grid">
-          <label>園地名<input name="vineyardName" type="text" value="${escapeHtml(s.vineyardName)}"></label>
-          <label>都道府県<input name="prefecture" type="text" value="${escapeHtml(s.prefecture)}"></label>
-          <label>市町村<input name="municipality" type="text" value="${escapeHtml(s.municipality)}"></label>
-          <label>品種<select name="variety">${varietyOpts}</select></label>
-          <label>栽培方式<select name="cultivationId">${cultOpts}</select></label>
-          <label>生育ステージ<select name="growthStageId">${stageOpts}</select></label>
-          <label>前年の病害発生<select name="priorYearStatusId" title="将来の予測係数用">${priorOpts}</select></label>
-        </div>
-        <p class="peach-risk-hint">※ 設定値による予測計算は未実装です。選択内容は画面表示にのみ反映されます。</p>
-      </form>
-    </section>`;
-  }
-
   function renderCurrentTable(state) {
     const rows = state.currentRisks
       .map(
@@ -324,35 +288,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<section class="peach-risk-panel" aria-labelledby="tips-heading">
       <h2 id="tips-heading" class="peach-risk-panel-title">今日の管理ポイント（サンプル）</h2>
       <ul class="peach-tips-list">${items}</ul>
-      <p class="peach-muted">設定: ${escapeHtml(state.settings.vineyardName)}／${escapeHtml(state.settings.variety)}／${escapeHtml(state.stageLabel)}／${escapeHtml(state.cultivationLabel)}／${escapeHtml(state.priorYearLabel)}</p>
+      <p class="peach-muted">設定: ${escapeHtml(state.settings.locationLabel)}／${escapeHtml(state.settings.variety)}／${escapeHtml(state.cultivationLabel)}</p>
     </section>`;
   }
 
   function bindInteractions() {
-    const form = document.getElementById("peach-risk-settings-form");
-    form?.addEventListener("change", () => {
-      const fd = new FormData(form);
-      PeachRiskModel.saveSettings({
-        vineyardName: String(fd.get("vineyardName") || ""),
-        prefecture: String(fd.get("prefecture") || ""),
-        municipality: String(fd.get("municipality") || ""),
-        variety: String(fd.get("variety") || ""),
-        cultivationId: String(fd.get("cultivationId") || "open"),
-        growthStageId: String(fd.get("growthStageId") || "bloom"),
-        priorYearStatusId: String(fd.get("priorYearStatusId") || ""),
-      });
-      render();
-    });
-    form?.addEventListener("input", (e) => {
-      if (
-        e.target.name === "vineyardName" ||
-        e.target.name === "prefecture" ||
-        e.target.name === "municipality"
-      ) {
-        form.dispatchEvent(new Event("change"));
-      }
-    });
-
     function pickDisease(id) {
       selectedDiseaseId = id;
       render();
@@ -389,10 +329,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="peach-risk-meta">
           <span class="peach-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>
+          <span><strong>品種:</strong> ${escapeHtml(state.settings.variety)}</span>
+          <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
+          <button type="button" class="peach-risk-btn" id="peach-risk-settings-btn">⚙ 設定</button>
         </div>
       </header>
-      ${renderSettingsForm(state)}
       ${renderCurrentTable(state)}
       ${renderHeatmap(state)}
       ${renderOnset(state)}
@@ -406,6 +348,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
     bindInteractions();
   }
+
+  const settingsModal = document.getElementById("peach-risk-settings-modal");
+  const settingsBackdrop = document.getElementById("peach-risk-modal-backdrop");
+
+  function openPeachSettingsModal() {
+    const s = PeachRiskModel.loadSettings();
+    const loc =
+      typeof OrchardLocationCookie !== "undefined"
+        ? OrchardLocationCookie.load()
+        : { lat: "", lon: "" };
+    document.getElementById("peach-lat").value = loc.lat || "";
+    document.getElementById("peach-lon").value = loc.lon || "";
+    document.getElementById("peach-variety").innerHTML = PeachRiskModel.VARIETIES.map(
+      (v) =>
+        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${escapeHtml(v)}</option>`
+    ).join("");
+    document.getElementById("peach-cultivation-radios").innerHTML = (
+      PeachRiskModel.CULTIVATION || []
+    )
+      .map(
+        (opt) =>
+          `<label class="peach-risk-cultivation-option"><input type="radio" name="peachCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
+      )
+      .join("");
+    settingsModal?.classList.remove("hidden");
+  }
+
+  function closePeachSettingsModal() {
+    settingsModal?.classList.add("hidden");
+  }
+
+  async function savePeachSettings() {
+    const lat = document.getElementById("peach-lat").value.trim();
+    const lon = document.getElementById("peach-lon").value.trim();
+    if (!lat || !lon) {
+      alert("緯度と経度を入力してください。");
+      return;
+    }
+    let locationName = "";
+    try {
+      const res = await fetch(
+        `/portal/api/geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`
+      );
+      const json = await res.json();
+      locationName = json.success ? json.name || "" : "";
+    } catch {
+      locationName = "";
+    }
+    PeachRiskModel.saveSharedLocation(lat, lon, locationName);
+    const prev = PeachRiskModel.loadSettings();
+    PeachRiskModel.saveSettings({
+      variety: document.getElementById("peach-variety").value,
+      cultivationId:
+        document.querySelector('input[name="peachCultivation"]:checked')?.value ||
+        "unspecified",
+      growthStageId: prev.growthStageId,
+      priorYearStatusId: prev.priorYearStatusId,
+    });
+    closePeachSettingsModal();
+    render();
+  }
+
+  document.addEventListener("click", (e) => {
+    if (e.target.id === "peach-risk-settings-btn") {
+      openPeachSettingsModal();
+    }
+  });
+  document.getElementById("peach-settings-save")?.addEventListener("click", savePeachSettings);
+  document.getElementById("peach-settings-cancel")?.addEventListener("click", closePeachSettingsModal);
+  settingsBackdrop?.addEventListener("click", closePeachSettingsModal);
+  document.getElementById("peach-get-location")?.addEventListener("click", () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      document.getElementById("peach-lat").value = pos.coords.latitude.toFixed(4);
+      document.getElementById("peach-lon").value = pos.coords.longitude.toFixed(4);
+    });
+  });
 
   render();
 });

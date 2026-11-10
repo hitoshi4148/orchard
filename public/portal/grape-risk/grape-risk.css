@@ -375,6 +375,135 @@
   border: 0;
 }
 
+.grape-risk-btn {
+  border: 1px solid var(--grape-green-border);
+  background: #fff;
+  color: var(--grape-green);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.grape-risk-btn:hover {
+  background: var(--grape-green-soft);
+}
+
+.grape-risk-modal.hidden {
+  display: none;
+}
+
+.grape-risk-modal {
+  --grape-green: #15803d;
+  --grape-green-soft: #ecfdf5;
+  --grape-green-border: #86efac;
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.grape-risk-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.grape-risk-modal-panel {
+  position: relative;
+  width: min(100%, 420px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.grape-risk-modal-panel label {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.grape-risk-modal-panel input:not([type="radio"]):not([type="checkbox"]),
+.grape-risk-modal-panel select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.grape-risk-cultivation-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grape-risk-cultivation-radios .grape-risk-cultivation-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 8px;
+  font-weight: 400;
+  font-size: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.grape-risk-cultivation-radios .grape-risk-cultivation-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  flex-shrink: 0;
+}
+
+.grape-risk-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: flex-end;
+}
+
+.grape-risk-modal-panel .grape-risk-btn--locate {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  background: var(--grape-green-soft);
+  border-color: var(--grape-green);
+  color: #14532d;
+  font-weight: 600;
+  text-align: center;
+}
+
+.grape-risk-modal-panel .grape-risk-btn--locate:hover {
+  background: #d1fae5;
+  border-color: #166534;
+}
+
+.grape-risk-modal-panel .grape-risk-btn--locate:focus-visible {
+  outline: 2px solid var(--grape-green);
+  outline-offset: 2px;
+}
+
+.grape-risk-modal-actions .grape-risk-btn--save {
+  background: #15803d;
+  color: #fff;
+  border-color: #15803d;
+}
+
+.grape-risk-modal-actions .grape-risk-btn--save:hover {
+  background: #166534;
+  border-color: #166534;
+}
+
 @media (max-width: 600px) {
   .grape-risk-table {
     font-size: 0.78rem;
