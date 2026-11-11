@@ -51,6 +51,7 @@ import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
 import { getVarietyFactor } from "./variety";
 import { calcOrchardHeuristicDisease } from "./heuristic-disease";
 import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
+import { buildAscosporePoolSnapshots } from "./apple-scab-ascospore-season-pool";
 import { getAppleScabSeasonWindow } from "./apple-scab-season";
 
 export interface OrchardRiskFetchOptions {
@@ -210,15 +211,27 @@ export async function fetchOrchardRiskForecast(
 
   let appleScabGddDailyPromise: Promise<DailyWeatherRecord[] | null> =
     Promise.resolve(null);
+  let appleScabSeasonHourlyPromise: Promise<
+    import("../disease/nasa-power").HourlyWeatherRecord[] | null
+  > = Promise.resolve(null);
+  let appleScabBiofixForPool: ReturnType<typeof resolveAppleScabBiofix> | null =
+    null;
   if (cropId === "apple") {
-    const biofix = resolveAppleScabBiofix(
+    appleScabBiofixForPool = resolveAppleScabBiofix(
       lat,
       lon,
       `${today}T12:00:00+09:00`,
       greenTipDate
-    ).date;
+    );
+    const biofix = appleScabBiofixForPool.date;
     if (biofix <= endDate) {
       appleScabGddDailyPromise = fetchNasaPowerDaily(
+        lat,
+        lon,
+        biofix,
+        endDate
+      ).catch(() => null);
+      appleScabSeasonHourlyPromise = fetchNasaPowerHourly(
         lat,
         lon,
         biofix,
@@ -234,6 +247,7 @@ export async function fetchOrchardRiskForecast(
     marssoninaHourlyRaw,
     marssoninaGddDailyPrefetched,
     appleScabGddDaily,
+    appleScabSeasonHourly,
   ] = await Promise.all([
     fetchNasaPowerDaily(lat, lon, startDate, endDate),
     fetchNasaPowerHourly(lat, lon, startDate, endDate),
@@ -248,7 +262,21 @@ export async function fetchOrchardRiskForecast(
       : Promise.resolve(null),
     marssoninaGddDailyPromise,
     appleScabGddDailyPromise,
+    appleScabSeasonHourlyPromise,
   ]);
+
+  const appleScabPoolSnapshots =
+    cropId === "apple" &&
+    appleScabGddDaily?.length &&
+    appleScabBiofixForPool &&
+    (appleScabSeasonHourly?.length || forecastHourly.length)
+      ? buildAscosporePoolSnapshots(
+          appleScabBiofixForPool.date,
+          appleScabBiofixForPool.source,
+          appleScabGddDaily,
+          [...(appleScabSeasonHourly ?? []), ...forecastHourly]
+        )
+      : null;
 
   const marssoninaSearch =
     cropId === "apple" && bloomStart && marssoninaWindow && includeMarssoninaOnset
@@ -342,6 +370,7 @@ export async function fetchOrchardRiskForecast(
           growthStageId,
           ascosporeGddDaily: appleScabGddDaily ?? undefined,
           greenTipDate,
+          ascosporePoolSnapshots: appleScabPoolSnapshots ?? undefined,
         },
         { gymnosporangiumHostNearby }
       );

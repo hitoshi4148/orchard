@@ -10,6 +10,11 @@ import {
   computeAppleScabConidialRisk,
 } from "./apple-scab-conidia";
 import { computeAscosporeRainDischargeFactor } from "./apple-scab-ascospore-rain-release";
+import {
+  ascosporePoolAtDate,
+  formatAscosporePoolSummary,
+  type AscosporePoolSnapshot,
+} from "./apple-scab-ascospore-season-pool";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { calculateNashiScabDuthieRisk } from "./nashi-scab-duthie";
@@ -28,6 +33,8 @@ export interface OrchardAppleScabContext {
   growthStageId: string;
   ascosporeGddDaily?: DailyWeatherRecord[];
   greenTipDate?: string | null;
+  /** 降雨累積によるシーズン枯渇プール（日次スナップショット） */
+  ascosporePoolSnapshots?: Map<string, AscosporePoolSnapshot>;
 }
 
 /** りんご黒星病 — Mills 法 + 季節窓 + MacHardy 系升孢子 GDD */
@@ -96,11 +103,21 @@ export function calcAppleScab(
       input.hourly,
       input.targetDateTime
     );
+    const poolSnap = ascosporePoolAtDate(
+      ctx.ascosporePoolSnapshots,
+      input.targetDateTime
+    );
+    const poolFactor = poolSnap
+      ? Math.max(0, Math.min(1, poolSnap.remainingPercent / 100))
+      : 1;
     const supplyPercent = Math.min(
       100,
       Math.max(
         0,
-        maturity.maturityPercent * depletionFactor * rainDischarge.releaseFactor
+        maturity.maturityPercent *
+          depletionFactor *
+          rainDischarge.releaseFactor *
+          poolFactor
       )
     );
     const effectiveMaturity = supplyPercent;
@@ -118,6 +135,10 @@ export function calcAppleScab(
       );
     }
     ascosporeNote += ` ${rainDischarge.summary}`;
+    const poolNote = formatAscosporePoolSummary(poolSnap);
+    if (poolNote) {
+      ascosporeNote += ` ${poolNote}`;
+    }
     if (depletionFactor < 1) {
       ascosporeNote += ` 升孢子放出末期係数 ${Math.round(depletionFactor * 100)}%。`;
     }

@@ -103,7 +103,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills × 升孢子 GDD + 降水放出 + 分生胞子（MacHardy/RIMpro 系）。緑期日起算",
+        note: "Mills × 升孢子（GDD・降水放出・枯渇プール）+ 分生胞子。MacHardy/RIMpro 系",
       },
     },
     "apple:marssonina": {
