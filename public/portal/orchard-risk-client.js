@@ -94,7 +94,8 @@ const OrchardRiskClient = (() => {
     const onset = diseaseOrder.map((id) => {
       const row =
         (forecast.onset || []).find((r) => r.diseaseId === id) || null;
-      const isHeuristic = forecast.demoDiseaseIds?.includes(id);
+      const isHeuristic =
+        forecast.demoDiseaseIds?.includes(id) && row?.isDemo !== false;
       if (!row) {
         return {
           diseaseId: id,

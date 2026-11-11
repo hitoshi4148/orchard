@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return "気象未取得のため下記はデモ表示です。";
     }
     if (dashboard.dataSource === "live") {
-      return "感染モデル（Mills・Ishii・褐斑 P2/P3 ほか）から推定した発病・感染の目安です。簡易病害は参考表示です。";
+      return "感染モデル（Mills・Duthie・褐斑 P2/P3・季節モデルほか）から推定した発病・感染の目安です。発病の簡易病害は6日感染ピークからの目安です。";
     }
     return "すでに感染した可能性がある病原について、発病が予想される時期の目安です（デモ）。";
   }
@@ -284,11 +284,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }</div>`;
     }).join("");
 
+    if (dashboard.dataSource === "live") {
+      return cards;
+    }
     return `${cards}
     <div class="apple-risk-timeline">
-      <strong>20日間の発病予測タイムライン（仮）</strong>
+      <strong>20日間の発病予測タイムライン（表示例）</strong>
       <div class="apple-risk-timeline-bar" aria-hidden="true">${segs}</div>
-      <p class="apple-risk-timeline-legend">黄色: 発病ウィンドウが重なる日（デモ表示）</p>
+      <p class="apple-risk-timeline-legend">黄色: 発病ウィンドウが重なる日（気象未連携時の表示例）</p>
     </div>`;
   }
 
@@ -391,6 +394,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (m.type === "gymnosporangium") {
       return `<p class="model-note">感染モデル（${escapeHtml(m.type)}・${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
+    }
+    if (m.type === "seasonal") {
+      return `<p class="model-note">季節×気象モデル（${m.implemented ? "接続済" : "簡易"}）— ${escapeHtml(m.note || "")}</p>`;
     }
     return `<p class="model-note">感染モデル（${escapeHtml(m.type)}・未接続）— ${escapeHtml(m.note || "")}</p>`;
   }

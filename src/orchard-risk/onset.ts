@@ -27,7 +27,7 @@ import {
 } from "../disease/met-norway-forecast";
 import { MarssoninaGddEstimate } from "./marssonina-gdd";
 import { MarssoninaInfectionSearchResult } from "./marssonina-infection";
-import { OrchardOnsetRow, RiskLevel } from "./types";
+import { ModelStatus, OrchardOnsetRow, RiskLevel } from "./types";
 import { percentToInfectionLevel } from "./risk-level";
 
 const MARSSONINA_BASE = 4.6;
@@ -410,8 +410,12 @@ export function buildNashiScabOnset(): OrchardOnsetRow {
 export function buildHeuristicOnsetFromInfection(
   diseaseId: string,
   name: string,
-  levels: RiskLevel[]
+  levels: RiskLevel[],
+  options: { modelStatus?: ModelStatus; connected?: boolean } = {}
 ): OrchardOnsetRow {
+  const modelStatus = options.modelStatus ?? "heuristic";
+  const connected = options.connected === true;
+  const isDemo = !connected;
   let peakOffset = -1;
   let peakScore = 0;
   const score = { low: 0, caution: 1, high: 2 };
@@ -430,9 +434,11 @@ export function buildHeuristicOnsetFromInfection(
       gddSinceInfectionDayC: null,
       predictedOnsetWindow: "6日予報内で注意以上の感染危険なし",
       confidence: "低",
-      note: `${name}: 簡易モデル（感染危険表）からは発病ピークを検出できませんでした。`,
-      modelStatus: "heuristic",
-      isDemo: true,
+      note: connected
+        ? `${name}: 6日間の感染危険はいずれも低めです。`
+        : `${name}: 簡易モデル（感染危険表）からは発病ピークを検出できませんでした。`,
+      modelStatus,
+      isDemo,
     };
   }
 
@@ -445,12 +451,18 @@ export function buildHeuristicOnsetFromInfection(
     gddSinceInfectionDayC: null,
     predictedOnsetWindow:
       peakOffset === windowEnd
-        ? `${dayLabel}前後に感染危険ピーク（発病は潜伏期モデル未接続）`
-        : `${dayLabel}〜${windowEnd === 0 ? "本日" : `${windowEnd}日先`}に感染危険ピーク（発病は潜伏期モデル未接続）`,
+        ? connected
+          ? `${dayLabel}前後に感染危険ピーク（簡易の発病目安）`
+          : `${dayLabel}前後に感染危険ピーク（発病は潜伏期モデル未接続）`
+        : connected
+          ? `${dayLabel}〜${windowEnd === 0 ? "本日" : `${windowEnd}日先`}に感染危険ピーク（簡易の発病目安）`
+          : `${dayLabel}〜${windowEnd === 0 ? "本日" : `${windowEnd}日先`}に感染危険ピーク（発病は潜伏期モデル未接続）`,
     confidence: peakScore >= 2 ? "中" : "低",
-    note: `${name}: 6日感染危険の最大が ${dayLabel}（${levels[peakOffset]}）。潜伏期・母菌量は未モデル化の参考表示です。`,
-    modelStatus: "heuristic",
-    isDemo: true,
+    note: connected
+      ? `${name}: 6日感染危険の最大が ${dayLabel}（${levels[peakOffset]}）。発病時期は感染ピークからの簡易目安です。`
+      : `${name}: 6日感染危険の最大が ${dayLabel}（${levels[peakOffset]}）。潜伏期・母菌量は未モデル化の参考表示です。`,
+    modelStatus,
+    isDemo,
   };
 }
 

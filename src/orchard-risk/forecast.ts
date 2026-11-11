@@ -209,14 +209,17 @@ function buildOnsetRows(
     const levels = infectionByDiseaseId[id];
     const status = MODEL_STATUS[id] ?? "demo";
     if (
-      (status === "heuristic" || status === "gymnosporangium") &&
+      (status === "heuristic" ||
+        status === "seasonal" ||
+        status === "gymnosporangium") &&
       levels?.length
     ) {
       rows.push(
         buildHeuristicOnsetFromInfection(
           id,
           DISEASE_DISPLAY_NAME[id] ?? id,
-          levels
+          levels,
+          { modelStatus: status, connected: true }
         )
       );
     } else {

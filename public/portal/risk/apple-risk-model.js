@@ -139,6 +139,11 @@ const OrchardRiskModel = (() => {
       wetHours: "傷口経由＋高湿",
       summary: "りんごの葉・果の斑点と落葉。株勢低下時に注意。",
       infectionFactors: ["長雨後の高温", "傷ついた葉・果", "風害後"],
+      onsetModel: {
+        type: "seasonal",
+        implemented: true,
+        note: "夏期高温×濡れ（季節モデル）。発病は6日感染ピークからの簡易目安",
+      },
     },
     "apple:anthracnose": {
       id: "apple:anthracnose",
@@ -150,6 +155,11 @@ const OrchardRiskModel = (() => {
       wetHours: "果実表面の湿潤",
       summary: "りんご果実の円形病斑。多雨期に発生しやすい。",
       infectionFactors: ["果実への雨水", "肥大〜収穫期", "軽微な果皮傷"],
+      onsetModel: {
+        type: "seasonal",
+        implemented: true,
+        note: "果実期暖湿（季節モデル）。発病は6日感染ピークからの簡易目安",
+      },
     },
     "apple:blotch": {
       id: "apple:blotch",
@@ -161,6 +171,11 @@ const OrchardRiskModel = (() => {
       wetHours: "冠内の滞湿",
       summary: "りんご果実の同心円状斑点。",
       infectionFactors: ["収穫前の湿気", "冠内通風不良", "果皮の微細傷"],
+      onsetModel: {
+        type: "seasonal",
+        implemented: true,
+        note: "降雨飛散×季節（Botryosphaeria 系）。発病は6日感染ピークからの簡易目安",
+      },
     },
     "nashi:scab": {
       id: "nashi:scab",
@@ -209,6 +224,11 @@ const OrchardRiskModel = (() => {
       wetHours: "果面の湿潤",
       summary: "日本なし果実の輪状病斑。りんご輪紋病とは別病原。",
       infectionFactors: ["熟期の降雨", "果実の微小傷", "滞湿"],
+      onsetModel: {
+        type: "seasonal",
+        implemented: true,
+        note: "熟期の降雨×湿潤（季節モデル）",
+      },
     },
     "nashi:black_spot": {
       id: "nashi:black_spot",
@@ -220,6 +240,11 @@ const OrchardRiskModel = (() => {
       wetHours: "高湿＋葉・果への湿り",
       summary: "日本なしの黒色斑点と落葉。高温多雨期に注意。",
       infectionFactors: ["梅雨〜夏の高温多湿", "弱った葉", "通風不良"],
+      onsetModel: {
+        type: "seasonal",
+        implemented: true,
+        note: "夏期高温多湿（季節モデル）",
+      },
     },
     "nashi:anthracnose": {
       id: "nashi:anthracnose",
@@ -231,6 +256,11 @@ const OrchardRiskModel = (() => {
       wetHours: "果面濡れ",
       summary: "日本なし果実の黒褐色病斑。収穫品質に影響。",
       infectionFactors: ["果実期の降雨", "冠内湿度", "軽傷"],
+      onsetModel: {
+        type: "seasonal",
+        implemented: true,
+        note: "果実期暖湿（季節モデル）",
+      },
     },
   };
 
@@ -916,7 +946,8 @@ const OrchardRiskModel = (() => {
           row.modelStatus === "mills" ||
           row.modelStatus === "gdd" ||
           row.modelStatus === "gymnosporangium" ||
-          row.modelStatus === "seasonal",
+          row.modelStatus === "seasonal" ||
+          row.isDemo === false,
       };
     });
 

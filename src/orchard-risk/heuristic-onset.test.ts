@@ -13,6 +13,17 @@ describe("heuristic onset from infection levels", () => {
     assert.equal(row.confidence, "中");
   });
 
+  it("marks live seasonal onset as non-demo", () => {
+    const row = buildHeuristicOnsetFromInfection(
+      "apple:blotch",
+      "輪紋病",
+      ["low", "caution", "high", "low", "low", "low"],
+      { modelStatus: "seasonal", connected: true }
+    );
+    assert.equal(row.isDemo, false);
+    assert.equal(row.modelStatus, "seasonal");
+  });
+
   it("reports no peak when all low", () => {
     const row = buildHeuristicOnsetFromInfection(
       "nashi:red_spot",
