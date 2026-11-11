@@ -1,5 +1,10 @@
 import { calculateGddFromDaily } from "../gdd/fetch-gdd";
-import { findLatestMillsInfectionEvent } from "../disease/models/apple-scab";
+import { findLatestMillsInfectionEventWhen } from "../disease/models/apple-scab";
+import {
+  evaluateAppleScabPrimarySeason,
+  isJstDateInAppleScabWindow,
+  getAppleScabSeasonWindow,
+} from "./apple-scab-season";
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
 import { findLatestNashiScabInfectionEvent } from "./nashi-scab-ishii";
 import {
@@ -234,18 +239,47 @@ function formatJstDateFromIso(iso: string): string {
 
 export function buildAppleScabOnsetFromHourly(
   hourly: HourlyWeatherRecord[],
-  targetDateTime: string
+  targetDateTime: string,
+  lat: number,
+  growthStageId: string
 ): OrchardOnsetRow {
-  const latest = findLatestMillsInfectionEvent(hourly, targetDateTime);
+  const season = evaluateAppleScabPrimarySeason(
+    lat,
+    targetDateTime,
+    growthStageId
+  );
+  const window = getAppleScabSeasonWindow(lat);
+
+  if (!season.inPrimarySeason) {
+    return {
+      diseaseId: "apple:scab",
+      estimatedInfectionDate: "—",
+      gddSinceInfectionDayC: null,
+      predictedOnsetWindow: "升孢子簡易季節窓の対象外",
+      confidence: "低",
+      note: `りんご黒星病: ${season.reason}`,
+      modelStatus: "mills",
+      isDemo: false,
+    };
+  }
+
+  const latest = findLatestMillsInfectionEventWhen(
+    hourly,
+    targetDateTime,
+    (endIso) =>
+      isJstDateInAppleScabWindow(endIso, window) &&
+      evaluateAppleScabPrimarySeason(lat, endIso, growthStageId)
+        .inPrimarySeason
+  );
+
   if (!latest) {
     return {
       diseaseId: "apple:scab",
       estimatedInfectionDate: "—",
       gddSinceInfectionDayC: null,
-      predictedOnsetWindow: "直近7日で Mills 感染イベントなし",
+      predictedOnsetWindow: "監視期内で Mills 感染イベントなし",
       confidence: "低",
-      note:
-        "りんご黒星病: 6日感染表は Mills 法。発病予測は直近の濡れ期間感染イベントから推定（子实体形成・潜伏期の詳細モデルは未接続）。",
+      note: `りんご黒星病: 6日感染表は Mills 法（${season.reason}）。`,
       modelStatus: "mills",
       isDemo: false,
     };
@@ -307,7 +341,7 @@ export function buildNashiScabOnsetFromHourly(
 
 /** @deprecated buildAppleScabOnsetFromHourly を使用 */
 export function buildAppleScabOnset(): OrchardOnsetRow {
-  return buildAppleScabOnsetFromHourly([], "");
+  return buildAppleScabOnsetFromHourly([], "", 36.5, "youngfruit");
 }
 
 /** @deprecated buildNashiScabOnsetFromHourly を使用 */

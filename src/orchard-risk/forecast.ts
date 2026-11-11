@@ -58,11 +58,12 @@ export interface OrchardRiskFetchOptions {
 function calculateForDisease(
   diseaseId: string,
   input: DiseaseWeatherInput,
-  marssoninaCtx: MarssoninaForecastContext | null
+  marssoninaCtx: MarssoninaForecastContext | null,
+  appleScabCtx: { lat: number; growthStageId: string }
 ): { percent: number | null; rationale: string } {
   switch (diseaseId) {
     case "apple:scab":
-      return calcAppleScab(input);
+      return calcAppleScab(input, appleScabCtx);
     case "nashi:scab":
       return calcNashiScab(input);
     case "apple:marssonina":
@@ -90,7 +91,9 @@ function buildOnsetRows(
   marssoninaGdd: ReturnType<typeof computeMarssoninaGddEstimate> | null,
   hourlyForOnset: import("../disease/nasa-power").HourlyWeatherRecord[],
   onsetTargetDateTime: string,
-  infectionByDiseaseId: Record<string, RiskLevel[]>
+  infectionByDiseaseId: Record<string, RiskLevel[]>,
+  lat: number,
+  growthStageId: string
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -98,7 +101,12 @@ function buildOnsetRows(
   for (const id of ids) {
     if (id === "apple:scab") {
       rows.push(
-        buildAppleScabOnsetFromHourly(hourlyForOnset, onsetTargetDateTime)
+        buildAppleScabOnsetFromHourly(
+          hourlyForOnset,
+          onsetTargetDateTime,
+          lat,
+          growthStageId
+        )
       );
       continue;
     }
@@ -275,7 +283,10 @@ export async function fetchOrchardRiskForecast(
         forecastHourly,
         target
       );
-      const raw = calculateForDisease(diseaseId, input, marssoninaCtx);
+      const raw = calculateForDisease(diseaseId, input, marssoninaCtx, {
+        lat,
+        growthStageId,
+      });
       const adjusted = applyVarietyFactor(raw.percent, varietyFactor);
       const level = percentToInfectionLevel(adjusted) ?? "low";
       levels.push(level);
@@ -339,7 +350,9 @@ export async function fetchOrchardRiskForecast(
         buildTargetDateTimeJst(0, 18)
       ).hourly,
       buildTargetDateTimeJst(0, 18),
-      infectionByDiseaseId
+      infectionByDiseaseId,
+      lat,
+      growthStageId
     ),
     modelStatusByDisease,
     demoDiseaseIds,

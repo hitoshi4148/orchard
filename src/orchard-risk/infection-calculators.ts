@@ -1,4 +1,5 @@
 import { calculateAppleScabRisk } from "../disease/models/apple-scab";
+import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { calculateNashiScabIshiiRisk } from "./nashi-scab-ishii";
 import { DiseaseWeatherInput } from "../disease/types";
 import { filterHourlyInWindow } from "../disease/models/risk-utils";
@@ -9,8 +10,30 @@ export interface InfectionCalcResult {
   rationale: string;
 }
 
-/** りんご黒星病 — Mills 法（検証済み実装を流用） */
-export function calcAppleScab(input: DiseaseWeatherInput): InfectionCalcResult {
+export interface OrchardAppleScabContext {
+  lat: number;
+  growthStageId: string;
+}
+
+/** りんご黒星病 — Mills 法 + 升孢子簡易季節窓（緯度3帯） */
+export function calcAppleScab(
+  input: DiseaseWeatherInput,
+  ctx?: OrchardAppleScabContext
+): InfectionCalcResult {
+  if (ctx) {
+    const season = evaluateAppleScabPrimarySeason(
+      ctx.lat,
+      input.targetDateTime,
+      ctx.growthStageId
+    );
+    if (!season.inPrimarySeason) {
+      return {
+        percent: 4,
+        rationale: `りんご黒星病: ${season.reason} Mills 感染危険は低く表示（4%）。`,
+      };
+    }
+  }
+
   const percent = calculateAppleScabRisk(input);
   if (percent == null) {
     return {
@@ -19,9 +42,16 @@ export function calcAppleScab(input: DiseaseWeatherInput): InfectionCalcResult {
         "気象データが不足しているため Mills 法による感染危険度を算出できませんでした。",
     };
   }
+  const seasonNote = ctx
+    ? evaluateAppleScabPrimarySeason(
+        ctx.lat,
+        input.targetDateTime,
+        ctx.growthStageId
+      ).reason
+    : "";
   return {
     percent,
-    rationale: `Mills 法（改訂）と推定葉面濡れに基づく一次感染リスク: ${percent}%（0–100）。`,
+    rationale: `Mills 法（改訂）と推定葉面濡れに基づく升孢子一次感染リスク: ${percent}%（0–100）。${seasonNote ? ` ${seasonNote}` : ""}`,
   };
 }
 

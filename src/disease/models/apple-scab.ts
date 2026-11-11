@@ -50,6 +50,21 @@ export function findLatestMillsInfectionEvent(
   return detectMillsInfectionEvents(hourly, targetMs)[0] ?? null;
 }
 
+/** イベント終了時刻が filter を満たすもののうち最も新しいもの */
+export function findLatestMillsInfectionEventWhen(
+  hourly: HourlyWeatherRecord[],
+  targetDateTime: string,
+  acceptEventEnd: (endDateTime: string) => boolean
+): MillsInfectionEvent | null {
+  const targetMs = new Date(targetDateTime).getTime();
+  for (const event of detectMillsInfectionEvents(hourly, targetMs)) {
+    if (acceptEventEnd(event.wetPeriod.endDateTime)) {
+      return event;
+    }
+  }
+  return null;
+}
+
 function eventContribution(
   event: MillsInfectionEvent,
   targetMs: number

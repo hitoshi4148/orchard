@@ -101,7 +101,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "6日感染は Mills 接続済。発病予測は直近感染イベントから推定",
+        note: "Mills + 升孢子簡易季節窓（緯度3帯）。期外は低リスク表示",
       },
     },
     "apple:marssonina": {
