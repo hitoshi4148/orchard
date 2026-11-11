@@ -1,7 +1,7 @@
 /**
  * りんご黒星 — 升孢子成熟（MacHardy / Gadoury 系の簡易 GDD）
  *
- * - 基準温度 0℃、バイオフィックス＝季節窓開始日（緑弁代用、群馬は gunma 窓）
+ * - 基準温度 0℃、バイオフィックス＝季節窓開始日（緑期日未入力時の代用、群馬は gunma 窓）
  * - 成熟率は logistic（1/50/99% 付近を 130/280/600 日℃で近似、PDIS 2004 の 600 日℃参照）
  * - Mills スコアに ×(成熟率/100) を適用（供給側の一次感染）
  */
@@ -10,7 +10,7 @@ import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
 import { getAppleScabSeasonWindow } from "./apple-scab-season";
 
 export const APPLE_SCAB_ASCOSPORE_GDD_BASE_C = 0;
-/** 文献上 98% 成熟付近の目安（緑弁起算・基準 0℃） */
+/** 文献上 98% 成熟付近の目安（緑期日起算・基準 0℃） */
 export const APPLE_SCAB_ASCOSPORE_DEPLETION_GDD = 600;
 
 export type AppleScabBiofixSource = "green_tip" | "season_window_proxy";
@@ -134,7 +134,7 @@ export function computeAppleScabAscosporeMaturity(
 
   const biofixLabel =
     biofixSource === "green_tip"
-      ? `緑弁日 ${biofixDate}`
+      ? `緑期日 ${biofixDate}`
       : `季節窓代理 ${biofixDate}`;
 
   let summary: string;

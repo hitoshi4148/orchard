@@ -21,7 +21,7 @@ export function isGunmaOrchardLatLon(lat: number, lon: number): boolean {
 /** ふじ等の開花始期の暦日目安（群馬・前橋周辺、4月下旬） */
 export const GUNMA_TYPICAL_BLOOM_MONTH_DAY = "04-22";
 
-/** りんご緑弁の暦日目安（群馬・関東内陸、3月下旬） */
+/** りんご緑期（green tip）の暦日目安（群馬・関東内陸、3月下旬） */
 export const GUNMA_TYPICAL_GREEN_TIP_MONTH_DAY = "03-25";
 
 export function gunmaTypicalBloomStartIso(year: number): string {

@@ -56,7 +56,7 @@ import { getAppleScabSeasonWindow } from "./apple-scab-season";
 export interface OrchardRiskFetchOptions {
   /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
   includeMarssoninaOnset?: boolean;
-  /** りんご黒星・升孢子 GDD のバイオフィックス（緑弁日 YYYY-MM-DD） */
+  /** りんご黒星・升孢子 GDD のバイオフィックス（緑期日 YYYY-MM-DD） */
   greenTipDate?: string | null;
   /** なし赤星 — 中間宿主（ビャクシン類）が圃場近傍にあるか */
   gymnosporangiumHostNearby?: boolean | null;

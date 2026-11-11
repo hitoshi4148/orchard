@@ -106,7 +106,7 @@ export interface OrchardRiskForecast {
   growthStageId: string;
   /** リクエストで受け取った開花始期（りんご・参照用） */
   bloomStart: string | null;
-  /** 緑弁日（りんご黒星・升孢子 GDD）。未設定時は季節窓代理 */
+  /** 緑期日（green tip・りんご黒星升孢子 GDD）。未設定時は季節窓代理 */
   greenTipDate: string | null;
   /** なし赤星 — 中間宿主（ビャクシン類）の圃場近傍。未設定は null */
   gymnosporangiumHostNearby: boolean | null;

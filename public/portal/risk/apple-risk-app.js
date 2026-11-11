@@ -304,9 +304,9 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboard.greenTipApple || Model.loadGreenTipApple() || "";
     return `<div class="apple-risk-phenology-fields">
       <div class="apple-risk-bloom-field">
-        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">緑弁日（黒星・升孢子 GDD 起点）</label>
+        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">緑期日（黒星・升孢子 GDD 起点）</label>
         <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
-        <p class="apple-risk-wet-est apple-risk-bloom-help">MacHardy 系升孢子成熟の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。未入力かつ群馬地点のみ目安 3/25。</p>
+        <p class="apple-risk-wet-est apple-risk-bloom-help">Green tip（緑期）が確認された日＝升孢子 GDD の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。群馬地点で未入力なら目安 3/25。</p>
       </div>
       <div class="apple-risk-bloom-field">
         <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（褐斑一次感染の起点）</label>

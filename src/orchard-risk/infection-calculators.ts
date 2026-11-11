@@ -1,9 +1,14 @@
 import { calculateAppleScabRisk } from "../disease/models/apple-scab";
 import { calculateAppleCedarRustRisk } from "../disease/models/apple-cedar-rust";
 import {
+  APPLE_SCAB_ASCOSPORE_DEPLETION_GDD,
   computeAppleScabAscosporeMaturity,
   resolveAppleScabBiofix,
 } from "./apple-scab-ascospore-gdd";
+import {
+  ascosporeReleaseFactorAfterDepletion,
+  computeAppleScabConidialRisk,
+} from "./apple-scab-conidia";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { calculateNashiScabIshiiRisk } from "./nashi-scab-ishii";
@@ -62,7 +67,7 @@ export function calcAppleScab(
       ).reason
     : "";
 
-  let percent = millsPercent;
+  let ascosporePercent = millsPercent;
   let ascosporeNote = "";
   if (
     ctx?.ascosporeGddDaily?.length &&
@@ -82,24 +87,47 @@ export function calcAppleScab(
       biofix.source
     );
     ascosporeNote = maturity.summary;
+    const releaseFactor =
+      maturity.gddDayC >= APPLE_SCAB_ASCOSPORE_DEPLETION_GDD * 0.87
+        ? ascosporeReleaseFactorAfterDepletion(maturity.gddDayC)
+        : 1;
+    const effectiveMaturity =
+      maturity.maturityPercent * releaseFactor;
     if (maturity.maturityPercent < 3) {
-      return {
-        percent: 4,
-        rationale: `りんご黒星病: ${ascosporeNote} Mills 条件が揃っても升孢子未成熟のため低リスク（4%）。${seasonNote ? ` ${seasonNote}` : ""}`,
-      };
+      ascosporePercent = 4;
+    } else {
+      ascosporePercent = Math.min(
+        100,
+        Math.max(
+          0,
+          Math.round((millsPercent * effectiveMaturity) / 100)
+        )
+      );
     }
-    percent = Math.min(
-      100,
-      Math.max(
-        0,
-        Math.round((millsPercent * maturity.maturityPercent) / 100)
-      )
-    );
+    if (releaseFactor < 1) {
+      ascosporeNote += ` 升孢子放出末期係数 ${Math.round(releaseFactor * 100)}%。`;
+    }
   }
+
+  const conidial = computeAppleScabConidialRisk(
+    millsPercent,
+    ctx?.growthStageId ?? "youngfruit"
+  );
+  const percent = Math.min(
+    100,
+    Math.max(ascosporePercent, conidial.percent)
+  );
 
   return {
     percent,
-    rationale: `Mills 法（改訂）×升孢子成熟率の一次感染リスク: ${percent}%（Mills素点 ${millsPercent}%）。${ascosporeNote ? ` ${ascosporeNote}` : ""}${seasonNote ? ` ${seasonNote}` : ""}`,
+    rationale: [
+      `Mills 法（改訂）: 升孢子経路 ${ascosporePercent}%・分生胞子経路 ${conidial.percent}% → 表示 ${percent}%（Mills素点 ${millsPercent}%）。`,
+      ascosporeNote,
+      conidial.summary,
+      seasonNote,
+    ]
+      .filter(Boolean)
+      .join(" "),
   };
 }
 

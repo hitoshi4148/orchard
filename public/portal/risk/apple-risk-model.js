@@ -103,7 +103,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills × MacHardy 系升孢子 GDD（0℃）。緑弁日入力でバイオフィックスを指定",
+        note: "Mills × 升孢子 GDD + 分生胞子チャネル（生育ステージ）。緑期日でバイオフィックス指定",
       },
     },
     "apple:marssonina": {

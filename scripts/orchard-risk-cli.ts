@@ -48,7 +48,7 @@ async function main() {
     process.exit(1);
   }
   if (crop === "apple" && greenTip && !/^\d{4}-\d{2}-\d{2}$/.test(greenTip)) {
-    console.error("Invalid --green-tip (YYYY-MM-DD)");
+    console.error("Invalid --green-tip (緑期日 YYYY-MM-DD)");
     process.exit(1);
   }
 
