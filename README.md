@@ -383,6 +383,8 @@ fork 元の [tool-portal](https://github.com/hitoshi4148/tool-portal) は別 Pag
 
 ### NASA POWER
 
+Pages Functions 上では `caches.default` に正規化済みの daily/hourly をキャッシュします（終了日が昨日より前なら TTL 7 日、それ以外は 3 時間。同一キーは in-flight 去重）。実装: `src/disease/nasa-power-cache.ts`
+
 | 利用箇所 | 呼び出し回数 | 用途 |
 |----------|--------------|------|
 | Daily（統合） | **1 回** | GP 用の昨年月平均気温 + 病害用の過去日次 |

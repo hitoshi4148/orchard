@@ -153,7 +153,7 @@ async function fetchRaw(url: string) {
   return data;
 }
 
-export async function fetchNasaPowerDaily(
+async function fetchNasaPowerDailyUncached(
   latitude: number,
   longitude: number,
   startDate: string,
@@ -175,14 +175,13 @@ export async function fetchNasaPowerDaily(
   return normalizeDaily(data);
 }
 
-export async function fetchNasaPowerHourly(
+async function fetchNasaPowerHourlyUncached(
   latitude: number,
   longitude: number,
   startDate: string,
   endDate: string,
-  options?: FetchNasaPowerHourlyOptions
+  timeStandard: NasaPowerTimeStandard
 ): Promise<HourlyWeatherRecord[]> {
-  const timeStandard = options?.timeStandard ?? "LST";
   const params = new URLSearchParams({
     parameters: "T2M,RH2M,PRECTOTCORR",
     community: "AG",
@@ -198,4 +197,46 @@ export async function fetchNasaPowerHourly(
     `https://power.larc.nasa.gov/api/temporal/hourly/point?${params.toString()}`
   );
   return normalizeHourly(data, timeStandard);
+}
+
+export async function fetchNasaPowerDaily(
+  latitude: number,
+  longitude: number,
+  startDate: string,
+  endDate: string
+): Promise<DailyWeatherRecord[]> {
+  const { fetchNasaPowerDailyCached } = await import("./nasa-power-cache");
+  return fetchNasaPowerDailyCached(
+    latitude,
+    longitude,
+    startDate,
+    endDate,
+    () => fetchNasaPowerDailyUncached(latitude, longitude, startDate, endDate)
+  );
+}
+
+export async function fetchNasaPowerHourly(
+  latitude: number,
+  longitude: number,
+  startDate: string,
+  endDate: string,
+  options?: FetchNasaPowerHourlyOptions
+): Promise<HourlyWeatherRecord[]> {
+  const timeStandard = options?.timeStandard ?? "LST";
+  const { fetchNasaPowerHourlyCached } = await import("./nasa-power-cache");
+  return fetchNasaPowerHourlyCached(
+    latitude,
+    longitude,
+    startDate,
+    endDate,
+    timeStandard,
+    () =>
+      fetchNasaPowerHourlyUncached(
+        latitude,
+        longitude,
+        startDate,
+        endDate,
+        timeStandard
+      )
+  );
 }
