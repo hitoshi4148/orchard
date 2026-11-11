@@ -221,6 +221,13 @@
   margin-bottom: 6px;
 }
 
+.apple-risk-bloom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .apple-risk-bloom-input {
   font-size: 1rem;
   padding: 6px 8px;
@@ -228,6 +235,20 @@
   border-radius: 6px;
   width: 100%;
   max-width: 11rem;
+}
+
+.apple-risk-bloom-clear-btn {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.apple-risk-bloom-clear-btn:hover {
+  background: #f3f4f6;
 }
 
 .apple-risk-bloom-help {

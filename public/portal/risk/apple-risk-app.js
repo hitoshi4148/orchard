@@ -357,8 +357,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ${renderScabInoculumField(dashboard)}
       <div class="apple-risk-bloom-field">
         <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（褐斑一次感染の起点）</label>
-        <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(bloom)}">
-        <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）褐斑モデル用。群馬のふじは例年4月下旬（4/20〜25）。未入力で群馬地点のときは 4/22 を自動セットします。</p>
+        <div class="apple-risk-bloom-row">
+          <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(bloom)}">
+          <button type="button" class="apple-risk-bloom-clear-btn" id="apple-risk-bloom-clear">クリア</button>
+        </div>
+        <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）褐斑モデル用。群馬のふじは例年4月下旬（4/20〜25）。初回のみ群馬地点で 4/22 を目安表示します。空にしたあとは自動入力しません（褐斑の一次・発病予測は P2 日次のみ）。</p>
       </div>
     </div>`;
   }
@@ -500,8 +503,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const bloomInput = document.getElementById("apple-risk-bloom-start");
-    bloomInput?.addEventListener("change", () => {
-      Model.saveBloomStartApple(bloomInput.value);
+    const persistBloomFromInput = () => {
+      Model.saveBloomStartApple(bloomInput?.value ?? "");
+      refreshDashboard(dashboard.cropId);
+    };
+    bloomInput?.addEventListener("change", persistBloomFromInput);
+    bloomInput?.addEventListener("input", persistBloomFromInput);
+    document.getElementById("apple-risk-bloom-clear")?.addEventListener("click", () => {
+      if (bloomInput) {
+        bloomInput.value = "";
+      }
+      Model.clearBloomStartApple();
       refreshDashboard(dashboard.cropId);
     });
     const greenTipInput = document.getElementById("apple-risk-green-tip");

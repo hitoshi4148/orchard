@@ -8,6 +8,8 @@ const OrchardRiskModel = (() => {
   const STORAGE_VARIETY_PREFIX = "orchardRiskVariety:";
   const STORAGE_STAGE_PREFIX = "orchardRiskStage:";
   const STORAGE_BLOOM_START_APPLE = "orchardRiskBloomStart:apple";
+  /** 1 = 開花始期をユーザーが空にした（群馬目安・Cookie 自動補完を止める） */
+  const STORAGE_BLOOM_START_NO_AUTO = "orchardRiskBloomStart:apple:noAuto";
   const STORAGE_GREEN_TIP_APPLE = "orchardRiskGreenTip:apple";
   const STORAGE_GYMNOS_HOST_NASHI = "orchardRiskGymnosporangiumHost:nashi";
   const STORAGE_SCAB_INOCULUM_APPLE = "orchardRiskScabInoculum:apple";
@@ -484,11 +486,16 @@ const OrchardRiskModel = (() => {
     return `${y}-03-25`;
   }
 
+  function isBloomAutoSuggestDisabled() {
+    return localStorage.getItem(STORAGE_BLOOM_START_NO_AUTO) === "1";
+  }
+
   function suggestBloomStartIfEmpty(lat, lon) {
     if (loadBloomStartApple()) return;
+    if (isBloomAutoSuggestDisabled()) return;
     if (!isGunmaOrchardLatLon(lat, lon)) return;
     const y = new Date().getFullYear();
-    saveBloomStartApple(gunmaTypicalBloomStartIso(y));
+    saveBloomStartApple(gunmaTypicalBloomStartIso(y), { fromAuto: true });
   }
 
   function syncGreenTipFromPortalIfEmpty() {
@@ -635,6 +642,7 @@ const OrchardRiskModel = (() => {
   /** 果樹園しごとの満開日 Cookie → 開花始期（未入力時のみ） */
   function syncBloomStartFromPortalIfEmpty() {
     if (loadBloomStartApple()) return;
+    if (isBloomAutoSuggestDisabled()) return;
     const variety = loadVariety("apple");
     const isFuji = /ふじ/.test(variety);
     const key = isFuji ? "agromap_warm_seeding_date" : "agromap_greenfield_date";
@@ -651,15 +659,23 @@ const OrchardRiskModel = (() => {
     return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : "";
   }
 
-  function saveBloomStartApple(dateStr) {
-    const trimmed = String(dateStr || "").trim();
+  function saveBloomStartApple(dateStr, options = {}) {
+    const trimmed = String(dateStr ?? "").trim();
     if (!trimmed) {
       localStorage.removeItem(STORAGE_BLOOM_START_APPLE);
+      localStorage.setItem(STORAGE_BLOOM_START_NO_AUTO, "1");
       return;
     }
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
       localStorage.setItem(STORAGE_BLOOM_START_APPLE, trimmed);
+      if (!options.fromAuto) {
+        localStorage.removeItem(STORAGE_BLOOM_START_NO_AUTO);
+      }
     }
+  }
+
+  function clearBloomStartApple() {
+    saveBloomStartApple("");
   }
 
   function marssoninaOnsetRowForClient(cropId) {
@@ -1132,6 +1148,7 @@ const OrchardRiskModel = (() => {
     saveGrowthStageId,
     loadBloomStartApple,
     saveBloomStartApple,
+    clearBloomStartApple,
     loadGreenTipApple,
     saveGreenTipApple,
     loadScabInoculumApple,
