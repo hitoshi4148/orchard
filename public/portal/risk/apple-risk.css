@@ -4,10 +4,14 @@
   --apple-green-soft: #ecfdf5;
   --apple-green-border: #86efac;
   --apple-text: #1f2937;
+  --apple-fine-size: 0.72rem;
+  --apple-point-size: 1.12rem;
   max-width: 960px;
   margin: 0 auto;
   padding: 12px 16px 32px;
   color: var(--apple-text);
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .apple-risk-back {
@@ -332,16 +336,34 @@
 }
 
 .apple-risk-section h2 {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
+  margin: 0 0 8px;
+  font-size: 1.22rem;
   color: #14532d;
+  font-weight: 800;
 }
 
 .apple-risk-section-lead {
   margin: 0 0 12px;
-  font-size: 0.84rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.apple-risk-section-lead--plain {
+  font-size: 1rem;
+  color: #374151;
+}
+
+.apple-risk-em {
+  font-size: 1.05em;
+  color: #14532d;
+}
+
+.apple-risk-fine-print {
+  font-size: var(--apple-fine-size);
   color: #6b7280;
-  line-height: 1.4;
+  line-height: 1.45;
+  margin: 0 0 6px;
 }
 
 .apple-risk-cards {
@@ -365,7 +387,7 @@
 }
 
 .apple-risk-summary-card .card-level {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 800;
   margin-bottom: 4px;
 }
@@ -401,7 +423,7 @@
 .apple-risk-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   min-width: 520px;
 }
 
@@ -427,22 +449,23 @@
 .apple-risk-table .disease-link {
   background: none;
   border: none;
-  padding: 0;
+  padding: 4px 2px;
   font: inherit;
   color: #166534;
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 1.05rem;
   cursor: pointer;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
 
 .apple-risk-pill {
   display: inline-block;
-  min-width: 2.6em;
-  padding: 4px 8px;
+  min-width: 2.8em;
+  padding: 5px 10px;
   border-radius: 6px;
-  font-weight: 700;
-  font-size: 0.78rem;
+  font-weight: 800;
+  font-size: 0.9rem;
 }
 
 .apple-risk-stages {
@@ -530,10 +553,17 @@ button.apple-risk-stage {
   padding: 12px;
 }
 
-.apple-risk-onset-card h3 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
+.apple-risk-onset-title {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
   color: #14532d;
+  font-weight: 800;
+}
+
+.apple-risk-onset-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .apple-risk-onset-dl {
@@ -593,37 +623,115 @@ button.apple-risk-stage {
 
 .apple-risk-rationale {
   margin: 0;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: #f9fafb;
   border-left: 3px solid var(--apple-green);
   border-radius: 0 8px 8px 0;
-  font-size: 0.84rem;
-  line-height: 1.5;
+  line-height: 1.45;
+}
+
+.apple-risk-rationale-summary {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #14532d;
+}
+
+.apple-risk-rationale-lead {
+  margin: 8px 0 10px;
 }
 
 .apple-risk-details {
   margin-top: 12px;
-  border: 1px solid var(--apple-green-border);
-  border-radius: 10px;
-  padding: 12px;
-  background: var(--apple-green-soft);
+  border: 2px solid var(--apple-green-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #fff;
 }
 
-.apple-risk-details h3 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
+.apple-risk-details-title {
+  margin: 0 0 10px;
+  font-size: 1.4rem;
   color: #14532d;
+  font-weight: 800;
 }
 
-.apple-risk-details ul {
-  margin: 0 0 8px;
-  padding-left: 1.2em;
-  font-size: 0.84rem;
+.apple-risk-details-point {
+  margin: 0 0 14px;
+  font-size: var(--apple-point-size);
+  font-weight: 700;
+  color: #14532d;
+  line-height: 1.55;
+}
+
+.apple-risk-details-subhead {
+  margin: 12px 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.apple-risk-details-keys {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.apple-risk-details-keys dt {
+  font-size: var(--apple-fine-size);
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.apple-risk-details-keys dd {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.apple-risk-details-factors {
+  margin: 0 0 14px;
+  padding-left: 1.3em;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: #1f2937;
+}
+
+.apple-risk-details-tech {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #d1d5db;
+}
+
+.apple-risk-sample-photo {
+  margin: 0 0 14px;
+  text-align: center;
+}
+
+.apple-risk-sample-photo img {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.apple-risk-sample-caption {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.apple-risk-sample-credit a {
+  color: #166534;
 }
 
 .apple-risk-details .model-note {
-  font-size: 0.78rem;
-  color: #6b7280;
+  margin-top: 4px;
 }
 
 .apple-risk-modal.hidden {

@@ -100,6 +100,7 @@ const OrchardRiskModel = (() => {
       wetHours: "連続葉面濡れ（Mills 改訂）",
       summary:
         "りんごの葉・果に黒褐色の斑点が出る病害。新梢展開期の濡れと適温が重なると感染が進みます。",
+      watchPoint: "春の雨のあとは、新しい葉と小さな果を優先して見てください。",
       infectionFactors: [
         "降雨・霧雨による連続葉面濡れ",
         "15〜20℃前後の気温",
@@ -120,6 +121,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "25〜28℃前後",
       wetHours: "長時間の高湿・濡れ",
       summary: "りんご葉の褐色斑・早期落葉の原因となる病害。",
+      watchPoint: "梅雨〜夏の雨あと、葉の茶色い斑点と落葉に注意してください。",
       infectionFactors: ["高湿", "展葉〜肥大期", "雨の多い日が続く時期"],
       onsetModel: {
         type: "gdd",
@@ -138,6 +140,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "25〜30℃前後",
       wetHours: "傷口経由＋高湿",
       summary: "りんごの葉・果の斑点と落葉。株勢低下時に注意。",
+      watchPoint: "長雨のあとの高温日は、葉と果の褐色の斑点を重点的に見てください。",
       infectionFactors: ["長雨後の高温", "傷ついた葉・果", "風害後"],
       onsetModel: {
         type: "seasonal",
@@ -154,6 +157,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "22〜28℃",
       wetHours: "果実表面の湿潤",
       summary: "りんご果実の円形病斑。多雨期に発生しやすい。",
+      watchPoint: "果実が大きくなる時期の雨のあとは、果面の円い褐斑を見てください。",
       infectionFactors: ["果実への雨水", "肥大〜収穫期", "軽微な果皮傷"],
       onsetModel: {
         type: "seasonal",
@@ -170,6 +174,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "20〜25℃",
       wetHours: "冠内の滞湿",
       summary: "りんご果実の同心円状斑点。",
+      watchPoint: "収穫前の蒸し暑い日は、果面の輪状の斑と冠の通風を確認してください。",
       infectionFactors: ["収穫前の湿気", "冠内通風不良", "果皮の微細傷"],
       onsetModel: {
         type: "seasonal",
@@ -187,6 +192,7 @@ const OrchardRiskModel = (() => {
       wetHours: "Duthie 動的（発芽ロジスティック＋Ishii L(T)）",
       summary:
         "日本なしの葉・果に黒褐色星状斑。りんご黒星病とは病原・条件が異なります。",
+      watchPoint: "展葉〜幼果期の雨のあとは、葉と小果の星形の斑を見てください。",
       infectionFactors: [
         "展葉期の長時間濡れ",
         "適温帯での降雨",
@@ -207,6 +213,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "15〜22℃",
       wetHours: "落葉上の子嚢盤発生と湿潤",
       summary: "日本なしの赤褐色星状斑。落葉管理と春の湿りが鍵。",
+      watchPoint: "春先の雨のあとは、葉の赤褐色い星状の斑と前秋の落葉残りに注意してください。",
       infectionFactors: ["落葉残存", "春の多雨", "展葉期"],
       onsetModel: {
         type: "gymnosporangium",
@@ -223,6 +230,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "20〜26℃",
       wetHours: "果面の湿潤",
       summary: "日本なし果実の輪状病斑。りんご輪紋病とは別病原。",
+      watchPoint: "熟り頃の雨のあとは、果面の輪状の病斑を確認してください。",
       infectionFactors: ["熟期の降雨", "果実の微小傷", "滞湿"],
       onsetModel: {
         type: "seasonal",
@@ -239,6 +247,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "25〜30℃",
       wetHours: "高湿＋葉・果への湿り",
       summary: "日本なしの黒色斑点と落葉。高温多雨期に注意。",
+      watchPoint: "夏の蒸し暑い日続きは、葉の黒い斑点と早い落葉に注意してください。",
       infectionFactors: ["梅雨〜夏の高温多湿", "弱った葉", "通風不良"],
       onsetModel: {
         type: "seasonal",
@@ -255,6 +264,7 @@ const OrchardRiskModel = (() => {
       infectionTempC: "22〜28℃",
       wetHours: "果面濡れ",
       summary: "日本なし果実の黒褐色病斑。収穫品質に影響。",
+      watchPoint: "果実が盛んに大きくなる時期の雨のあとは、果面の黒褐色の斑を見てください。",
       infectionFactors: ["果実期の降雨", "冠内湿度", "軽傷"],
       onsetModel: {
         type: "seasonal",

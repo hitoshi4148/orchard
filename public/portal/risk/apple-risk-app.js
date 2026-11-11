@@ -87,14 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return dashboard.infectionByDisease
       .map(
         (d) => `<details class="apple-risk-rationale-block">
-        <summary>${escapeHtml(d.name)} — 予測根拠</summary>
-        <p class="apple-risk-rationale">${escapeHtml(d.rationale)}</p>
-        <dl class="apple-risk-inline-dl">
+        <summary class="apple-risk-rationale-summary">${escapeHtml(d.name)} — 詳しい説明（開く）</summary>
+        <p class="apple-risk-details-point apple-risk-rationale-lead">${escapeHtml(d.watchPoint || d.summary)}</p>
+        <dl class="apple-risk-inline-dl apple-risk-fine-print">
           <dt>病原菌</dt><dd>${escapeHtml(d.pathogen)}</dd>
           <dt>主な感染時期</dt><dd>${escapeHtml(d.mainSeason || "—")}</dd>
           <dt>感染適温</dt><dd>${escapeHtml(d.infectionTempC || "—")}</dd>
           <dt>濡れ時間</dt><dd>${escapeHtml(d.wetHours || "—")}</dd>
         </dl>
+        <p class="apple-risk-fine-print apple-risk-rationale">${escapeHtml(d.rationale)}</p>
+        <p class="apple-risk-fine-print">${escapeHtml(d.summary)}</p>
       </details>`
       )
       .join("");
@@ -137,12 +139,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function onsetLeadText(dashboard) {
     if (dashboard.fetchError) {
-      return "気象未取得のため下記はデモ表示です。";
+      return "いまは気象データが取れないため、下の発病目安は参考表示です。";
     }
     if (dashboard.dataSource === "live") {
-      return "感染モデル（Mills・Duthie・褐斑 P2/P3・季節モデルほか）から推定した発病・感染の目安です。発病の簡易病害は6日感染ピークからの目安です。";
+      return "すでに感染したあとの「発病しそうな時期」の目安です。詳しい計算式は各カード下の小さな文字を参照してください。";
     }
-    return "すでに感染した可能性がある病原について、発病が予想される時期の目安です（デモ）。";
+    return "発病時期の参考表示です（気象とつながっていません）。";
   }
 
   function renderStatusBanner(dashboard) {
@@ -257,9 +259,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
         }">
-          <h3>${statusBadge}${estimateTag}${escapeHtml(item.diseaseName)}</h3>
+          <h3 class="apple-risk-onset-title">${statusBadge}${estimateTag}${escapeHtml(item.diseaseName)}</h3>
           <dl class="apple-risk-onset-dl">
-            <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.estimatedInfectionDate)}</dd>
+            <dt>${escapeHtml(infectionLabel)}</dt><dd class="apple-risk-onset-value">${escapeHtml(item.estimatedInfectionDate)}</dd>
             ${wetDetail || ""}
             ${coverageDetail}
             ${ascosporePoolRow}
@@ -271,10 +273,10 @@ document.addEventListener("DOMContentLoaded", () => {
                   : "—"
             }</dd>
             ${gddDetail}
-            <dt>発病時期（推定）</dt><dd>${escapeHtml(item.predictedOnsetWindow)}</dd>
+            <dt>発病時期（推定）</dt><dd class="apple-risk-onset-value">${escapeHtml(item.predictedOnsetWindow)}</dd>
             ${confidenceRow}
           </dl>
-          <p class="apple-risk-wet-est">${escapeHtml(item.note)}</p>
+          <p class="apple-risk-fine-print apple-risk-onset-note">${escapeHtml(item.note)}</p>
         </article>`;
       })
       .join("");
@@ -322,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
             なし
           </label>
         </div>
-        <p class="apple-risk-wet-est apple-risk-bloom-help">Gymnosporangium はビャクシン上で小生子が発生します。「なし」のとき赤星リスクは 4% に抑制表示します。</p>
+        <p class="apple-risk-fine-print apple-risk-bloom-help">「なし」を選ぶと、赤星のリスク表示を抑えます（周辺にビャクシンがない想定）。</p>
       </fieldset>
     </div>`;
   }
@@ -346,7 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
             多い（前作事象あり・130%）
           </label>
         </div>
-        <p class="apple-risk-wet-est apple-risk-bloom-help">シーズン枯渇プールの初期値を変えます。簡易設定であり、樹冠残病率の詳細モデルではありません。</p>
+        <p class="apple-risk-fine-print apple-risk-bloom-help">前作の残り病葉の多さの目安です（詳細な残病率の計測ではありません）。</p>
       </fieldset>`;
   }
 
@@ -362,7 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
           <button type="button" class="apple-risk-bloom-clear-btn" id="apple-risk-green-tip-clear">クリア</button>
         </div>
-        <p class="apple-risk-wet-est apple-risk-bloom-help">Green tip（緑期）が確認された日＝升孢子 GDD の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。初回のみ群馬地点で 3/25 を目安表示します。空にしたあとは自動入力しません。</p>
+        <p class="apple-risk-fine-print apple-risk-bloom-help">芽が緑色に見え始めた日を入れてください（黒星の予測に使います）。空のままにしたら自動では入れません。</p>
       </div>
       ${renderScabInoculumField(dashboard)}
       <div class="apple-risk-bloom-field">
@@ -371,7 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(bloom)}">
           <button type="button" class="apple-risk-bloom-clear-btn" id="apple-risk-bloom-clear">クリア</button>
         </div>
-        <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）褐斑モデル用。群馬のふじは例年4月下旬（4/20〜25）。初回のみ群馬地点で 4/22 を目安表示します。空にしたあとは自動入力しません（褐斑の一次・発病予測は P2 日次のみ）。</p>
+        <p class="apple-risk-fine-print apple-risk-bloom-help">花が開き始めた日を入れてください（褐斑の詳しい予測に使います）。群馬では例年4月下旬が目安です。</p>
       </div>
     </div>`;
   }
@@ -391,18 +393,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const m = disease.onsetModel;
     if (!m) return "";
     if (m.type === "gdd") {
-      return `<p class="model-note">発病モデル（${escapeHtml(m.type)}・${m.implemented ? "接続済" : "未接続"}）: 基準温度 ${m.baseTempC}℃ / 閾値 ${m.thresholdGddDayC}日℃ — ${escapeHtml(m.note)}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】発病モデル（GDD・${m.implemented ? "接続済" : "未接続"}）基準 ${m.baseTempC}℃／閾値 ${m.thresholdGddDayC} 日℃ — ${escapeHtml(m.note)}</p>`;
     }
     if (m.type === "duthie") {
-      return `<p class="model-note">発病モデル（Duthie・${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】Duthie モデル（${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
     }
     if (m.type === "gymnosporangium") {
-      return `<p class="model-note">感染モデル（${escapeHtml(m.type)}・${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】赤星・宿主モデル（${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
     }
     if (m.type === "seasonal") {
-      return `<p class="model-note">季節×気象モデル（${m.implemented ? "接続済" : "簡易"}）— ${escapeHtml(m.note || "")}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】季節×気象（${m.implemented ? "接続済" : "簡易"}）— ${escapeHtml(m.note || "")}</p>`;
     }
-    return `<p class="model-note">感染モデル（${escapeHtml(m.type)}・未接続）— ${escapeHtml(m.note || "")}</p>`;
+    return `<p class="apple-risk-fine-print model-note">【技術メモ】感染モデル（${escapeHtml(m.type)}）— ${escapeHtml(m.note || "")}</p>`;
+  }
+
+  function renderDiseaseSamplePhoto(diseaseId) {
+    const Photos =
+      typeof OrchardDiseaseSamplePhotos !== "undefined"
+        ? OrchardDiseaseSamplePhotos
+        : null;
+    if (!Photos) return "";
+    const photo = Photos.get(diseaseId);
+    if (!photo) return "";
+    const fallbackAttr = photo.localSrc
+      ? ` data-fallback-src="${escapeHtml(photo.localSrc)}"`
+      : "";
+    return `<figure class="apple-risk-sample-photo">
+      <img src="${escapeHtml(photo.src)}"${fallbackAttr} alt="${escapeHtml(photo.alt)}" loading="lazy" width="640" height="480">
+      <figcaption>
+        <span class="apple-risk-sample-caption">${escapeHtml(photo.caption)}</span>
+        <span class="apple-risk-fine-print apple-risk-sample-credit">出典: <a href="${escapeHtml(photo.commonsPage)}" target="_blank" rel="noopener noreferrer">${escapeHtml(photo.credit)}</a>（${escapeHtml(photo.license)}・Wikimedia Commons）</span>
+      </figcaption>
+    </figure>`;
+  }
+
+  function bindDiseasePhotoFallback(host) {
+    host?.querySelectorAll(".apple-risk-sample-photo img").forEach((img) => {
+      img.addEventListener("error", () => {
+        const fallback = img.getAttribute("data-fallback-src");
+        if (fallback && !img.dataset.fallbackTried) {
+          img.dataset.fallbackTried = "1";
+          img.src = fallback;
+        }
+      }, { once: true });
+    });
   }
 
   function showDiseaseDetails(diseaseId, dashboard) {
@@ -410,26 +444,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const disease = dashboard.infectionByDisease.find((d) => d.id === diseaseId);
     if (!disease || !detailsHost) return;
 
-    detailsHost.innerHTML = `<div class="apple-risk-details">
-      <p class="apple-risk-demo-badge" style="display:inline-block;margin-bottom:8px">${escapeHtml(dashboard.dataSourceLabel)}</p>
-      <h3>${escapeHtml(disease.name)}（${escapeHtml(disease.pathogen)}）</h3>
-      <p>${escapeHtml(disease.summary)}</p>
-      <dl class="apple-risk-inline-dl">
-        <dt>主な感染時期</dt><dd>${escapeHtml(disease.mainSeason || "—")}</dd>
-        <dt>感染に適した気温</dt><dd>${escapeHtml(disease.infectionTempC || "—")}</dd>
-        <dt>必要な濡れ時間</dt><dd>${escapeHtml(disease.wetHours || "—")}</dd>
+    const watchPoint = disease.watchPoint || disease.summary;
+    const factors = disease.infectionFactors
+      .map((f) => `<li>${escapeHtml(f)}</li>`)
+      .join("");
+
+    detailsHost.innerHTML = `<div class="apple-risk-details" role="region" aria-labelledby="disease-detail-title">
+      <h3 id="disease-detail-title" class="apple-risk-details-title">${escapeHtml(disease.name)}</h3>
+      <p class="apple-risk-details-point">${escapeHtml(watchPoint)}</p>
+      ${renderDiseaseSamplePhoto(diseaseId)}
+      <dl class="apple-risk-details-keys">
+        <div><dt>いちばん気をつける時期</dt><dd>${escapeHtml(disease.mainSeason || "—")}</dd></div>
+        <div><dt>感染しやすい気温の目安</dt><dd>${escapeHtml(disease.infectionTempC || "—")}</dd></div>
+        <div><dt>葉や果が濡れる時間</dt><dd>${escapeHtml(disease.wetHours || "—")}</dd></div>
       </dl>
-      <p><strong>主な感染条件</strong></p>
-      <ul>${disease.infectionFactors.map((f) => `<li>${escapeHtml(f)}</li>`).join("")}</ul>
-      ${renderOnsetModelNote(disease)}
-      <p><strong>予測結果の根拠</strong></p>
-      <p class="apple-risk-rationale">${escapeHtml(disease.rationale)}</p>
-      <p class="apple-risk-wet-est">品種「${escapeHtml(dashboard.variety)}」— ${
-        dashboard.dataSource === "live"
-          ? "病害ごとに品種係数を感染％に反映しています（根拠文に ×係数 があれば該当病害）。"
-          : "気象連動時に品種係数を反映します。"
-      }</p>
+      <p class="apple-risk-details-subhead">そろっていると感染しやすい条件</p>
+      <ul class="apple-risk-details-factors">${factors}</ul>
+      <div class="apple-risk-details-tech">
+        <p class="apple-risk-fine-print"><strong>病原の名前:</strong> ${escapeHtml(disease.pathogen)}</p>
+        <p class="apple-risk-fine-print">${escapeHtml(disease.summary)}</p>
+        ${renderOnsetModelNote(disease)}
+        <p class="apple-risk-fine-print"><strong>今回の予測の根拠（短文）:</strong> ${escapeHtml(disease.rationale)}</p>
+        <p class="apple-risk-fine-print">品種「${escapeHtml(dashboard.variety)}」— ${
+          dashboard.dataSource === "live"
+            ? "品種ごとの係数を感染リスクに反映しています。"
+            : "気象とつながったときに品種係数を反映します。"
+        }</p>
+        <p class="apple-risk-fine-print apple-risk-demo-badge" style="margin-top:8px">${escapeHtml(dashboard.dataSourceLabel)}</p>
+      </div>
     </div>`;
+    bindDiseasePhotoFallback(detailsHost);
     detailsHost.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
@@ -442,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
     root.innerHTML = `
       <header class="apple-risk-header">
         <h1>りんご・日本なし病害リスク予報</h1>
-        <p class="apple-risk-subtitle">気象データから感染リスクと発病時期を予測</p>
+        <p class="apple-risk-subtitle">天気のデータから「感染しそうな日」と「発病しそうな時期」をお知らせします</p>
         ${renderStatusBanner(dashboard)}
         ${renderCropTabs(dashboard)}
         <div class="apple-risk-meta">
@@ -462,7 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="apple-risk-header-stages" aria-labelledby="stage-heading">
           <h2 id="stage-heading" class="apple-risk-header-stages-title">生育ステージ</h2>
-          <p class="apple-risk-section-lead apple-risk-header-stages-lead">感染しやすい病害はステージによって異なります。${escapeHtml(dashboard.cropLabel)}ごとに保存されます（将来は気温から自動推定）。</p>
+          <p class="apple-risk-fine-print apple-risk-header-stages-lead">いまの時期に合わせて選びます（品種ごとに記憶します）。</p>
           <div class="apple-risk-stages" id="apple-risk-stages">${renderStages(dashboard)}</div>
           ${renderBloomStartField(dashboard)}
           ${renderGymnosporangiumHostField(dashboard)}
@@ -471,7 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <section class="apple-risk-section" aria-labelledby="infection-heading">
         <h2 id="infection-heading">感染危険予報（今後5日）</h2>
-        <p class="apple-risk-section-lead">これから病原菌に感染する危険性の目安です。色と「低・注意・高」の文字で表示します（${escapeHtml(dashboard.cropLabel)}の5病害）。</p>
+        <p class="apple-risk-section-lead apple-risk-section-lead--plain">これから5日間、病害に<strong class="apple-risk-em">感染しやすいか</strong>を色で示します。表の<strong class="apple-risk-em">病害名</strong>を押すと、罹病果実の写真とくわしい説明が下に出ます。</p>
         <div class="apple-risk-cards">
           ${renderOverallCard("本日", dashboard.overall.today)}
           ${renderOverallCard("3日先", dashboard.overall.day3)}
@@ -482,20 +526,20 @@ document.addEventListener("DOMContentLoaded", () => {
       </section>
 
       <section class="apple-risk-section" aria-labelledby="onset-heading">
-        <h2 id="onset-heading">発病予測（今後20日）</h2>
+        <h2 id="onset-heading">発病の目安</h2>
         <p class="apple-risk-section-lead">${escapeHtml(onsetLeadText(dashboard))}</p>
         <div class="apple-risk-onset-list">${renderOnset(dashboard)}</div>
       </section>
 
       <section class="apple-risk-section" aria-labelledby="weather-heading">
-        <h2 id="weather-heading">気象情報（6日間）</h2>
-        <p class="apple-risk-section-lead">MET Norway 時間別予報を日次集計（本日〜5日先）。葉面濡れは推定です。</p>
+        <h2 id="weather-heading">6日間の天気の目安</h2>
+        <p class="apple-risk-section-lead">本日から5日先までの気温・雨・湿度です。葉が濡れていた時間は<strong class="apple-risk-em">推定値</strong>です（下段の小さな文字を参照）。</p>
         ${renderWeather(dashboard)}
       </section>
 
       <section class="apple-risk-section" aria-labelledby="rationale-heading">
-        <h2 id="rationale-heading">予測根拠と病害解説</h2>
-        <p class="apple-risk-section-lead">${escapeHtml(dashboard.cropLabel)}向けの病害ごとの解説です。同じ病害名でも果樹ごとに内容が異なります。</p>
+        <h2 id="rationale-heading">くわしい説明（折りたたみ）</h2>
+        <p class="apple-risk-section-lead">専門的な根拠や論文名は<strong class="apple-risk-em">小さな文字</strong>にまとめています。まずは上の表と写真をご覧ください。</p>
         ${renderRationales(dashboard)}
       </section>
     `;
