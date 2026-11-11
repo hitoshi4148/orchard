@@ -52,7 +52,8 @@ export function buildMarssoninaBloomUnsetOnset(): OrchardOnsetRow {
     gddSinceInfectionDayC: null,
     predictedOnsetWindow: "—",
     confidence: "低",
-    note: "開花始期未設定 — 一次感染・発病予測を計算するには開花始期（YYYY-MM-DD）を指定してください。",
+    note:
+      "開花始期未設定 — 感染危険6日表は P2 日次（鈴木濡れ）で表示しています。一次感染の推定と発病予測（GDD）には開花始期（YYYY-MM-DD）が必要です。",
     modelStatus: "gdd",
     isDemo: false,
     marssoninaStatus: "bloom_date_unset",

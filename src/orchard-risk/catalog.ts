@@ -33,7 +33,7 @@ export const DISEASE_IDS_BY_CROP: Record<OrchardCropId, string[]> = {
 
 export const MODEL_STATUS: Record<string, ModelStatus> = {
   "apple:scab": "mills",
-  "apple:marssonina": "heuristic",
+  "apple:marssonina": "gdd",
   "apple:alternaria": "heuristic",
   "apple:anthracnose": "heuristic",
   "apple:blotch": "heuristic",

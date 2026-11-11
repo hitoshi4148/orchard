@@ -453,12 +453,7 @@ export async function fetchOrchardRiskForecast(
     const levels: RiskLevel[] = [];
     let lastRationale = "";
 
-    const marssoninaLive =
-      diseaseId === "apple:marssonina" &&
-      marssoninaCtx?.primaryInfectionDate != null;
-    modelStatusByDisease[diseaseId] = marssoninaLive
-      ? "gdd"
-      : MODEL_STATUS[diseaseId] ?? "demo";
+    modelStatusByDisease[diseaseId] = MODEL_STATUS[diseaseId] ?? "demo";
 
     for (let offset = 0; offset <= 5; offset += 1) {
       const target = buildTargetDateTimeJst(offset, 18);
@@ -499,7 +494,7 @@ export async function fetchOrchardRiskForecast(
       }
     }
 
-    if (MODEL_STATUS[diseaseId] === "heuristic" && !marssoninaLive) {
+    if (MODEL_STATUS[diseaseId] === "heuristic") {
       demoDiseaseIds.push(diseaseId);
     }
 
@@ -529,7 +524,7 @@ export async function fetchOrchardRiskForecast(
   const cropLabel = cropLabels[cropId];
   const demoNote =
     demoDiseaseIds.length > 0
-      ? `（一部病害は簡易／未接続モデル）`
+      ? `（一部病害は警戒の目安）`
       : "";
 
   return {

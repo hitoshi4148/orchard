@@ -300,7 +300,7 @@ const OrchardRiskModel = (() => {
         gddSinceInfectionDayC: 88,
         predictedOnsetWindow: "2026-07-08 〜 07-15",
         confidence: "低",
-        note: "デモ表示 — 褐斑病 GDD（4.6℃基準・159日℃）は未接続",
+        note: "表示例 — 気象連動時は P2/GDD に更新されます",
       },
       {
         diseaseId: "apple:alternaria",
@@ -334,7 +334,7 @@ const OrchardRiskModel = (() => {
         gddSinceInfectionDayC: null,
         predictedOnsetWindow: "2026-04-22 〜 04-28",
         confidence: "低",
-        note: "デモ表示 — Duthie モデル未接続",
+        note: "表示例 — 気象連動時は Duthie モデルに更新されます",
       },
       {
         diseaseId: "nashi:red_spot",
@@ -704,7 +704,8 @@ const OrchardRiskModel = (() => {
         gddSinceInfectionDayC: null,
         predictedOnsetWindow: "—",
         confidence: "低",
-        note: "開花始期未設定 — 一次感染・発病予測を計算するには開花始期（YYYY-MM-DD）を指定してください。",
+        note:
+          "開花始期未設定 — 感染危険6日表は P2 日次（鈴木濡れ）で表示しています。一次感染の推定と発病予測（GDD）には開花始期の入力が必要です。",
         marssoninaStatus: "bloom_date_unset",
         bloomStart: null,
         isDemo: true,
@@ -867,8 +868,14 @@ const OrchardRiskModel = (() => {
       const isDemo = (forecast.demoDiseaseIds || []).includes(d.id);
       const modelStatus = forecast.modelStatusByDisease?.[d.id] || "demo";
       let rationale = forecast.rationales?.[d.id] || MOCK_RATIONALE[d.id];
-      if (isDemo && modelStatus !== "mills") {
-        rationale += " 【簡易／未接続モデル — 確定的な予測ではありません】";
+      if (
+        isDemo &&
+        modelStatus !== "mills" &&
+        modelStatus !== "duthie" &&
+        modelStatus !== "gdd" &&
+        modelStatus !== "gymnosporangium"
+      ) {
+        rationale += " 【警戒の目安（簡易）— 確定的な予測ではありません】";
       }
       return {
         ...d,
