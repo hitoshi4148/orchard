@@ -12,6 +12,7 @@
     "test:marssonina:integration": "tsx --test src/orchard-risk/marssonina-infection.integration.test.ts src/orchard-risk/marssonina-phase2-gdd.integration.test.ts src/orchard-risk/apple-scab-ascospore-pool.integration.test.ts src/orchard-risk/apple-scab-ascospore-pool-carry.integration.test.ts src/orchard-risk/nashi-scab-duthie.integration.test.ts",
     "test:orchard-risk": "npm run test:marssonina && npm run test:marssonina:integration",
     "orchard-risk:fetch": "tsx scripts/orchard-risk-cli.ts",
+    "verify:growth-stage": "node scripts/compare-growth-stage.mjs",
     "report:orchard-risk-validation": "tsx scripts/orchard-risk-validation-report.ts",
     "test:orchard-risk-validation-report": "tsx scripts/orchard-risk-validation-report.ts --no-live-api",
     "report:marssonina-phase1": "tsx scripts/marssonina-phase1-compare.ts",

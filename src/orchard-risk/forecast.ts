@@ -145,13 +145,17 @@ function calculateForDisease(
     case "grape:late_rot":
     case "grape:gray_mold":
     case "grape:anthracnose":
-      return calcGrapeDisease(diseaseId, input, { growthStageId });
+      return calcGrapeDisease(diseaseId, input, {
+        growthStageId: appleScabCtx.growthStageId,
+      });
     case "peach:bacterial_shot_hole":
     case "peach:gray_spot":
     case "peach:scab":
     case "peach:leaf_curl":
     case "peach:anthracnose":
-      return calcPeachDisease(diseaseId, input, { growthStageId });
+      return calcPeachDisease(diseaseId, input, {
+        growthStageId: appleScabCtx.growthStageId,
+      });
     default:
       return {
         percent: null,
