@@ -40,15 +40,6 @@ export const ORCHARD_HEURISTIC_BY_ID: Record<string, HeuristicDiseaseParams> = {
     reference:
       "Botryosphaeria 系 — 輪紋・黒化は満雨季の湿害ストレスと併発しやすい（18–26℃・濡れ持続の代理指標）。",
   },
-  "nashi:red_spot": {
-    diseaseLabel: "なし赤星病",
-    tempMin: 14,
-    tempMax: 22,
-    wetHoursHigh: 8,
-    wetHoursCaution: 4,
-    reference:
-      "Gymnosporangium 系（中間宿主ビャクシン未考慮）— 春の冷涼湿潤（14–22℃）で初侵染リスク上昇の目安。",
-  },
   "nashi:blotch": {
     diseaseLabel: "なし輪紋病",
     tempMin: 18,

@@ -22,6 +22,7 @@ import {
 import { buildSixDayWeather } from "./daily-aggregate";
 import {
   calcAppleScab,
+  calcNashiRedSpot,
   calcNashiScab,
 } from "./infection-calculators";
 import {
@@ -76,6 +77,8 @@ function calculateForDisease(
       return calcAppleScab(input, appleScabCtx);
     case "nashi:scab":
       return calcNashiScab(input);
+    case "nashi:red_spot":
+      return calcNashiRedSpot(input);
     case "apple:marssonina":
       return calcMarssoninaForecastInfection(input, marssoninaCtx);
     case "apple:alternaria":
@@ -149,7 +152,11 @@ function buildOnsetRows(
       continue;
     }
     const levels = infectionByDiseaseId[id];
-    if ((MODEL_STATUS[id] ?? "demo") === "heuristic" && levels?.length) {
+    const status = MODEL_STATUS[id] ?? "demo";
+    if (
+      (status === "heuristic" || status === "gymnosporangium") &&
+      levels?.length
+    ) {
       rows.push(
         buildHeuristicOnsetFromInfection(
           id,

@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="apple-risk-bloom-field">
         <label class="apple-risk-bloom-label" for="apple-risk-green-tip">緑弁日（黒星・升孢子 GDD 起点）</label>
         <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
-        <p class="apple-risk-wet-est apple-risk-bloom-help">MacHardy 系升孢子成熟の積算起算日です。未入力時は季節窓開始（群馬は 4/1）を代用。群馬地点で空欄のときは目安 3/25 を自動セットします。</p>
+        <p class="apple-risk-wet-est apple-risk-bloom-help">MacHardy 系升孢子成熟の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。未入力かつ群馬地点のみ目安 3/25。</p>
       </div>
       <div class="apple-risk-bloom-field">
         <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（褐斑一次感染の起点）</label>

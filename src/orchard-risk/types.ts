@@ -6,6 +6,7 @@ export type ModelStatus =
   | "mills"
   | "gdd"
   | "duthie"
+  | "gymnosporangium"
   | "heuristic"
   | "demo";
 

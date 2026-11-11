@@ -187,6 +187,11 @@ const OrchardRiskModel = (() => {
       wetHours: "落葉上の子嚢盤発生と湿潤",
       summary: "日本なしの赤褐色星状斑。落葉管理と春の湿りが鍵。",
       infectionFactors: ["落葉残存", "春の多雨", "展葉期"],
+      onsetModel: {
+        type: "gymnosporangium",
+        implemented: true,
+        note: "春季降雨×濡れ継続（ビャクシン未考慮）",
+      },
     },
     "nashi:blotch": {
       id: "nashi:blotch",
@@ -484,6 +489,20 @@ const OrchardRiskModel = (() => {
     saveBloomStartApple(gunmaTypicalBloomStartIso(y));
   }
 
+  function syncGreenTipFromPortalIfEmpty() {
+    if (loadGreenTipApple()) return;
+    if (
+      typeof OrchardPhenologyCookie === "undefined" ||
+      !OrchardPhenologyCookie.readAppleGreenTip
+    ) {
+      return;
+    }
+    const fromCookie = OrchardPhenologyCookie.readAppleGreenTip();
+    if (fromCookie) {
+      saveGreenTipApple(fromCookie);
+    }
+  }
+
   function suggestGreenTipIfEmpty(lat, lon) {
     if (loadGreenTipApple()) return;
     if (!isGunmaOrchardLatLon(lat, lon)) return;
@@ -502,10 +521,16 @@ const OrchardRiskModel = (() => {
     const trimmed = String(dateStr || "").trim();
     if (!trimmed) {
       localStorage.removeItem(STORAGE_GREEN_TIP_APPLE);
+      if (typeof OrchardPhenologyCookie !== "undefined" && OrchardPhenologyCookie.clearAppleGreenTip) {
+        OrchardPhenologyCookie.clearAppleGreenTip();
+      }
       return;
     }
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
       localStorage.setItem(STORAGE_GREEN_TIP_APPLE, trimmed);
+      if (typeof OrchardPhenologyCookie !== "undefined" && OrchardPhenologyCookie.writeAppleGreenTip) {
+        OrchardPhenologyCookie.writeAppleGreenTip(trimmed);
+      }
     }
   }
 
@@ -787,7 +812,8 @@ const OrchardRiskModel = (() => {
           !isDemo ||
           modelStatus === "mills" ||
           modelStatus === "duthie" ||
-          modelStatus === "gdd",
+          modelStatus === "gdd" ||
+          modelStatus === "gymnosporangium",
       };
     });
 
@@ -809,7 +835,11 @@ const OrchardRiskModel = (() => {
         diseaseName: disease?.name || row.diseaseId,
         disease,
         isDemo: serverDemo,
-        liveData: !serverDemo || row.modelStatus === "mills" || row.modelStatus === "gdd",
+        liveData:
+          !serverDemo ||
+          row.modelStatus === "mills" ||
+          row.modelStatus === "gdd" ||
+          row.modelStatus === "gymnosporangium",
       };
     });
 
@@ -866,6 +896,7 @@ const OrchardRiskModel = (() => {
   async function fetchServerForecast(cropId = loadCropId(), options = {}) {
     if (cropId === "apple") {
       syncBloomStartFromPortalIfEmpty();
+      syncGreenTipFromPortalIfEmpty();
     }
     const loc = loadLocation();
     if (cropId === "apple") {
@@ -1040,6 +1071,7 @@ const OrchardRiskModel = (() => {
     loadGreenTipApple,
     saveGreenTipApple,
     syncBloomStartFromPortalIfEmpty,
+    syncGreenTipFromPortalIfEmpty,
     suggestBloomStartIfEmpty,
     GUNMA_LOCATION_PRESETS,
     isGunmaOrchardLatLon,

@@ -8,7 +8,6 @@ describe("heuristic-disease catalog", () => {
       "apple:alternaria",
       "apple:anthracnose",
       "apple:blotch",
-      "nashi:red_spot",
       "nashi:blotch",
       "nashi:black_spot",
       "nashi:anthracnose",

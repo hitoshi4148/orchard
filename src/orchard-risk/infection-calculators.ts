@@ -1,4 +1,5 @@
 import { calculateAppleScabRisk } from "../disease/models/apple-scab";
+import { calculateAppleCedarRustRisk } from "../disease/models/apple-cedar-rust";
 import {
   computeAppleScabAscosporeMaturity,
   resolveAppleScabBiofix,
@@ -99,6 +100,26 @@ export function calcAppleScab(
   return {
     percent,
     rationale: `Mills 法（改訂）×升孢子成熟率の一次感染リスク: ${percent}%（Mills素点 ${millsPercent}%）。${ascosporeNote ? ` ${ascosporeNote}` : ""}${seasonNote ? ` ${seasonNote}` : ""}`,
+  };
+}
+
+/** なし赤星病 — 春季降雨×濡れ（Gymnosporangium、ビャクシン未考慮） */
+export function calcNashiRedSpot(
+  input: DiseaseWeatherInput
+): InfectionCalcResult {
+  const percent = calculateAppleCedarRustRisk(input);
+  if (percent == null) {
+    return {
+      percent: null,
+      rationale:
+        "なし赤星病: 気象データが不足しているため春季感染リスクを算出できませんでした。",
+    };
+  }
+  return {
+    percent,
+    rationale:
+      `なし赤星病: 春季降雨・濡れ継続モデル（Gymnosporangium・4–5月季節係数）: ${percent}%（0–100）。` +
+      " 中間宿主（ビャクシン類）の圃場内外は未反映 — ビャクシンが近くに無い場合は実リスクはより低くなります。",
   };
 }
 

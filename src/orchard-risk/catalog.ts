@@ -24,7 +24,7 @@ export const MODEL_STATUS: Record<string, ModelStatus> = {
   "apple:anthracnose": "heuristic",
   "apple:blotch": "heuristic",
   "nashi:scab": "duthie",
-  "nashi:red_spot": "heuristic",
+  "nashi:red_spot": "gymnosporangium",
   "nashi:blotch": "heuristic",
   "nashi:black_spot": "heuristic",
   "nashi:anthracnose": "heuristic",
