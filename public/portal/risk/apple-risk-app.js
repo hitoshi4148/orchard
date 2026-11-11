@@ -461,8 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const cultivationLabel = Model.pomeCultivationLabel(dashboard.cultivationId);
     root.innerHTML = `
       <header class="apple-risk-header">
-        <h1>りんご・日本なし病害リスク予報</h1>
-        <p class="apple-risk-subtitle">天気のデータから「感染しそうな日」と「発病しそうな時期」をお知らせします</p>
+        <div class="orchard-risk-header-bar">
+          <div class="orchard-risk-header-bar__intro">
+            <h1>りんご・日本なし病害リスク予報</h1>
+            <p class="apple-risk-subtitle">天気のデータから「感染しそうな日」と「発病しそうな時期」をお知らせします</p>
+          </div>
+          <button type="button" class="settings-btn" id="apple-risk-settings-btn" aria-label="設定">⚙ 設定</button>
+        </div>
         ${renderStatusBanner(dashboard)}
         ${renderCropTabs(dashboard)}
         <div class="apple-risk-meta">
@@ -478,7 +483,6 @@ document.addEventListener("DOMContentLoaded", () => {
               : ""
           }
           <span class="apple-risk-demo-badge">${escapeHtml(dashboard.dataSourceLabel)}</span>
-          <button type="button" class="apple-risk-btn" id="apple-risk-settings-btn">⚙ 設定</button>
         </div>
         <div class="apple-risk-header-stages" aria-labelledby="stage-heading">
           <h2 id="stage-heading" class="apple-risk-header-stages-title">生育ステージ</h2>

@@ -394,8 +394,13 @@ document.addEventListener("DOMContentLoaded", () => {
         : "";
     root.innerHTML = `
       <header class="peach-risk-header">
-        <h1>もも病害リスク予報</h1>
-        <p class="peach-risk-subtitle">気象データから、ももの病害発生リスクを予測</p>
+        <div class="orchard-risk-header-bar">
+          <div class="orchard-risk-header-bar__intro">
+            <h1>もも病害リスク予報</h1>
+            <p class="peach-risk-subtitle">気象データから、ももの病害発生リスクを予測</p>
+          </div>
+          <button type="button" class="settings-btn" id="peach-risk-settings-btn" aria-label="設定">⚙ 設定</button>
+        </div>
         ${errBanner}
         ${priorYearNote}
         <div class="peach-risk-meta">
@@ -410,7 +415,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <span><strong>生育:</strong> ${escapeHtml(state.stageLabel)}</span>
           <span><strong>昨年発生:</strong> ${escapeHtml(state.priorYearLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
-          <button type="button" class="peach-risk-btn" id="peach-risk-settings-btn">⚙ 設定</button>
         </div>
         ${renderGrowthStages(state)}
       </header>

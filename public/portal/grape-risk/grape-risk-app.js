@@ -343,8 +343,13 @@ document.addEventListener("DOMContentLoaded", () => {
         : "";
     root.innerHTML = `
       <header class="grape-risk-header">
-        <h1>ぶどう病害リスク予報</h1>
-        <p class="grape-risk-subtitle">気象データから、ぶどうの病害発生リスクを予測</p>
+        <div class="orchard-risk-header-bar">
+          <div class="orchard-risk-header-bar__intro">
+            <h1>ぶどう病害リスク予報</h1>
+            <p class="grape-risk-subtitle">気象データから、ぶどうの病害発生リスクを予測</p>
+          </div>
+          <button type="button" class="settings-btn" id="grape-risk-settings-btn" aria-label="設定">⚙ 設定</button>
+        </div>
         ${errBanner}
         ${cultNote}
         <div class="grape-risk-meta">
@@ -358,7 +363,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
           <span><strong>生育:</strong> ${escapeHtml(state.stageLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
-          <button type="button" class="grape-risk-btn" id="grape-risk-settings-btn">⚙ 設定</button>
         </div>
         ${renderGrowthStages(state)}
       </header>

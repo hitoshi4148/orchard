@@ -31,6 +31,24 @@ const OrchardRiskClient = (() => {
     }
   }
 
+  function httpErrorMessage(text, status) {
+    const trimmed = text.trim();
+    if (trimmed.includes("error code: 1102")) {
+      return "サーバー処理時間の上限に達しました。数十秒待ってから再読み込みしてください。";
+    }
+    const head = trimmed.slice(0, 64).toLowerCase();
+    if (head.startsWith("<!doctype") || head.startsWith("<html")) {
+      if (typeof location !== "undefined" && /turf-tools\.jp$/i.test(location.hostname)) {
+        return "この URL では病害リスク API が利用できません。https://orchard-aa7.pages.dev/portal/peach-risk/ または /portal/grape-risk/ から開いてください。";
+      }
+      return `気象 API が一時的に応答できませんでした（HTTP ${status}）。数十秒後に再読み込みしてください。`;
+    }
+    if (trimmed) {
+      return trimmed.length > 160 ? `${trimmed.slice(0, 160)}…` : trimmed;
+    }
+    return `気象 API エラー（HTTP ${status}）`;
+  }
+
   async function fetchForecast({
     crop,
     lat,
@@ -54,15 +72,30 @@ const OrchardRiskClient = (() => {
     if (crop === "grape" && grapeCultivationId) {
       params.set("grape_cultivation", grapeCultivationId);
     }
-    const res = await fetch(`/portal/api/orchard-risk?${params.toString()}`);
-    const text = await res.text();
-    const json = parseJson(text);
-    if (json?.success && json.forecast) {
-      return json.forecast;
+    const url = `/portal/api/orchard-risk?${params.toString()}`;
+    const retryable = new Set([502, 503, 504, 520, 524, 525]);
+    let lastError = null;
+    for (let attempt = 0; attempt <= 3; attempt += 1) {
+      const res = await fetch(url);
+      const text = await res.text();
+      const json = parseJson(text);
+      if (json && typeof json === "object" && "success" in json) {
+        if (json.success && json.forecast) {
+          return json.forecast;
+        }
+        throw new Error(json.error || "気象 API の取得に失敗しました");
+      }
+      if (text.includes("error code: 1102")) {
+        throw new Error(httpErrorMessage(text, res.status));
+      }
+      if (retryable.has(res.status) && attempt < 3) {
+        lastError = new Error(httpErrorMessage(text, res.status));
+        await new Promise((r) => setTimeout(r, 1500 * 2 ** attempt));
+        continue;
+      }
+      throw new Error(httpErrorMessage(text, res.status));
     }
-    throw new Error(
-      json?.error || `気象 API エラー（HTTP ${res.status}）`
-    );
+    throw lastError ?? new Error("気象 API の取得に失敗しました");
   }
 
   function buildTipsFromForecast(forecast, diseaseOrder, diseases, riskMeta) {
