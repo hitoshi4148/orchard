@@ -43,6 +43,7 @@ import {
   buildHeuristicOnsetFromInfection,
   buildAppleScabOnsetFromHourly,
   buildMarssoninaBloomUnsetOnset,
+  buildMarssoninaOnsetDeferredRow,
   buildMarssoninaOnsetFromSearch,
   buildNashiScabOnsetFromHourly,
 } from "./onset";
@@ -196,7 +197,7 @@ function buildOnsetRows(
           )
         );
       } else {
-        rows.push(buildMarssoninaBloomUnsetOnset());
+        rows.push(buildMarssoninaOnsetDeferredRow(bloomStart));
       }
       continue;
     }

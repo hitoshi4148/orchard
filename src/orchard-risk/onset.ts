@@ -44,6 +44,23 @@ function findRecentHighInfectionDate(
   return null;
 }
 
+/** 開花済みだが褐斑一次探索を省略（高速応答） */
+export function buildMarssoninaOnsetDeferredRow(bloomStart: string): OrchardOnsetRow {
+  return {
+    diseaseId: "apple:marssonina",
+    estimatedInfectionDate: "—",
+    gddSinceInfectionDayC: null,
+    predictedOnsetWindow: "—",
+    confidence: "低",
+    note:
+      "開花始期は設定済みです。一次感染・GDD の詳細計算はバックグラウンドで取得します（混雑時は省略されることがあります）。感染危険6日表は気象連携で表示しています。",
+    modelStatus: "gdd",
+    isDemo: false,
+    marssoninaStatus: "onset_pending_model",
+    bloomStart,
+  };
+}
+
 /** P1: 開花始期未設定 */
 export function buildMarssoninaBloomUnsetOnset(): OrchardOnsetRow {
   return {

@@ -149,10 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dashboard.fetchError) {
       return `<p class="apple-risk-fetch-error" role="alert">気象データを取得できませんでした: ${escapeHtml(dashboard.fetchError)}（下記はデモ表示にフォールバック）</p>`;
     }
+    let banner = "";
     if (dashboard.dataSource === "live") {
-      return `<p class="apple-risk-fetch-ok">気象データ連携: ${escapeHtml(dashboard.dataSourceLabel)}</p>`;
+      banner = `<p class="apple-risk-fetch-ok">気象データ連携: ${escapeHtml(dashboard.dataSourceLabel)}</p>`;
     }
-    return "";
+    if (dashboard.marssoninaDetailPending && dashboard.marssoninaDetailError) {
+      banner += `<p class="apple-risk-fetch-warn" role="status">褐斑の一次感染・GDD 詳細は取得できませんでした（${escapeHtml(dashboard.marssoninaDetailError)}）。6日表とその他病害は気象連携の表示です。</p>`;
+    }
+    return banner;
   }
 
   function renderOnset(dashboard) {

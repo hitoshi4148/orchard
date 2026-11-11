@@ -1059,7 +1059,7 @@ const OrchardRiskModel = (() => {
         params.set("gymnosporangium_host", "0");
       }
     }
-    if (options.marssoninaOnset === false) {
+    if (options.marssoninaOnset !== true) {
       params.set("marssonina_onset", "0");
     }
     const url = `/portal/api/orchard-risk?${params.toString()}`;
@@ -1097,18 +1097,31 @@ const OrchardRiskModel = (() => {
   async function buildDashboardLive(cropId = loadCropId(), onPartial = null) {
     const base = buildDashboard(cropId);
     try {
-      const heavyMarssonina =
-        cropId === "apple" && Boolean(loadBloomStartApple());
-      if (heavyMarssonina && typeof onPartial === "function") {
-        const fast = await fetchServerForecast(cropId, {
-          marssoninaOnset: false,
-        });
-        onPartial(applyServerForecast(base, fast));
-        const full = await fetchServerForecast(cropId);
-        return applyServerForecast(base, full);
+      const forecast = await fetchServerForecast(cropId, {
+        marssoninaOnset: false,
+      });
+      let merged = applyServerForecast(base, forecast);
+      if (typeof onPartial === "function") {
+        onPartial(merged);
       }
-      const forecast = await fetchServerForecast(cropId);
-      return applyServerForecast(base, forecast);
+      const wantMarssoninaDetail =
+        cropId === "apple" && Boolean(loadBloomStartApple());
+      if (wantMarssoninaDetail) {
+        try {
+          const fullForecast = await fetchServerForecast(cropId, {
+            marssoninaOnset: true,
+          });
+          merged = applyServerForecast(base, fullForecast);
+        } catch (detailErr) {
+          merged = {
+            ...merged,
+            marssoninaDetailPending: true,
+            marssoninaDetailError:
+              detailErr instanceof Error ? detailErr.message : String(detailErr),
+          };
+        }
+      }
+      return merged;
     } catch (err) {
       return {
         ...base,

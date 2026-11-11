@@ -139,6 +139,16 @@
   font-size: 0.82rem;
 }
 
+.apple-risk-fetch-warn {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.82rem;
+}
+
 .apple-risk-rationale-block {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
