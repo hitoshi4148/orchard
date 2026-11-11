@@ -39,7 +39,7 @@ const PeachRiskModel = (() => {
   ];
 
   const PRIOR_YEAR_STATUS = [
-    { id: "", label: "未入力（将来用）" },
+    { id: "", label: "未入力" },
     { id: "light", label: "昨年は軽微" },
     { id: "moderate", label: "昨年中程度" },
     { id: "severe", label: "昨年重い" },
@@ -456,6 +456,7 @@ const PeachRiskModel = (() => {
         lon,
         variety: settings.variety,
         growthStageId: settings.growthStageId,
+        priorYearStatusId: settings.priorYearStatusId || "",
       });
       return OrchardRiskClient.applyToCropViewState(
         base,

@@ -26,6 +26,7 @@ const OrchardRiskClient = (() => {
     lon,
     variety,
     growthStageId,
+    priorYearStatusId,
   }) {
     const params = new URLSearchParams({
       lat: String(lat),
@@ -35,6 +36,9 @@ const OrchardRiskClient = (() => {
       growth_stage: growthStageId,
       marssonina_onset: "0",
     });
+    if (priorYearStatusId) {
+      params.set("prior_year", priorYearStatusId);
+    }
     const res = await fetch(`/portal/api/orchard-risk?${params.toString()}`);
     const text = await res.text();
     const json = parseJson(text);
@@ -172,6 +176,7 @@ const OrchardRiskClient = (() => {
       fetchError: null,
       dataSourceLabel: forecast.dataSourceLabel,
       varietyFactor: forecast.varietyFactor ?? 1,
+      priorYearInfectionNote: forecast.priorYearInfectionNote || null,
       updatedAt: forecast.updatedAt,
       currentRisks,
       infectionMatrix,

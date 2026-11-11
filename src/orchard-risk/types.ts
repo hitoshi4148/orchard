@@ -1,4 +1,5 @@
 import type { ScabInoculumLevel } from "./parse-ascospore-inoculum";
+import type { PriorYearStatus } from "./parse-prior-year-status";
 
 export type OrchardCropId = "apple" | "nashi" | "grape" | "peach";
 
@@ -133,6 +134,10 @@ export interface OrchardRiskForecast {
   ascosporePool: OrchardAscosporePoolStatus | null;
   /** なし赤星 — 中間宿主（ビャクシン類）の圃場近傍。未設定は null */
   gymnosporangiumHostNearby: boolean | null;
+  /** もも — 昨年発生状況（灰星・黒星の簡易係数）。未設定は null */
+  priorYearStatus: PriorYearStatus | null;
+  /** もも — 昨年係数が効いているときの UI 用短文 */
+  priorYearInfectionNote: string | null;
   weather5d: OrchardDailyWeather[];
   infectionByDiseaseId: Record<string, RiskLevel[]>;
   rationales: Record<string, string>;

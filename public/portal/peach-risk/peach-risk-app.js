@@ -363,11 +363,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const errBanner = state.fetchError
       ? `<p class="peach-risk-error" role="alert">${escapeHtml(state.fetchError)}（サンプル表示にフォールバック）</p>`
       : "";
+    const priorYearNote =
+      state.isLive && state.priorYearInfectionNote
+        ? `<p class="peach-prior-year-note" role="status">${escapeHtml(state.priorYearInfectionNote)}</p>`
+        : "";
     root.innerHTML = `
       <header class="peach-risk-header">
         <h1>もも病害リスク予報</h1>
         <p class="peach-risk-subtitle">気象データから、ももの病害発生リスクを予測</p>
         ${errBanner}
+        ${priorYearNote}
         <div class="peach-risk-meta">
           <span class="peach-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>
@@ -377,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
               : ""
           }</span>
           <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
+          <span><strong>昨年発生:</strong> ${escapeHtml(state.priorYearLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
           <button type="button" class="peach-risk-btn" id="peach-risk-settings-btn">⚙ 設定</button>
         </div>
@@ -421,6 +427,16 @@ document.addEventListener("DOMContentLoaded", () => {
           `<label class="peach-risk-cultivation-option"><input type="radio" name="peachCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
       )
       .join("");
+    document.getElementById("peach-prior-year-radios").innerHTML = (
+      PeachRiskModel.PRIOR_YEAR_STATUS || []
+    )
+      .map((opt) => {
+        const checked =
+          opt.id === s.priorYearStatusId ||
+          (!s.priorYearStatusId && opt.id === "");
+        return `<label class="peach-risk-cultivation-option"><input type="radio" name="peachPriorYear" value="${escapeHtml(opt.id)}"${checked ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`;
+      })
+      .join("");
     settingsModal?.classList.remove("hidden");
   }
 
@@ -453,7 +469,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector('input[name="peachCultivation"]:checked')?.value ||
         "unspecified",
       growthStageId: prev.growthStageId,
-      priorYearStatusId: prev.priorYearStatusId,
+      priorYearStatusId:
+        document.querySelector('input[name="peachPriorYear"]:checked')?.value ?? "",
     });
     closePeachSettingsModal();
     render();

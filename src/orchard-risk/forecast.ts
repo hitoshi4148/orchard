@@ -83,6 +83,12 @@ import {
   scabInoculumInitialPoolPercent,
   type ScabInoculumLevel,
 } from "./parse-ascospore-inoculum";
+import { type PriorYearStatus } from "./parse-prior-year-status";
+import {
+  adjustLevelForPriorYear,
+  priorYearRationaleSuffix,
+  priorYearSummaryLabel,
+} from "./prior-year-infection";
 
 export interface OrchardRiskFetchOptions {
   /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
@@ -93,6 +99,8 @@ export interface OrchardRiskFetchOptions {
   gymnosporangiumHostNearby?: boolean | null;
   /** りんご黒星 — 圃場残病葉量（枯渇プール初期値） */
   scabInoculumLevel?: ScabInoculumLevel | null;
+  /** もも — 昨年発生状況 */
+  priorYearStatus?: PriorYearStatus | null;
 }
 
 /** 枯渇プール用 hourly の最大遡及日数（Pages Worker CPU 上限対策） */
@@ -270,6 +278,8 @@ export async function fetchOrchardRiskForecast(
     cropId === "apple"
       ? (options.scabInoculumLevel ?? "normal")
       : null;
+  const priorYearStatus =
+    cropId === "peach" ? (options.priorYearStatus ?? null) : null;
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
@@ -525,7 +535,11 @@ export async function fetchOrchardRiskForecast(
       );
       const diseaseFactor = getDiseaseVarietyFactor(cropId, variety, diseaseId);
       const adjusted = applyVarietyFactor(raw.percent, diseaseFactor);
-      const level = percentToInfectionLevel(adjusted) ?? "low";
+      const baseLevel = percentToInfectionLevel(adjusted) ?? "low";
+      const level =
+        cropId === "peach" && priorYearStatus
+          ? adjustLevelForPriorYear(baseLevel, priorYearStatus, diseaseId)
+          : baseLevel;
       levels.push(level);
       lastRationale = raw.rationale;
       if (diseaseFactor !== 1) {
@@ -547,7 +561,8 @@ export async function fetchOrchardRiskForecast(
     }
 
     infectionByDiseaseId[diseaseId] = levels;
-    rationales[diseaseId] = lastRationale;
+    rationales[diseaseId] =
+      lastRationale + priorYearRationaleSuffix(priorYearStatus, diseaseId);
   }
 
   const updatedAt = new Intl.DateTimeFormat("ja-JP", {
@@ -602,6 +617,9 @@ export async function fetchOrchardRiskForecast(
           : null,
     gymnosporangiumHostNearby:
       cropId === "nashi" ? gymnosporangiumHostNearby : null,
+    priorYearStatus: cropId === "peach" ? priorYearStatus : null,
+    priorYearInfectionNote:
+      cropId === "peach" ? priorYearSummaryLabel(priorYearStatus) : null,
     weather5d,
     infectionByDiseaseId,
     rationales,
