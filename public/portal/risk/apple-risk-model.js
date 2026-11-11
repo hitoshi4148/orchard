@@ -931,6 +931,9 @@ const OrchardRiskModel = (() => {
     }
     const head = trimmed.slice(0, 64).toLowerCase();
     if (head.startsWith("<!doctype") || head.startsWith("<html")) {
+      if (typeof location !== "undefined" && /turf-tools\.jp$/i.test(location.hostname)) {
+        return "この URL では病害リスク API が利用できません。https://orchard-aa7.pages.dev/portal/risk/ から開いてください。";
+      }
       return `気象 API が一時的に応答できませんでした（HTTP ${status}）。Cloudflare 側のタイムアウトや障害の可能性があります。数十秒後に再読み込みするか、ローカル確認時は npm run dev（ポート 8790）を使ってください。`;
     }
     if (trimmed) {

@@ -80,10 +80,17 @@ function shouldRetryInfraResponse(status, text) {
   return isHtmlApiBody(text);
 }
 
+function orchardPortalBaseUrl() {
+  if (location.hostname.endsWith("turf-tools.jp")) {
+    return "https://orchard-aa7.pages.dev/portal/";
+  }
+  return `${location.origin}/portal/`;
+}
+
 function buildApiJsonError(status, text) {
   if (text.includes("error code: 1102")) {
     return new Error(
-      "サーバー処理が上限に達しました（一時的）。数十秒待って再読み込みするか、本番URL（turf-tools.jp）から開き直してください。"
+      "サーバー処理が上限に達しました（一時的）。数十秒待って再読み込みしてください。"
     );
   }
   if (isHtmlApiBody(text)) {
@@ -91,7 +98,7 @@ function buildApiJsonError(status, text) {
       location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const hint = isLocalDevHost
       ? "開発時は orchard で npm run dev を実行し、http://127.0.0.1:8790/portal/ から開いてください（Live Server 等の静的サーバーでは API が動きません）。"
-      : "サーバーが HTML を返しました。https://www.turf-tools.jp/portal/ から開き直すか、しばらく待って再読み込みしてください。";
+      : `サーバーが HTML を返しました。病害リスクは ${orchardPortalBaseUrl()}risk/ 、実験ラボは ${orchardPortalBaseUrl()}lab/ を利用してください（turf-tools.jp 経由では一部 API が利用できません）。`;
     return new Error(`API 応答が JSON ではありません。${hint}`);
   }
 
@@ -660,7 +667,7 @@ async function fetchLightPortalWeatherBundle(lat, lon) {
     timeoutMs: DASHBOARD_API_TIMEOUT_MS,
   };
   const sprayPromise = SHOW_WEATHER
-    ? fetchApiJson(`${SPRAY_FORECAST_API}?${q}`, fetchOpts)
+    ? fetchApiJson(`${SPRAY_FORECAST_API}?${q}`, fetchOpts).catch(() => null)
     : Promise.resolve(null);
   const weather = await fetchApiJson(`${WEATHER_API}?${q}`, fetchOpts);
   if (!weather.success) {

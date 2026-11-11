@@ -54,8 +54,9 @@ import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
 import {
   ascosporePoolAtDate,
   buildAscosporePoolSnapshots,
+  depletedAscosporePoolMap,
 } from "./apple-scab-ascospore-season-pool";
-import { getAppleScabSeasonWindow } from "./apple-scab-season";
+import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import {
   scabInoculumInitialPoolPercent,
   type ScabInoculumLevel,
@@ -71,6 +72,9 @@ export interface OrchardRiskFetchOptions {
   /** りんご黒星 — 圃場残病葉量（枯渇プール初期値） */
   scabInoculumLevel?: ScabInoculumLevel | null;
 }
+
+/** 枯渇プール用 hourly の最大遡及日数（Pages Worker CPU 上限対策） */
+const APPLE_SCAB_POOL_HOURLY_LOOKBACK_DAYS = 75;
 
 function calculateForDisease(
   diseaseId: string,
@@ -236,6 +240,7 @@ export async function fetchOrchardRiskForecast(
   > = Promise.resolve(null);
   let appleScabBiofixForPool: ReturnType<typeof resolveAppleScabBiofix> | null =
     null;
+  let appleScabUseDepletedPool = false;
   if (cropId === "apple") {
     appleScabBiofixForPool = resolveAppleScabBiofix(
       lat,
@@ -244,6 +249,15 @@ export async function fetchOrchardRiskForecast(
       greenTipDate
     );
     const biofix = appleScabBiofixForPool.date;
+    const scabSeasonNow = evaluateAppleScabPrimarySeason(
+      lat,
+      `${today}T12:00:00+09:00`,
+      growthStageId,
+      lon
+    );
+    if (!scabSeasonNow.inPrimarySeason) {
+      appleScabUseDepletedPool = true;
+    }
     if (biofix <= endDate) {
       appleScabGddDailyPromise = fetchNasaPowerDaily(
         lat,
@@ -251,12 +265,20 @@ export async function fetchOrchardRiskForecast(
         biofix,
         endDate
       ).catch(() => null);
-      appleScabSeasonHourlyPromise = fetchNasaPowerHourly(
-        lat,
-        lon,
-        biofix,
-        endDate
-      ).catch(() => null);
+      if (!appleScabUseDepletedPool) {
+        const poolHourlyStart = addDaysToDateString(
+          endDate,
+          -(APPLE_SCAB_POOL_HOURLY_LOOKBACK_DAYS - 1)
+        );
+        const hourlyFrom =
+          poolHourlyStart > biofix ? poolHourlyStart : biofix;
+        appleScabSeasonHourlyPromise = fetchNasaPowerHourly(
+          lat,
+          lon,
+          hourlyFrom,
+          endDate
+        ).catch(() => null);
+      }
     }
   }
 
@@ -285,20 +307,23 @@ export async function fetchOrchardRiskForecast(
     appleScabSeasonHourlyPromise,
   ]);
 
+  const poolInitialPercent = scabInoculumInitialPoolPercent(
+    scabInoculumLevel ?? "normal"
+  );
   const appleScabPoolSnapshots =
-    cropId === "apple" &&
-    appleScabGddDaily?.length &&
-    appleScabBiofixForPool &&
-    (appleScabSeasonHourly?.length || forecastHourly.length)
-      ? buildAscosporePoolSnapshots(
-          appleScabBiofixForPool.date,
-          appleScabBiofixForPool.source,
-          appleScabGddDaily,
-          [...(appleScabSeasonHourly ?? []), ...forecastHourly],
-          scabInoculumInitialPoolPercent(
-            scabInoculumLevel ?? "normal"
-          )
-        )
+    cropId === "apple" && appleScabBiofixForPool
+      ? appleScabUseDepletedPool
+        ? depletedAscosporePoolMap(endDate, poolInitialPercent)
+        : appleScabGddDaily?.length &&
+            (appleScabSeasonHourly?.length || forecastHourly.length)
+          ? buildAscosporePoolSnapshots(
+              appleScabBiofixForPool.date,
+              appleScabBiofixForPool.source,
+              appleScabGddDaily,
+              [...(appleScabSeasonHourly ?? []), ...forecastHourly],
+              poolInitialPercent
+            )
+          : null
       : null;
 
   const marssoninaSearch =

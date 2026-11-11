@@ -169,6 +169,32 @@ export function ascosporePoolAtDate(
   return best;
 }
 
+/** 升孢子期外など — フル hourly 再生を避けた枯渇済みプール（Worker CPU 対策） */
+export function depletedAscosporePoolMap(
+  ymd: string,
+  initialPoolPercent: number
+): Map<string, AscosporePoolSnapshot> {
+  const remaining = Math.max(
+    4,
+    Math.min(initialPoolPercent, Math.round(initialPoolPercent * 0.08 * 10) / 10)
+  );
+  const cumulative = Math.min(
+    initialPoolPercent,
+    Math.round((initialPoolPercent - remaining) * 10) / 10
+  );
+  return new Map([
+    [
+      ymd,
+      {
+        date: ymd,
+        remainingPercent: remaining,
+        cumulativeReleasedPercent: cumulative,
+        rainEventsProcessed: 0,
+      },
+    ],
+  ]);
+}
+
 export function formatAscosporePoolSummary(
   snap: AscosporePoolSnapshot | null
 ): string {
