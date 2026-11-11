@@ -1,5 +1,10 @@
 import { calculateAppleScabRisk } from "../disease/models/apple-scab";
+import {
+  computeAppleScabAscosporeMaturity,
+  resolveAppleScabBiofixDate,
+} from "./apple-scab-ascospore-gdd";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
+import { DailyWeatherRecord } from "../disease/nasa-power";
 import { calculateNashiScabIshiiRisk } from "./nashi-scab-ishii";
 import { DiseaseWeatherInput } from "../disease/types";
 import { filterHourlyInWindow } from "../disease/models/risk-utils";
@@ -14,9 +19,10 @@ export interface OrchardAppleScabContext {
   lat: number;
   lon?: number;
   growthStageId: string;
+  ascosporeGddDaily?: DailyWeatherRecord[];
 }
 
-/** りんご黒星病 — Mills 法 + 升孢子簡易季節窓（緯度3帯） */
+/** りんご黒星病 — Mills 法 + 季節窓 + MacHardy 系升孢子 GDD */
 export function calcAppleScab(
   input: DiseaseWeatherInput,
   ctx?: OrchardAppleScabContext
@@ -36,14 +42,15 @@ export function calcAppleScab(
     }
   }
 
-  const percent = calculateAppleScabRisk(input);
-  if (percent == null) {
+  const millsPercent = calculateAppleScabRisk(input);
+  if (millsPercent == null) {
     return {
       percent: null,
       rationale:
         "気象データが不足しているため Mills 法による感染危険度を算出できませんでした。",
     };
   }
+
   const seasonNote = ctx
     ? evaluateAppleScabPrimarySeason(
         ctx.lat,
@@ -52,9 +59,43 @@ export function calcAppleScab(
         ctx.lon
       ).reason
     : "";
+
+  let percent = millsPercent;
+  let ascosporeNote = "";
+  if (
+    ctx?.ascosporeGddDaily?.length &&
+    input.hourly?.length
+  ) {
+    const biofix = resolveAppleScabBiofixDate(
+      ctx.lat,
+      ctx.lon,
+      input.targetDateTime
+    );
+    const maturity = computeAppleScabAscosporeMaturity(
+      biofix,
+      input.targetDateTime,
+      ctx.ascosporeGddDaily,
+      input.hourly
+    );
+    ascosporeNote = maturity.summary;
+    if (maturity.maturityPercent < 3) {
+      return {
+        percent: 4,
+        rationale: `りんご黒星病: ${ascosporeNote} Mills 条件が揃っても升孢子未成熟のため低リスク（4%）。${seasonNote ? ` ${seasonNote}` : ""}`,
+      };
+    }
+    percent = Math.min(
+      100,
+      Math.max(
+        0,
+        Math.round((millsPercent * maturity.maturityPercent) / 100)
+      )
+    );
+  }
+
   return {
     percent,
-    rationale: `Mills 法（改訂）と推定葉面濡れに基づく升孢子一次感染リスク: ${percent}%（0–100）。${seasonNote ? ` ${seasonNote}` : ""}`,
+    rationale: `Mills 法（改訂）×升孢子成熟率の一次感染リスク: ${percent}%（Mills素点 ${millsPercent}%）。${ascosporeNote ? ` ${ascosporeNote}` : ""}${seasonNote ? ` ${seasonNote}` : ""}`,
   };
 }
 

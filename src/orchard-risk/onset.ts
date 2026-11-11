@@ -5,6 +5,11 @@ import {
   isJstDateInAppleScabWindow,
   getAppleScabSeasonWindow,
 } from "./apple-scab-season";
+import {
+  computeAppleScabAscosporeMaturity,
+  resolveAppleScabBiofixDate,
+} from "./apple-scab-ascospore-gdd";
+import { DailyWeatherRecord } from "../disease/nasa-power";
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
 import { findLatestNashiScabInfectionEvent } from "./nashi-scab-ishii";
 import {
@@ -242,7 +247,8 @@ export function buildAppleScabOnsetFromHourly(
   targetDateTime: string,
   lat: number,
   lon: number,
-  growthStageId: string
+  growthStageId: string,
+  ascosporeGddDaily: DailyWeatherRecord[] | null = null
 ): OrchardOnsetRow {
   const season = evaluateAppleScabPrimarySeason(
     lat,
@@ -251,6 +257,16 @@ export function buildAppleScabOnsetFromHourly(
     lon
   );
   const window = getAppleScabSeasonWindow(lat, lon);
+
+  const ascosporeNote =
+    ascosporeGddDaily?.length && hourly.length
+      ? computeAppleScabAscosporeMaturity(
+          resolveAppleScabBiofixDate(lat, lon, targetDateTime),
+          targetDateTime,
+          ascosporeGddDaily,
+          hourly
+        ).summary
+      : "";
 
   if (!season.inPrimarySeason) {
     return {
@@ -281,7 +297,7 @@ export function buildAppleScabOnsetFromHourly(
       gddSinceInfectionDayC: null,
       predictedOnsetWindow: "監視期内で Mills 感染イベントなし",
       confidence: "低",
-      note: `りんご黒星病: 6日感染表は Mills 法（${season.reason}）。`,
+      note: `りんご黒星病: 6日感染表は Mills 法（${season.reason}）。${ascosporeNote ? ` ${ascosporeNote}` : ""}`,
       modelStatus: "mills",
       isDemo: false,
     };
@@ -299,7 +315,7 @@ export function buildAppleScabOnsetFromHourly(
       "感染イベント後 約9–17日に初発の目安（品種・管理により変動・参考文献レンジ）",
     confidence,
     note:
-      `直近の Mills 感染イベント: 濡れ ${latest.wetPeriod.durationHours.toFixed(1)}h（必要 ${latest.requiredHours}h）・平均 ${latest.wetPeriod.averageTemperature.toFixed(1)}℃（${latest.wetPeriod.startDateTime}〜${latest.wetPeriod.endDateTime}）。`,
+      `直近の Mills 感染イベント: 濡れ ${latest.wetPeriod.durationHours.toFixed(1)}h（必要 ${latest.requiredHours}h）・平均 ${latest.wetPeriod.averageTemperature.toFixed(1)}℃（${latest.wetPeriod.startDateTime}〜${latest.wetPeriod.endDateTime}）。${ascosporeNote ? ` ${ascosporeNote}` : ""}`,
     modelStatus: "mills",
     isDemo: false,
   };

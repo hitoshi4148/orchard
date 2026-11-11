@@ -101,7 +101,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills + 升孢子簡易季節窓（群馬県内は専用暦日）。期外は低リスク表示",
+        note: "Mills × MacHardy 系升孢子 GDD（0℃・緑弁＝季節窓開始代用）。群馬専用暦日",
       },
     },
     "apple:marssonina": {
