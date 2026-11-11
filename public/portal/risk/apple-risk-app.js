@@ -407,38 +407,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<p class="apple-risk-fine-print model-note">【技術メモ】感染モデル（${escapeHtml(m.type)}）— ${escapeHtml(m.note || "")}</p>`;
   }
 
-  function renderDiseaseSamplePhoto(diseaseId) {
-    const Photos =
-      typeof OrchardDiseaseSamplePhotos !== "undefined"
-        ? OrchardDiseaseSamplePhotos
-        : null;
-    if (!Photos) return "";
-    const photo = Photos.get(diseaseId);
-    if (!photo) return "";
-    const fallbackAttr = photo.localSrc
-      ? ` data-fallback-src="${escapeHtml(photo.localSrc)}"`
-      : "";
-    return `<figure class="apple-risk-sample-photo">
-      <img src="${escapeHtml(photo.src)}"${fallbackAttr} alt="${escapeHtml(photo.alt)}" loading="lazy" width="640" height="480">
-      <figcaption>
-        <span class="apple-risk-sample-caption">${escapeHtml(photo.caption)}</span>
-        <span class="apple-risk-fine-print apple-risk-sample-credit">出典: <a href="${escapeHtml(photo.commonsPage)}" target="_blank" rel="noopener noreferrer">${escapeHtml(photo.credit)}</a>（${escapeHtml(photo.license)}・Wikimedia Commons）</span>
-      </figcaption>
-    </figure>`;
-  }
-
-  function bindDiseasePhotoFallback(host) {
-    host?.querySelectorAll(".apple-risk-sample-photo img").forEach((img) => {
-      img.addEventListener("error", () => {
-        const fallback = img.getAttribute("data-fallback-src");
-        if (fallback && !img.dataset.fallbackTried) {
-          img.dataset.fallbackTried = "1";
-          img.src = fallback;
-        }
-      }, { once: true });
-    });
-  }
-
   function showDiseaseDetails(diseaseId, dashboard) {
     const detailsHost = getDetailsHost();
     const disease = dashboard.infectionByDisease.find((d) => d.id === diseaseId);
@@ -452,7 +420,15 @@ document.addEventListener("DOMContentLoaded", () => {
     detailsHost.innerHTML = `<div class="apple-risk-details" role="region" aria-labelledby="disease-detail-title">
       <h3 id="disease-detail-title" class="apple-risk-details-title">${escapeHtml(disease.name)}</h3>
       <p class="apple-risk-details-point">${escapeHtml(watchPoint)}</p>
-      ${renderDiseaseSamplePhoto(diseaseId)}
+      ${
+        typeof OrchardDiseaseSamplePhotos !== "undefined"
+          ? OrchardDiseaseSamplePhotos.renderHtml(diseaseId, {
+              figureClass: "apple-risk-sample-photo",
+              captionClass: "apple-risk-sample-caption",
+              creditClass: "apple-risk-fine-print apple-risk-sample-credit",
+            })
+          : ""
+      }
       <dl class="apple-risk-details-keys">
         <div><dt>いちばん気をつける時期</dt><dd>${escapeHtml(disease.mainSeason || "—")}</dd></div>
         <div><dt>感染しやすい気温の目安</dt><dd>${escapeHtml(disease.infectionTempC || "—")}</dd></div>
@@ -473,7 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="apple-risk-fine-print apple-risk-demo-badge" style="margin-top:8px">${escapeHtml(dashboard.dataSourceLabel)}</p>
       </div>
     </div>`;
-    bindDiseasePhotoFallback(detailsHost);
+    OrchardDiseaseSamplePhotos?.bindFallback(detailsHost);
     detailsHost.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 

@@ -2,6 +2,7 @@ import { isHourWet } from "../disease/wetness";
 import { HourlyWeatherRecord } from "../disease/nasa-power";
 import { addDaysToDateString, jstTodayString } from "../disease/met-norway-forecast";
 import { OrchardDailyWeather } from "./types";
+import { windFromDegToCompass } from "./wind-utils";
 
 function dayLabel(offset: number): string {
   if (offset === 0) {
@@ -41,6 +42,16 @@ export function buildSixDayWeather(
       .filter((v): v is number => v != null && !Number.isNaN(v));
     const precips = rows.map((r) => r.precipitation_mm ?? 0);
     const wetHours = rows.filter((r) => isHourWet(r)).length;
+    let maxWindMs: number | null = null;
+    let maxWindCompass: string | null = null;
+    for (const row of rows) {
+      const w = row.wind_speed_ms;
+      if (w == null || Number.isNaN(w)) continue;
+      if (maxWindMs == null || w > maxWindMs) {
+        maxWindMs = w;
+        maxWindCompass = windFromDegToCompass(row.wind_from_deg);
+      }
+    }
 
     days.push({
       dayOffset: offset,
@@ -53,6 +64,8 @@ export function buildSixDayWeather(
       humidityPct: humids.length ? Math.round(average(humids)) : 0,
       leafWetHours: wetHours,
       leafWetIsEstimated: true,
+      maxWindMs: maxWindMs != null ? Math.round(maxWindMs * 10) / 10 : null,
+      maxWindCompass,
     });
   }
 

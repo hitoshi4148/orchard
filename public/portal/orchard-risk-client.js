@@ -4,6 +4,17 @@
 const OrchardRiskClient = (() => {
   const DAY_LABELS = ["本日", "1日先", "2日先", "3日先", "4日先", "5日先"];
 
+  function formatWindNoteFromDay(day) {
+    if (!day || day.maxWindMs == null) {
+      return "—（風データなし）";
+    }
+    let text = `最大 ${Number(day.maxWindMs).toFixed(1)} m/s`;
+    if (day.maxWindCompass) {
+      text += `・${day.maxWindCompass}風`;
+    }
+    return `${text}（MET 予報）`;
+  }
+
   function mapUiLevel(serverLevel) {
     if (serverLevel === "caution") return "medium";
     if (serverLevel === "high") return "high";
@@ -165,7 +176,7 @@ const OrchardRiskClient = (() => {
           precipNote: `${w0.precipMm?.toFixed?.(1) ?? w0.precipMm} mm/日`,
           wetNote: `推定葉面濡れ ${w0.leafWetHours?.toFixed?.(1) ?? w0.leafWetHours} h/日`,
           humidityNote: `相対湿度 ${Math.round(w0.humidityPct)}%`,
-          windNote: "—（API 未提供）",
+          windNote: formatWindNoteFromDay(w0),
           rationale: forecast.rationales[selectedId] || "",
         }
       : baseState.selectedDetail;

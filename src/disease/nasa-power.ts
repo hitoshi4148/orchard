@@ -12,6 +12,10 @@ export interface HourlyWeatherRecord {
   temperature: number | null;
   humidity: number | null;
   precipitation_mm: number | null;
+  /** m/s。MET 予報または NASA WS2M */
+  wind_speed_ms?: number | null;
+  /** 度（0=北、時計回り）。MET のみ */
+  wind_from_deg?: number | null;
 }
 
 function formatDateForNasa(date: string): string {
@@ -96,6 +100,7 @@ function normalizeHourly(
   const t2m = parameter.T2M ?? {};
   const rh2m = parameter.RH2M ?? {};
   const prectot = parameter.PRECTOTCORR ?? {};
+  const ws2m = parameter.WS2M ?? {};
 
   return Object.keys(t2m)
     .sort()
@@ -120,11 +125,13 @@ function normalizeHourly(
               return `${jstYear}-${jstMonth}-${jstDay}T${jstHour}:00:00+09:00`;
             })();
 
+      const wind = toNumber(ws2m[timestamp]);
       return {
         datetime,
         temperature: toNumber(t2m[timestamp]),
         humidity: toNumber(rh2m[timestamp]),
         precipitation_mm: toNumber(prectot[timestamp]),
+        wind_speed_ms: wind,
       };
     });
 }
@@ -183,7 +190,7 @@ async function fetchNasaPowerHourlyUncached(
   timeStandard: NasaPowerTimeStandard
 ): Promise<HourlyWeatherRecord[]> {
   const params = new URLSearchParams({
-    parameters: "T2M,RH2M,PRECTOTCORR",
+    parameters: "T2M,RH2M,PRECTOTCORR,WS2M",
     community: "AG",
     longitude: String(longitude),
     latitude: String(latitude),

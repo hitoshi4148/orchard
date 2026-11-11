@@ -47,6 +47,10 @@ export interface OrchardDailyWeather {
   humidityPct: number;
   leafWetHours: number;
   leafWetIsEstimated: true;
+  /** 日最大風速（m/s）。MET 予報ベース */
+  maxWindMs?: number | null;
+  /** 最大風速時の風向（8方位ラベル） */
+  maxWindCompass?: string | null;
   /** りんご褐斑 — 一次感染後の積算 GDD（日℃）。未接続時は undefined */
   marssoninaGddDayC?: number | null;
 }

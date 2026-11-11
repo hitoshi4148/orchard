@@ -4,6 +4,7 @@ export interface MetTimeseriesEntry {
     instant: {
       details: {
         wind_speed?: number;
+        wind_from_direction?: number;
         air_temperature?: number;
         cloud_area_fraction?: number;
         relative_humidity?: number;

@@ -44,11 +44,23 @@ export function normalizeMetNorwayForecast(
       continue;
     }
 
+    const windSpeed =
+      instant.wind_speed != null && !Number.isNaN(Number(instant.wind_speed))
+        ? Number(instant.wind_speed)
+        : null;
+    const windFrom =
+      instant.wind_from_direction != null &&
+      !Number.isNaN(Number(instant.wind_from_direction))
+        ? Number(instant.wind_from_direction)
+        : null;
+
     normalized.push({
       datetime,
       temperature: Number(temperature),
       humidity: Number(humidity),
       precipitation_mm: getPrecipitationAmount(entry),
+      wind_speed_ms: windSpeed,
+      wind_from_deg: windFrom,
     });
   }
 

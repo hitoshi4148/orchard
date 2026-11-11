@@ -31,4 +31,20 @@ describe("peach bacterial shot hole splash proxy", () => {
     assert.match(spring.rationale, /飛沫代理/);
     assert.match(spring.rationale, /風未モデル化/);
   });
+
+  it("adds windy splash when wind speed is available", () => {
+    const windy = stormy.map((h) => ({
+      ...h,
+      wind_speed_ms: h.precipitation_mm >= 0.3 ? 6 : 2,
+    }));
+    const result = calcPeachBacterialShotHole(
+      {
+        hourly: windy,
+        daily: [],
+        targetDateTime: "2026-05-15T18:00:00+09:00",
+      },
+      { growthStageId: "leaf" }
+    );
+    assert.match(result.rationale, /風速4m\/s以上×降水/);
+  });
 });
