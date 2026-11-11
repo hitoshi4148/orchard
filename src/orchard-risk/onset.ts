@@ -10,8 +10,16 @@ import {
   resolveAppleScabBiofix,
 } from "./apple-scab-ascospore-gdd";
 import { computeAscosporeRainDischargeFactor } from "./apple-scab-ascospore-rain-release";
-import { DailyWeatherRecord } from "../disease/nasa-power";
-import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
+import {
+  DailyWeatherRecord,
+  HourlyWeatherRecord,
+} from "../disease/nasa-power";
+import {
+  ascosporePoolAtDate,
+  formatAscosporePoolSummary,
+  type AscosporePoolSnapshot,
+} from "./apple-scab-ascospore-season-pool";
+import { ascosporePoolSupplyFactor } from "./parse-ascospore-inoculum";
 import { findLatestNashiScabDuthieEvent } from "./nashi-scab-duthie";
 import {
   addDaysToDateString,
@@ -250,7 +258,9 @@ export function buildAppleScabOnsetFromHourly(
   lon: number,
   growthStageId: string,
   ascosporeGddDaily: DailyWeatherRecord[] | null = null,
-  greenTipDate: string | null = null
+  greenTipDate: string | null = null,
+  ascosporePoolSnapshots: Map<string, AscosporePoolSnapshot> | null = null,
+  ascosporePoolInitialPercent = 100
 ): OrchardOnsetRow {
   const season = evaluateAppleScabPrimarySeason(
     lat,
@@ -284,6 +294,13 @@ export function buildAppleScabOnsetFromHourly(
         })()
       : "";
 
+  const poolSnap = ascosporePoolAtDate(ascosporePoolSnapshots, targetDateTime);
+  const poolNote = formatAscosporePoolSummary(poolSnap);
+  const poolFactorNote =
+    poolSnap && ascosporePoolInitialPercent !== 100
+      ? ` 供給係数 ${Math.round(ascosporePoolSupplyFactor(poolSnap.remainingPercent, ascosporePoolInitialPercent) * 100)}%（初期プール ${ascosporePoolInitialPercent}%）。`
+      : "";
+
   if (!season.inPrimarySeason) {
     return {
       diseaseId: "apple:scab",
@@ -313,7 +330,7 @@ export function buildAppleScabOnsetFromHourly(
       gddSinceInfectionDayC: null,
       predictedOnsetWindow: "監視期内で Mills 感染イベントなし",
       confidence: "低",
-      note: `りんご黒星病: 6日感染表は Mills 法（${season.reason}）。${ascosporeNote ? ` ${ascosporeNote}` : ""}`,
+      note: `りんご黒星病: 6日感染表は Mills 法（${season.reason}）。${ascosporeNote ? ` ${ascosporeNote}` : ""}${poolNote ? ` ${poolNote}` : ""}${poolFactorNote}`,
       modelStatus: "mills",
       isDemo: false,
     };
@@ -331,7 +348,7 @@ export function buildAppleScabOnsetFromHourly(
       "感染イベント後 約9–17日に初発の目安（品種・管理により変動・参考文献レンジ）",
     confidence,
     note:
-      `直近の Mills 感染イベント: 濡れ ${latest.wetPeriod.durationHours.toFixed(1)}h（必要 ${latest.requiredHours}h）・平均 ${latest.wetPeriod.averageTemperature.toFixed(1)}℃（${latest.wetPeriod.startDateTime}〜${latest.wetPeriod.endDateTime}）。${ascosporeNote ? ` ${ascosporeNote}` : ""}`,
+      `直近の Mills 感染イベント: 濡れ ${latest.wetPeriod.durationHours.toFixed(1)}h（必要 ${latest.requiredHours}h）・平均 ${latest.wetPeriod.averageTemperature.toFixed(1)}℃（${latest.wetPeriod.startDateTime}〜${latest.wetPeriod.endDateTime}）。${ascosporeNote ? ` ${ascosporeNote}` : ""}${poolNote ? ` ${poolNote}` : ""}${poolFactorNote}`,
     modelStatus: "mills",
     isDemo: false,
   };

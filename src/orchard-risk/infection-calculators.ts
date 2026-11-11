@@ -15,6 +15,7 @@ import {
   formatAscosporePoolSummary,
   type AscosporePoolSnapshot,
 } from "./apple-scab-ascospore-season-pool";
+import { ascosporePoolSupplyFactor } from "./parse-ascospore-inoculum";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { calculateNashiScabDuthieRisk } from "./nashi-scab-duthie";
@@ -35,6 +36,8 @@ export interface OrchardAppleScabContext {
   greenTipDate?: string | null;
   /** 降雨累積によるシーズン枯渇プール（日次スナップショット） */
   ascosporePoolSnapshots?: Map<string, AscosporePoolSnapshot>;
+  /** 残病葉設定に応じたプール初期値（%） */
+  ascosporePoolInitialPercent?: number;
 }
 
 /** りんご黒星病 — Mills 法 + 季節窓 + MacHardy 系升孢子 GDD */
@@ -107,8 +110,9 @@ export function calcAppleScab(
       ctx.ascosporePoolSnapshots,
       input.targetDateTime
     );
+    const poolCap = ctx.ascosporePoolInitialPercent ?? 100;
     const poolFactor = poolSnap
-      ? Math.max(0, Math.min(1, poolSnap.remainingPercent / 100))
+      ? ascosporePoolSupplyFactor(poolSnap.remainingPercent, poolCap)
       : 1;
     const supplyPercent = Math.min(
       100,

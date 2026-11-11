@@ -51,7 +51,10 @@ import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
 import { getVarietyFactor } from "./variety";
 import { calcOrchardHeuristicDisease } from "./heuristic-disease";
 import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
-import { buildAscosporePoolSnapshots } from "./apple-scab-ascospore-season-pool";
+import {
+  ascosporePoolAtDate,
+  buildAscosporePoolSnapshots,
+} from "./apple-scab-ascospore-season-pool";
 import { getAppleScabSeasonWindow } from "./apple-scab-season";
 import {
   scabInoculumInitialPoolPercent,
@@ -118,7 +121,12 @@ function buildOnsetRows(
   lon: number,
   growthStageId: string,
   ascosporeGddDaily: DailyWeatherRecord[] | null,
-  greenTipDate: string | null
+  greenTipDate: string | null,
+  ascosporePoolSnapshots: Map<
+    string,
+    import("./apple-scab-ascospore-season-pool").AscosporePoolSnapshot
+  > | null,
+  ascosporePoolInitialPercent: number
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -133,7 +141,9 @@ function buildOnsetRows(
           lon,
           growthStageId,
           ascosporeGddDaily,
-          greenTipDate
+          greenTipDate,
+          ascosporePoolSnapshots,
+          ascosporePoolInitialPercent
         )
       );
       continue;
@@ -349,6 +359,16 @@ export async function fetchOrchardRiskForecast(
         }
       : null;
 
+  const ascosporePoolInitialPercent =
+    cropId === "apple"
+      ? scabInoculumInitialPoolPercent(scabInoculumLevel ?? "normal")
+      : 100;
+  const onsetTargetDateTime = buildTargetDateTimeJst(0, 18);
+  const ascosporePoolToday =
+    cropId === "apple" && appleScabPoolSnapshots
+      ? ascosporePoolAtDate(appleScabPoolSnapshots, onsetTargetDateTime)
+      : null;
+
   const infectionByDiseaseId: Record<string, RiskLevel[]> = {};
   const rationales: Record<string, string> = {};
   const modelStatusByDisease: OrchardRiskForecast["modelStatusByDisease"] = {};
@@ -384,6 +404,8 @@ export async function fetchOrchardRiskForecast(
           ascosporeGddDaily: appleScabGddDaily ?? undefined,
           greenTipDate,
           ascosporePoolSnapshots: appleScabPoolSnapshots ?? undefined,
+          ascosporePoolInitialPercent:
+            cropId === "apple" ? ascosporePoolInitialPercent : undefined,
         },
         { gymnosporangiumHostNearby }
       );
@@ -438,6 +460,19 @@ export async function fetchOrchardRiskForecast(
     greenTipDate: cropId === "apple" ? greenTipDate : null,
     scabInoculumLevel:
       cropId === "apple" ? (scabInoculumLevel ?? "normal") : null,
+    ascosporePool:
+      ascosporePoolToday != null
+        ? {
+            date: ascosporePoolToday.date,
+            remainingPercent: ascosporePoolToday.remainingPercent,
+            cumulativeReleasedPercent:
+              ascosporePoolToday.cumulativeReleasedPercent,
+            rainEventsProcessed: ascosporePoolToday.rainEventsProcessed,
+            initialPoolPercent: ascosporePoolInitialPercent,
+          }
+        : cropId === "apple"
+          ? null
+          : null,
     gymnosporangiumHostNearby:
       cropId === "nashi" ? gymnosporangiumHostNearby : null,
     weather5d,
@@ -460,7 +495,9 @@ export async function fetchOrchardRiskForecast(
       lon,
       growthStageId,
       appleScabGddDaily,
-      greenTipDate
+      greenTipDate,
+      appleScabPoolSnapshots,
+      ascosporePoolInitialPercent
     ),
     modelStatusByDisease,
     demoDiseaseIds,

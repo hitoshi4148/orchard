@@ -445,6 +445,7 @@ npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検�
 
 - **緑期日**（`green_tip` / Cookie `agromap_apple_green_tip_date`）: Green tip＝緑期確認日。黒星・升孢子 GDD の起点。リスク画面・API・Cookie（TOP には入力欄なし）
 - **残病葉量**（`scab_inoculum=low|normal|high`）: 黒星・升孢子枯渇プール初期 60/100/130%。りんごリスク画面の localStorage
+- 升孢子チューニングメモ: [`docs/apple-scab-ascospore-tuning.md`](docs/apple-scab-ascospore-tuning.md)
 - **開花始期**（`bloom_start`）: 褐斑一次感染の起点。満開 Cookie または群馬目安（4/22）
 - **中間宿主**（`gymnosporangium_host=0|1`）: なし赤星。なしのときリスク 4% に抑制
 

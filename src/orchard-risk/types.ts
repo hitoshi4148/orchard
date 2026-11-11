@@ -101,6 +101,14 @@ export interface OrchardOnsetRow {
   modelConfidence?: "低" | "中";
 }
 
+export interface OrchardAscosporePoolStatus {
+  date: string;
+  remainingPercent: number;
+  cumulativeReleasedPercent: number;
+  rainEventsProcessed: number;
+  initialPoolPercent: number;
+}
+
 export interface OrchardRiskForecast {
   cropId: OrchardCropId;
   variety: string;
@@ -112,6 +120,8 @@ export interface OrchardRiskForecast {
   greenTipDate: string | null;
   /** りんご黒星 — 残病葉量（枯渇プール初期）。なし作物は null */
   scabInoculumLevel: ScabInoculumLevel | null;
+  /** りんご黒星 — 評価日時点の升孢子枯渇プール（りんごのみ） */
+  ascosporePool: OrchardAscosporePoolStatus | null;
   /** なし赤星 — 中間宿主（ビャクシン類）の圃場近傍。未設定は null */
   gymnosporangiumHostNearby: boolean | null;
   weather5d: OrchardDailyWeather[];

@@ -228,6 +228,11 @@ document.addEventListener("DOMContentLoaded", () => {
           isMarssoninaUnset || isMarssoninaNoData
             ? ""
             : `<dt>表示上の確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
+        const pool = dashboard.ascosporePool;
+        const ascosporePoolRow =
+          item.diseaseId === "apple:scab" && pool
+            ? `<dt>升孢子枯渇プール</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）</dd>`
+            : "";
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
         }">
@@ -236,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.estimatedInfectionDate)}</dd>
             ${wetDetail || ""}
             ${coverageDetail}
+            ${ascosporePoolRow}
             <dt>感染後積算</dt><dd>${
               item.gddSinceInfectionDayC != null
                 ? `${item.gddSinceInfectionDayC} 日℃（実測・一次感染開始日起算・当日含む）`

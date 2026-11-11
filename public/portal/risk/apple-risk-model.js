@@ -894,6 +894,8 @@ const OrchardRiskModel = (() => {
         baseDashboard.cropId === "apple"
           ? (forecast.scabInoculumLevel ?? loadScabInoculumApple())
           : null,
+      ascosporePool:
+        baseDashboard.cropId === "apple" ? forecast.ascosporePool ?? null : null,
       gymnosporangiumHostNearby:
         baseDashboard.cropId === "nashi"
           ? (forecast.gymnosporangiumHostNearby ??
