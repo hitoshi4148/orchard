@@ -414,7 +414,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ${renderOnsetModelNote(disease)}
       <p><strong>予測結果の根拠</strong></p>
       <p class="apple-risk-rationale">${escapeHtml(disease.rationale)}</p>
-      <p class="apple-risk-wet-est">品種「${escapeHtml(dashboard.variety)}」の抵抗性は将来の予測に反映予定（現状はデモ固定）。</p>
+      <p class="apple-risk-wet-est">品種「${escapeHtml(dashboard.variety)}」— ${
+        dashboard.dataSource === "live"
+          ? "病害ごとに品種係数を感染％に反映しています（根拠文に ×係数 があれば該当病害）。"
+          : "気象連動時に品種係数を反映します。"
+      }</p>
     </div>`;
     detailsHost.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
@@ -438,6 +442,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <span><strong>栽培方式:</strong> ${escapeHtml(cultivationLabel)}</span>
           <span class="apple-risk-stage-emphasis"><strong>現在の生育ステージ:</strong> ${escapeHtml(stage)}</span>
           <span><strong>更新:</strong> ${escapeHtml(dashboard.updatedAt)}（JST）</span>
+          ${
+            dashboard.dataSource === "live" && dashboard.varietyFactor != null && dashboard.varietyFactor !== 1
+              ? `<span><strong>品種係数（基準）:</strong> ×${Number(dashboard.varietyFactor).toFixed(2)}</span>`
+              : ""
+          }
           <span class="apple-risk-demo-badge">${escapeHtml(dashboard.dataSourceLabel)}</span>
           <button type="button" class="apple-risk-btn" id="apple-risk-settings-btn">⚙ 設定</button>
         </div>

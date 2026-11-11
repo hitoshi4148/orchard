@@ -427,7 +427,7 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 |------|-------------|-------------------|------|
 | りんご黒星 | **Mills × 升孢子（GDD + 降水放出 + 枯渇プール + 干期停止）+ 分生胞子** | Mills イベント由来 | `apple-scab-ascospore-season-pool.ts` 他 |
 | りんご褐斑 | **予報二次（鈴木P2日次）** ※一次未推定時も P2、GDD 補正は一次後のみ | **P2 一次感染 + P3 GDD 159日℃**（開花始期必須） | `marssonina_onset=0` で onset のみ省略し高速化 |
-| りんご他3病 | `heuristic-disease.ts`（温帯×濡れ・文献メモ付き） | デモ | 閾値一覧: [`docs/heuristic-orchard-diseases.md`](docs/heuristic-orchard-diseases.md) |
+| りんご他3病 | `diseases/apple-secondary.ts`（輪紋=季節モデル、他=季節補正） | API | 閾値: [`docs/heuristic-orchard-diseases.md`](docs/heuristic-orchard-diseases.md) |
 | なし黒星 | **Duthie (2007) 動的**（Ishii 2003 発芽＋L(T)） | Duthie イベント由来 | `nashi-scab-duthie.ts` |
 | なし赤星 | 春季降雨×濡れ（`apple-cedar-rust` 流用） | 6日ピーク由来 | `gymnosporangium_host=0` で 4% 抑制 |
 | なし他3病 | `heuristic-disease.ts` | デモ | |

@@ -13,7 +13,11 @@ describe("heuristic-disease documentation alignment", () => {
       keyof typeof DISEASE_IDS_BY_CROP
     >) {
       for (const id of DISEASE_IDS_BY_CROP[crop]) {
-        if (MODEL_STATUS[id] === "heuristic" && ORCHARD_HEURISTIC_BY_ID[id]) {
+        const status = MODEL_STATUS[id];
+        if (
+          (status === "heuristic" || status === "seasonal") &&
+          ORCHARD_HEURISTIC_BY_ID[id]
+        ) {
           heuristicIds.add(id);
         }
       }

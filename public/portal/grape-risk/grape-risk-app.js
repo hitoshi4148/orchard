@@ -282,7 +282,11 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="grape-risk-meta">
           <span class="grape-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>
-          <span><strong>品種:</strong> ${escapeHtml(state.settings.variety)}</span>
+          <span><strong>品種:</strong> ${escapeHtml(state.settings.variety)}${
+            state.isLive && state.varietyFactor != null && state.varietyFactor !== 1
+              ? `（基準係数 ×${Number(state.varietyFactor).toFixed(2)}）`
+              : ""
+          }</span>
           <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
           <button type="button" class="grape-risk-btn" id="grape-risk-settings-btn">⚙ 設定</button>

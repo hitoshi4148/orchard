@@ -23,4 +23,14 @@
 | peach:leaf_curl | ももいさか病 | 10–18 | 6 / 12 |
 | peach:anthracnose | もも炭疽病 | 20–28 | 3 / 6 |
 
-根拠文は各 `reference` 文字列を API `rationales` に付与。ぶどう・ももは `/portal/grape-risk/`・`/portal/peach-risk/` で気象 API と連動。
+根拠文は各 `reference` 文字列を API `rationales` に付与。
+
+**計算の置き場所（病害地図ではなく API / 各作物 UI）**
+
+| 作物 | モジュール | 内容 |
+|------|------------|------|
+| りんご・なしの上記 | `diseases/apple-secondary.ts` / `nashi-secondary.ts` | 輪紋は `apple-ring-rot` 季節モデル、他は季節補正付き |
+| ぶどう5病 | `diseases/grape-models.ts` | 月別季節 × 濡れ閾値 |
+| もも5病 | `diseases/peach-models.ts` | 月別季節 × 濡れ閾値 |
+
+品種係数は `variety.ts` の病害別テーブルで感染％に反映。ぶどう・ももは `/portal/grape-risk/`・`/portal/peach-risk/` から API 連動。

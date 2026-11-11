@@ -154,6 +154,7 @@ const OrchardRiskClient = (() => {
       isLive: true,
       fetchError: null,
       dataSourceLabel: forecast.dataSourceLabel,
+      varietyFactor: forecast.varietyFactor ?? 1,
       updatedAt: forecast.updatedAt,
       currentRisks,
       infectionMatrix,

@@ -873,7 +873,8 @@ const OrchardRiskModel = (() => {
         modelStatus !== "mills" &&
         modelStatus !== "duthie" &&
         modelStatus !== "gdd" &&
-        modelStatus !== "gymnosporangium"
+        modelStatus !== "gymnosporangium" &&
+        modelStatus !== "seasonal"
       ) {
         rationale += " 【警戒の目安（簡易）— 確定的な予測ではありません】";
       }
@@ -887,7 +888,8 @@ const OrchardRiskModel = (() => {
           modelStatus === "mills" ||
           modelStatus === "duthie" ||
           modelStatus === "gdd" ||
-          modelStatus === "gymnosporangium",
+          modelStatus === "gymnosporangium" ||
+          modelStatus === "seasonal",
       };
     });
 
@@ -913,7 +915,8 @@ const OrchardRiskModel = (() => {
           !serverDemo ||
           row.modelStatus === "mills" ||
           row.modelStatus === "gdd" ||
-          row.modelStatus === "gymnosporangium",
+          row.modelStatus === "gymnosporangium" ||
+          row.modelStatus === "seasonal",
       };
     });
 

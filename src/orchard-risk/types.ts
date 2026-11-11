@@ -9,6 +9,7 @@ export type ModelStatus =
   | "gdd"
   | "duthie"
   | "gymnosporangium"
+  | "seasonal"
   | "heuristic"
   | "demo";
 

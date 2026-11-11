@@ -51,8 +51,19 @@ import {
   percentToInfectionLevel,
 } from "./risk-level";
 import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
-import { getVarietyFactor } from "./variety";
-import { calcOrchardHeuristicDisease } from "./heuristic-disease";
+import { getCropVarietyFactor, getDiseaseVarietyFactor } from "./variety";
+import {
+  calcAppleAlternaria,
+  calcAppleAnthracnose,
+  calcAppleBlotch,
+} from "./diseases/apple-secondary";
+import {
+  calcNashiAnthracnose,
+  calcNashiBlackSpot,
+  calcNashiBlotch,
+} from "./diseases/nashi-secondary";
+import { calcGrapeDisease } from "./diseases/grape-models";
+import { calcPeachDisease } from "./diseases/peach-models";
 import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
 import {
   ascosporePoolAtDate,
@@ -103,22 +114,29 @@ function calculateForDisease(
     case "apple:marssonina":
       return calcMarssoninaForecastInfection(input, marssoninaCtx);
     case "apple:alternaria":
+      return calcAppleAlternaria(input);
     case "apple:anthracnose":
+      return calcAppleAnthracnose(input);
     case "apple:blotch":
+      return calcAppleBlotch(input);
     case "nashi:blotch":
+      return calcNashiBlotch(input);
     case "nashi:black_spot":
+      return calcNashiBlackSpot(input);
     case "nashi:anthracnose":
+      return calcNashiAnthracnose(input);
     case "grape:downy_mildew":
     case "grape:black_rot":
     case "grape:late_rot":
     case "grape:gray_mold":
     case "grape:anthracnose":
+      return calcGrapeDisease(diseaseId, input);
     case "peach:bacterial_shot_hole":
     case "peach:gray_spot":
     case "peach:scab":
     case "peach:leaf_curl":
     case "peach:anthracnose":
-      return calcOrchardHeuristicDisease(diseaseId, input);
+      return calcPeachDisease(diseaseId, input);
     default:
       return {
         percent: null,
@@ -408,7 +426,7 @@ export async function fetchOrchardRiskForecast(
   }
 
   const weather5d = buildSixDayWeather(forecastHourly);
-  const varietyFactor = getVarietyFactor(cropId, variety);
+  const varietyFactor = getCropVarietyFactor(cropId, variety);
   const diseaseIds = DISEASE_IDS_BY_CROP[cropId];
 
   const marssoninaPrimary = marssoninaSearch?.primary?.infectionDate ?? null;
@@ -479,10 +497,14 @@ export async function fetchOrchardRiskForecast(
         },
         { gymnosporangiumHostNearby }
       );
-      const adjusted = applyVarietyFactor(raw.percent, varietyFactor);
+      const diseaseFactor = getDiseaseVarietyFactor(cropId, variety, diseaseId);
+      const adjusted = applyVarietyFactor(raw.percent, diseaseFactor);
       const level = percentToInfectionLevel(adjusted) ?? "low";
       levels.push(level);
       lastRationale = raw.rationale;
+      if (diseaseFactor !== 1) {
+        lastRationale += ` 品種「${variety}」×${diseaseFactor.toFixed(2)} を適用。`;
+      }
 
       if (
         MODEL_STATUS[diseaseId] === "heuristic" ||
@@ -499,11 +521,7 @@ export async function fetchOrchardRiskForecast(
     }
 
     infectionByDiseaseId[diseaseId] = levels;
-    rationales[diseaseId] = `${lastRationale}${
-      varietyFactor !== 1
-        ? ` 品種係数 ${variety}×${varietyFactor.toFixed(2)} を適用。`
-        : ""
-    }`;
+    rationales[diseaseId] = lastRationale;
   }
 
   const updatedAt = new Intl.DateTimeFormat("ja-JP", {
