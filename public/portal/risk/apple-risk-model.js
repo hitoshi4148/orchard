@@ -11,6 +11,8 @@ const OrchardRiskModel = (() => {
   /** 1 = 開花始期をユーザーが空にした（群馬目安・Cookie 自動補完を止める） */
   const STORAGE_BLOOM_START_NO_AUTO = "orchardRiskBloomStart:apple:noAuto";
   const STORAGE_GREEN_TIP_APPLE = "orchardRiskGreenTip:apple";
+  /** 1 = 緑期日をユーザーが空にした（群馬目安・Cookie 自動補完を止める） */
+  const STORAGE_GREEN_TIP_NO_AUTO = "orchardRiskGreenTip:apple:noAuto";
   const STORAGE_GYMNOS_HOST_NASHI = "orchardRiskGymnosporangiumHost:nashi";
   const STORAGE_SCAB_INOCULUM_APPLE = "orchardRiskScabInoculum:apple";
   const STORAGE_POME_SETTINGS = "orchardRiskPomeSettings";
@@ -498,8 +500,13 @@ const OrchardRiskModel = (() => {
     saveBloomStartApple(gunmaTypicalBloomStartIso(y), { fromAuto: true });
   }
 
+  function isGreenTipAutoSuggestDisabled() {
+    return localStorage.getItem(STORAGE_GREEN_TIP_NO_AUTO) === "1";
+  }
+
   function syncGreenTipFromPortalIfEmpty() {
     if (loadGreenTipApple()) return;
+    if (isGreenTipAutoSuggestDisabled()) return;
     if (
       typeof OrchardPhenologyCookie === "undefined" ||
       !OrchardPhenologyCookie.readAppleGreenTip
@@ -514,9 +521,10 @@ const OrchardRiskModel = (() => {
 
   function suggestGreenTipIfEmpty(lat, lon) {
     if (loadGreenTipApple()) return;
+    if (isGreenTipAutoSuggestDisabled()) return;
     if (!isGunmaOrchardLatLon(lat, lon)) return;
     const y = new Date().getFullYear();
-    saveGreenTipApple(gunmaTypicalGreenTipIso(y));
+    saveGreenTipApple(gunmaTypicalGreenTipIso(y), { fromAuto: true });
   }
 
   function loadGreenTipApple() {
@@ -559,10 +567,11 @@ const OrchardRiskModel = (() => {
     localStorage.removeItem(STORAGE_GYMNOS_HOST_NASHI);
   }
 
-  function saveGreenTipApple(dateStr) {
-    const trimmed = String(dateStr || "").trim();
+  function saveGreenTipApple(dateStr, options = {}) {
+    const trimmed = String(dateStr ?? "").trim();
     if (!trimmed) {
       localStorage.removeItem(STORAGE_GREEN_TIP_APPLE);
+      localStorage.setItem(STORAGE_GREEN_TIP_NO_AUTO, "1");
       if (typeof OrchardPhenologyCookie !== "undefined" && OrchardPhenologyCookie.clearAppleGreenTip) {
         OrchardPhenologyCookie.clearAppleGreenTip();
       }
@@ -570,10 +579,17 @@ const OrchardRiskModel = (() => {
     }
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
       localStorage.setItem(STORAGE_GREEN_TIP_APPLE, trimmed);
+      if (!options.fromAuto) {
+        localStorage.removeItem(STORAGE_GREEN_TIP_NO_AUTO);
+      }
       if (typeof OrchardPhenologyCookie !== "undefined" && OrchardPhenologyCookie.writeAppleGreenTip) {
         OrchardPhenologyCookie.writeAppleGreenTip(trimmed);
       }
     }
+  }
+
+  function clearGreenTipApple() {
+    saveGreenTipApple("");
   }
 
   function migrateLegacyStorage() {
@@ -1151,6 +1167,7 @@ const OrchardRiskModel = (() => {
     clearBloomStartApple,
     loadGreenTipApple,
     saveGreenTipApple,
+    clearGreenTipApple,
     loadScabInoculumApple,
     saveScabInoculumApple,
     loadGymnosporangiumHostNashi,

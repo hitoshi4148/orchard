@@ -351,8 +351,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<div class="apple-risk-phenology-fields">
       <div class="apple-risk-bloom-field">
         <label class="apple-risk-bloom-label" for="apple-risk-green-tip">緑期日（黒星・升孢子 GDD 起点）</label>
-        <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
-        <p class="apple-risk-wet-est apple-risk-bloom-help">Green tip（緑期）が確認された日＝升孢子 GDD の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。群馬地点で未入力なら目安 3/25。</p>
+        <div class="apple-risk-bloom-row">
+          <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
+          <button type="button" class="apple-risk-bloom-clear-btn" id="apple-risk-green-tip-clear">クリア</button>
+        </div>
+        <p class="apple-risk-wet-est apple-risk-bloom-help">Green tip（緑期）が確認された日＝升孢子 GDD の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。初回のみ群馬地点で 3/25 を目安表示します。空にしたあとは自動入力しません。</p>
       </div>
       ${renderScabInoculumField(dashboard)}
       <div class="apple-risk-bloom-field">
@@ -517,8 +520,17 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshDashboard(dashboard.cropId);
     });
     const greenTipInput = document.getElementById("apple-risk-green-tip");
-    greenTipInput?.addEventListener("change", () => {
-      Model.saveGreenTipApple(greenTipInput.value);
+    const persistGreenTipFromInput = () => {
+      Model.saveGreenTipApple(greenTipInput?.value ?? "");
+      refreshDashboard(dashboard.cropId);
+    };
+    greenTipInput?.addEventListener("change", persistGreenTipFromInput);
+    greenTipInput?.addEventListener("input", persistGreenTipFromInput);
+    document.getElementById("apple-risk-green-tip-clear")?.addEventListener("click", () => {
+      if (greenTipInput) {
+        greenTipInput.value = "";
+      }
+      Model.clearGreenTipApple();
       refreshDashboard(dashboard.cropId);
     });
     root.querySelectorAll('input[name="apple-risk-gymno-host"]').forEach((input) => {
