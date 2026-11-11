@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? OrchardDiseaseSamplePhotos.renderHtml(d.id)
         : "";
     return `<article class="peach-risk-detail">
-      <h3>${escapeHtml(d.name)} <span class="peach-risk-demo-badge">サンプル</span></h3>
+      <h3>${escapeHtml(d.name)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">サンプル</span>'}</h3>
       <p>${escapeHtml(d.summary)}</p>
       ${samplePhoto}
       <dl class="peach-risk-dl">
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const cells = row.days
           .map(
             (d) =>
-              `<td class="peach-heat-cell ${PeachRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${PeachRiskModel.RISK[d.level].label}"><span class="sr-only">${PeachRiskModel.RISK[d.level].label}</span></td>`
+              `<td class="peach-heat-cell ${PeachRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${PeachRiskModel.RISK[d.level].label}"><span class="peach-heat-level-label">${escapeHtml(PeachRiskModel.RISK[d.level].label)}</span></td>`
           )
           .join("");
         const sel = row.diseaseId === state.selectedDiseaseId ? " is-selected" : "";

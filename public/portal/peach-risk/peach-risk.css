@@ -213,6 +213,12 @@
   margin-right: 4px;
 }
 
+.peach-heat-level-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .peach-heat-table .peach-heat-cell {
   text-align: center;
   min-width: 42px;

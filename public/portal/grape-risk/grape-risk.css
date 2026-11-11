@@ -229,6 +229,12 @@
   padding: 10px 6px;
 }
 
+.grape-heat-level-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .grape-heat-disease-btn {
   border: none;
   background: none;

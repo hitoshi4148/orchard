@@ -172,8 +172,8 @@ const OrchardDiseaseSamplePhotos = (() => {
     },
     "peach:leaf_curl": {
       src: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Taphrina_deformans_102005936.jpg",
-      alt: "もも縮葉病の罹病葉",
-      caption: "春先に葉が縮れ、赤みを帯びて厚くなります。",
+      alt: "ももいさか病（縮葉）の罹病葉",
+      caption: "春先に葉が縮れ（いさか）、赤みを帯びて厚くなります。",
       credit: "iNaturalist 投稿者（photo 102005936）",
       license: "CC BY 4.0",
       commonsPage:

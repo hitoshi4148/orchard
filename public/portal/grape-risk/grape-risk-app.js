@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const cells = row.days
           .map(
             (d) =>
-              `<td class="grape-heat-cell ${GrapeRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${GrapeRiskModel.RISK[d.level].label}"><span class="sr-only">${GrapeRiskModel.RISK[d.level].label}</span></td>`
+              `<td class="grape-heat-cell ${GrapeRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${GrapeRiskModel.RISK[d.level].label}"><span class="grape-heat-level-label">${escapeHtml(GrapeRiskModel.RISK[d.level].label)}</span></td>`
           )
           .join("");
         const sel =
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><i class="dot risk-medium"></i>中</span>
         <span><i class="dot risk-high"></i>高</span>
       </div>
-      <p class="grape-risk-hint">色のみに依存しないよう、選択病害の判定理由は下記テキストでも表示します。</p>
+      <p class="grape-risk-hint">各マスに「低・中・高」を表示しています。選択病害の判定理由は下記テキストでも確認できます。</p>
       <div class="grape-risk-table-wrap">
         <table class="grape-risk-table grape-heat-table">
           <thead><tr><th>病害</th>${header}</tr></thead>

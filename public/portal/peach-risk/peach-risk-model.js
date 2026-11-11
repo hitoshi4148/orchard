@@ -1,5 +1,5 @@
 /**
- * 桃病害リスク予報 — 画面用データ（仮データのみ・API未接続）
+ * 桃病害リスク予報 — 地点設定時は /portal/api/orchard-risk で感染危険を表示（簡易モデル）
  */
 const PeachRiskModel = (() => {
   const STORAGE_KEY = "peachRiskSettings";
@@ -73,11 +73,12 @@ const PeachRiskModel = (() => {
     },
     "peach:leaf_curl": {
       id: "peach:leaf_curl",
-      name: "縮葉病",
-      pathogen: "Taphrina deformans",
+      name: "ももいさか病",
+      pathogen: "Taphrina deformans（縮葉病）",
       watchConditions: "萌芽〜展葉期の低温・降雨",
       stageRelation: "萌芽・展葉期が中心",
-      summary: "春の低温と湿りで葉が縮れ赤色化。展葉前後が重要（サンプル）。",
+      summary:
+        "春の低温と湿りで葉が縮れ赤色化（いさか）。展葉前後が重要（サンプル）。",
     },
     "peach:anthracnose": {
       id: "peach:anthracnose",
@@ -101,7 +102,7 @@ const PeachRiskModel = (() => {
   const STAGE_DISEASE_GUIDE = [
     {
       stage: "萌芽・展葉期",
-      diseases: ["縮葉病", "せん孔細菌病"],
+      diseases: ["ももいさか病", "せん孔細菌病"],
       note: "春の低温・降雨が重なる時期の目安（サンプル）",
     },
     {
@@ -135,8 +136,8 @@ const PeachRiskModel = (() => {
   const ANNUAL_CALENDAR = [
     { month: 1, label: "1月", focus: "—" },
     { month: 2, label: "2月", focus: "越冬管理" },
-    { month: 3, label: "3月", focus: "縮葉病・展葉" },
-    { month: 4, label: "4月", focus: "せん孔細菌・縮葉" },
+    { month: 3, label: "3月", focus: "ももいさか病・展葉" },
+    { month: 4, label: "4月", focus: "せん孔細菌・ももいさか病" },
     { month: 5, label: "5月", focus: "開花・灰星病" },
     { month: 6, label: "6月", focus: "幼果・黒星" },
     { month: 7, label: "7月", focus: "肥大・炭疽" },
@@ -320,7 +321,7 @@ const PeachRiskModel = (() => {
   const MOCK_TIPS = [
     "【仮】降雨と強風が予想されるため、せん孔細菌病の伝染に注意してください（実際の防除指示ではありません）。",
     "【仮】開花期は灰星病の感染条件を確認してください。",
-    "【仮】春の低温・降雨が続く場合は縮葉病に注意してください。",
+    "【仮】春の低温・降雨が続く場合はももいさか病に注意してください。",
   ];
 
   function loadSettings() {
