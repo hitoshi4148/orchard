@@ -41,9 +41,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDiseaseDetail(state) {
     const d = state.selectedDisease;
+    const samplePhoto =
+      typeof OrchardDiseaseSamplePhotos !== "undefined"
+        ? OrchardDiseaseSamplePhotos.renderHtml(d.id)
+        : "";
     return `<article class="grape-risk-detail">
       <h3>${escapeHtml(d.name)}${state.isLive ? "" : ' <span class="grape-risk-demo-badge">サンプル</span>'}</h3>
       <p>${escapeHtml(d.summary)}</p>
+      ${samplePhoto}
       <dl class="grape-risk-dl">
         <dt>病原菌</dt><dd>${escapeHtml(d.pathogen)}</dd>
         <dt>感染に注意すべき気象</dt><dd>${escapeHtml(d.watchConditions)}</dd>
@@ -302,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const detailHost = root.querySelector("#grape-disease-detail");
     if (detailHost) {
       detailHost.innerHTML = renderDiseaseDetail(state);
+      OrchardDiseaseSamplePhotos?.bindFallback(detailHost);
     }
 
     bindInteractions(state);

@@ -49,9 +49,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDiseaseDetail(state) {
     const d = state.selectedDisease;
+    const samplePhoto =
+      typeof OrchardDiseaseSamplePhotos !== "undefined"
+        ? OrchardDiseaseSamplePhotos.renderHtml(d.id)
+        : "";
     return `<article class="peach-risk-detail">
       <h3>${escapeHtml(d.name)} <span class="peach-risk-demo-badge">サンプル</span></h3>
       <p>${escapeHtml(d.summary)}</p>
+      ${samplePhoto}
       <dl class="peach-risk-dl">
         <dt>病原</dt><dd>${escapeHtml(d.pathogen)}</dd>
         <dt>感染に関係する気象</dt><dd>${escapeHtml(d.watchConditions)}</dd>
@@ -353,7 +358,10 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     const detailHost = root.querySelector("#peach-disease-detail");
-    if (detailHost) detailHost.innerHTML = renderDiseaseDetail(state);
+    if (detailHost) {
+      detailHost.innerHTML = renderDiseaseDetail(state);
+      OrchardDiseaseSamplePhotos?.bindFallback(detailHost);
+    }
 
     bindInteractions();
   }

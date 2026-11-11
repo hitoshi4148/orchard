@@ -514,3 +514,36 @@
     padding: 8px 4px;
   }
 }
+
+.orchard-disease-sample-photo {
+  margin: 0 0 14px;
+  text-align: center;
+}
+
+.orchard-disease-sample-photo img {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.orchard-disease-sample-caption {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.orchard-disease-sample-credit {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.orchard-disease-sample-credit a {
+  color: #166534;
+}
