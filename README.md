@@ -439,6 +439,7 @@ npm run dev                    # Pages dev（ポート 8790）
 npm run test:orchard-risk      # ユニット + NASA 統合（なし Duthie ゴールデン含む）
 npm run test:orchard-risk-validation-report  # 検証レポートのみ（ライブ API 省略）
 npm run orchard-risk:fetch -- --lat 36.39 --lon 139.06 --crop apple --bloom 2026-04-22
+npm run orchard-risk:fetch -- --lat 36.39 --lon 139.06 --crop grape
 npm run report:marssonina-phase2   # 弘前・標準地点の Phase2 比較レポート
 npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検証レポート（reports/…/output/）
 ```

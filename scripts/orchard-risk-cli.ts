@@ -15,8 +15,13 @@ import { parseScabInoculumLevel } from "../src/orchard-risk/parse-ascospore-inoc
 import { DISEASE_DISPLAY_NAME } from "../src/orchard-risk/catalog";
 import type { OrchardCropId } from "../src/orchard-risk/types";
 
+function parseCropArg(value: string | undefined): OrchardCropId {
+  if (value === "nashi" || value === "grape" || value === "peach") return value;
+  return "apple";
+}
+
 function usage(): never {
-  console.error(`Usage: orchard-risk-cli --lat <num> --lon <num> [--crop apple|nashi] [--variety 名]
+  console.error(`Usage: orchard-risk-cli --lat <num> --lon <num> [--crop apple|nashi|grape|peach] [--variety 名]
        [--growth_stage youngfruit] [--bloom YYYY-MM-DD] [--green-tip YYYY-MM-DD]
        [--gymnosporangium-host 0|1] [--scab-inoculum low|normal|high]
        [--no-marssonina-onset] [--out path.json] [--quiet]`);
@@ -38,10 +43,16 @@ async function main() {
   const lon = parseFloat(arg("lon") ?? "");
   if (Number.isNaN(lat) || Number.isNaN(lon)) usage();
 
-  const crop = (arg("crop") === "nashi" ? "nashi" : "apple") as OrchardCropId;
-  const variety =
-    arg("variety")?.trim() ||
-    (crop === "nashi" ? "幸水" : "ふじ");
+  const crop = parseCropArg(arg("crop"));
+  const defaultVariety =
+    crop === "nashi"
+      ? "幸水"
+      : crop === "grape"
+        ? "シャインマスカット"
+        : crop === "peach"
+          ? "川中島白桃"
+          : "ふじ";
+  const variety = arg("variety")?.trim() || defaultVariety;
   const growthStage = arg("growth_stage")?.trim() || "youngfruit";
   const bloom = arg("bloom")?.trim() || null;
   const greenTip = arg("green-tip")?.trim() || null;

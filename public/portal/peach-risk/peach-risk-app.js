@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="onset-heading">
       <h2 id="onset-heading" class="peach-risk-panel-title">発病予測（今後20日間・サンプル）</h2>
-      <p class="peach-risk-lead">潜伏期・積算温度などは病害別に独立管理予定。現状はサンプルのみ。</p>
+      <p class="peach-risk-lead">${state.isLive ? "感染危険が高かった日を起点にした簡易の発病目安です。専用の積算温度モデルは順次拡張予定。" : "潜伏期・積算温度などは病害別に独立管理予定。地点未設定時は表示例です。"}</p>
       <div class="peach-onset-grid">${cards}</div>
       <div class="peach-timeline" aria-label="20日間タイムライン（サンプル）">
         <div class="peach-timeline-bar">${segs}</div>

@@ -12,5 +12,15 @@
 | nashi:blotch | なし輪紋病 | 18–26 | 2 / 5 |
 | nashi:black_spot | なし黒斑病 | 24–32 | 5 / 10 |
 | nashi:anthracnose | なし炭疽病 | 20–28 | 3 / 6 |
+| grape:downy_mildew | ぶどうべと病 | 18–25 | 4 / 8 |
+| grape:black_rot | ぶどう黒とう病 | 20–28 | 3 / 6 |
+| grape:late_rot | ぶどう晩腐病 | 22–30 | 2 / 5 |
+| grape:gray_mold | ぶどう灰色かび病 | 15–22 | 4 / 8 |
+| grape:anthracnose | ぶどう褐斑病 | 24–32 | 2 / 5 |
+| peach:bacterial_shot_hole | もも細菌性穿孔病 | 15–26 | 2 / 4 |
+| peach:gray_spot | もも灰色炭疽病 | 20–28 | 3 / 6 |
+| peach:scab | もも黒星病 | 18–24 | 4 / 8 |
+| peach:leaf_curl | ももいさか病 | 10–18 | 6 / 12 |
+| peach:anthracnose | もも炭疽病 | 20–28 | 3 / 6 |
 
-根拠文は各 `reference` 文字列を API `rationales` に付与。
+根拠文は各 `reference` 文字列を API `rationales` に付与。ぶどう・ももは `/portal/grape-risk/`・`/portal/peach-risk/` で気象 API と連動。
