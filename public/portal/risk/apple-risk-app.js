@@ -121,7 +121,17 @@ document.addEventListener("DOMContentLoaded", () => {
       ${row("湿度", (c) => `${Math.round(c.humidityPct)}%`)}
       ${row("葉面濡れ", (c) => `${c.leafWetHours.toFixed(1)}h`)}
     </div>
-    <p class="apple-risk-wet-est" style="margin-top:8px">※ 葉面濡れ時間は気象予報からの<strong>推定値</strong>です（実測ではありません）。将来 NASA POWER / MET Norway 連携予定。</p>`;
+    <p class="apple-risk-wet-est" style="margin-top:8px">※ 葉面濡れ時間は MET Norway 予報と履歴からの<strong>推定値</strong>です（実測ではありません）。</p>`;
+  }
+
+  function onsetLeadText(dashboard) {
+    if (dashboard.fetchError) {
+      return "気象未取得のため下記はデモ表示です。";
+    }
+    if (dashboard.dataSource === "live") {
+      return "感染モデル（Mills・Ishii・褐斑 P2/P3 ほか）から推定した発病・感染の目安です。簡易病害は参考表示です。";
+    }
+    return "すでに感染した可能性がある病原について、発病が予想される時期の目安です（デモ）。";
   }
 
   function renderStatusBanner(dashboard) {
@@ -360,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <section class="apple-risk-section" aria-labelledby="onset-heading">
         <h2 id="onset-heading">発病予測（今後20日）</h2>
-        <p class="apple-risk-section-lead">すでに感染した可能性がある病原について、発病が予想される時期の目安です（仮データ）。</p>
+        <p class="apple-risk-section-lead">${escapeHtml(onsetLeadText(dashboard))}</p>
         <div class="apple-risk-onset-list">${renderOnset(dashboard)}</div>
       </section>
 
@@ -415,7 +425,10 @@ document.addEventListener("DOMContentLoaded", () => {
     root.setAttribute("aria-busy", "true");
     root.innerHTML =
       '<p class="apple-risk-loading">気象データを読み込み中…（MET Norway / NASA POWER）</p>';
-    const dashboard = await Model.buildDashboardLive(cropId);
+    const dashboard = await Model.buildDashboardLive(cropId, (partial) => {
+      if (seq !== refreshSeq) return;
+      render(partial);
+    });
     if (seq !== refreshSeq) return;
     root.removeAttribute("aria-busy");
     render(dashboard);

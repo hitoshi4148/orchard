@@ -711,7 +711,11 @@ const OrchardRiskModel = (() => {
         days: dayLabelsFromLevels(levels),
         rationale,
         modelStatus,
-        liveData: !isDemo || modelStatus === "mills",
+        liveData:
+          !isDemo ||
+          modelStatus === "mills" ||
+          modelStatus === "duthie" ||
+          modelStatus === "gdd",
       };
     });
 
@@ -783,7 +787,7 @@ const OrchardRiskModel = (() => {
     return `気象 API エラー（HTTP ${status}）`;
   }
 
-  async function fetchServerForecast(cropId = loadCropId()) {
+  async function fetchServerForecast(cropId = loadCropId(), options = {}) {
     if (cropId === "apple") {
       syncBloomStartFromPortalIfEmpty();
     }
@@ -805,6 +809,9 @@ const OrchardRiskModel = (() => {
       if (bloom) {
         params.set("bloom_start", bloom);
       }
+    }
+    if (options.marssoninaOnset === false) {
+      params.set("marssonina_onset", "0");
     }
     const url = `/portal/api/orchard-risk?${params.toString()}`;
     const retryable = new Set([502, 503, 504, 520, 524, 525]);
@@ -838,9 +845,19 @@ const OrchardRiskModel = (() => {
     throw lastError ?? new Error("気象 API の取得に失敗しました");
   }
 
-  async function buildDashboardLive(cropId = loadCropId()) {
+  async function buildDashboardLive(cropId = loadCropId(), onPartial = null) {
     const base = buildDashboard(cropId);
     try {
+      const heavyMarssonina =
+        cropId === "apple" && Boolean(loadBloomStartApple());
+      if (heavyMarssonina && typeof onPartial === "function") {
+        const fast = await fetchServerForecast(cropId, {
+          marssoninaOnset: false,
+        });
+        onPartial(applyServerForecast(base, fast));
+        const full = await fetchServerForecast(cropId);
+        return applyServerForecast(base, full);
+      }
       const forecast = await fetchServerForecast(cropId);
       return applyServerForecast(base, forecast);
     } catch (err) {

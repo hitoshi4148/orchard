@@ -315,6 +315,54 @@ export function buildNashiScabOnset(): OrchardOnsetRow {
   return buildNashiScabOnsetFromHourly([], "");
 }
 
+/** 簡易モデル: 6日感染表のピークから発病注意ウィンドウの目安 */
+export function buildHeuristicOnsetFromInfection(
+  diseaseId: string,
+  name: string,
+  levels: RiskLevel[]
+): OrchardOnsetRow {
+  let peakOffset = -1;
+  let peakScore = 0;
+  const score = { low: 0, caution: 1, high: 2 };
+  for (let i = 0; i < levels.length; i += 1) {
+    const s = score[levels[i]] ?? 0;
+    if (s > peakScore) {
+      peakScore = s;
+      peakOffset = i;
+    }
+  }
+
+  if (peakOffset < 0 || peakScore === 0) {
+    return {
+      diseaseId,
+      estimatedInfectionDate: "—",
+      gddSinceInfectionDayC: null,
+      predictedOnsetWindow: "6日予報内で注意以上の感染危険なし",
+      confidence: "低",
+      note: `${name}: 簡易モデル（感染危険表）からは発病ピークを検出できませんでした。`,
+      modelStatus: "heuristic",
+      isDemo: true,
+    };
+  }
+
+  const dayLabel = peakOffset === 0 ? "本日" : `${peakOffset}日先`;
+  const windowEnd = Math.min(peakOffset + 4, 5);
+
+  return {
+    diseaseId,
+    estimatedInfectionDate: "—",
+    gddSinceInfectionDayC: null,
+    predictedOnsetWindow:
+      peakOffset === windowEnd
+        ? `${dayLabel}前後に感染危険ピーク（発病は潜伏期モデル未接続）`
+        : `${dayLabel}〜${windowEnd === 0 ? "本日" : `${windowEnd}日先`}に感染危険ピーク（発病は潜伏期モデル未接続）`,
+    confidence: peakScore >= 2 ? "中" : "低",
+    note: `${name}: 6日感染危険の最大が ${dayLabel}（${levels[peakOffset]}）。潜伏期・母菌量は未モデル化の参考表示です。`,
+    modelStatus: "heuristic",
+    isDemo: true,
+  };
+}
+
 export function buildDemoOnset(
   diseaseId: string,
   name: string

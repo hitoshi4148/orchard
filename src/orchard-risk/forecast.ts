@@ -36,6 +36,7 @@ import {
 } from "./marssonina-infection";
 import {
   buildDemoOnset,
+  buildHeuristicOnsetFromInfection,
   buildAppleScabOnsetFromHourly,
   buildMarssoninaBloomUnsetOnset,
   buildMarssoninaOnsetFromSearch,
@@ -88,7 +89,8 @@ function buildOnsetRows(
   marssoninaSearch: ReturnType<typeof searchPrimaryMarssoninaInfection> | null,
   marssoninaGdd: ReturnType<typeof computeMarssoninaGddEstimate> | null,
   hourlyForOnset: import("../disease/nasa-power").HourlyWeatherRecord[],
-  onsetTargetDateTime: string
+  onsetTargetDateTime: string,
+  infectionByDiseaseId: Record<string, RiskLevel[]>
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -122,7 +124,18 @@ function buildOnsetRows(
       );
       continue;
     }
-    rows.push(buildDemoOnset(id, DISEASE_DISPLAY_NAME[id] ?? id));
+    const levels = infectionByDiseaseId[id];
+    if ((MODEL_STATUS[id] ?? "demo") === "heuristic" && levels?.length) {
+      rows.push(
+        buildHeuristicOnsetFromInfection(
+          id,
+          DISEASE_DISPLAY_NAME[id] ?? id,
+          levels
+        )
+      );
+    } else {
+      rows.push(buildDemoOnset(id, DISEASE_DISPLAY_NAME[id] ?? id));
+    }
   }
 
   return rows;
@@ -325,7 +338,8 @@ export async function fetchOrchardRiskForecast(
         forecastHourly,
         buildTargetDateTimeJst(0, 18)
       ).hourly,
-      buildTargetDateTimeJst(0, 18)
+      buildTargetDateTimeJst(0, 18),
+      infectionByDiseaseId
     ),
     modelStatusByDisease,
     demoDiseaseIds,
