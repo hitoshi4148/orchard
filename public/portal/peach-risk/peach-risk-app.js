@@ -329,7 +329,32 @@ document.addEventListener("DOMContentLoaded", () => {
     </section>`;
   }
 
+  function renderGrowthStages(state) {
+    const currentId = state.settings.growthStageId;
+    const buttons = PeachRiskModel.GROWTH_STAGES.map((stage) => {
+      const current = stage.id === currentId;
+      return `<button type="button" class="peach-risk-stage${
+        current ? " is-current" : ""
+      }" data-stage-id="${escapeHtml(stage.id)}"${
+        current ? ' aria-current="step"' : ""
+      }>${escapeHtml(stage.label)}</button>`;
+    }).join("");
+    return `<div class="peach-risk-header-stages" aria-labelledby="peach-stage-heading">
+      <h2 id="peach-stage-heading" class="peach-risk-header-stages-title">生育ステージ</h2>
+      <p class="peach-muted peach-risk-stages-lead">いまの時期に合わせて選ぶと、黒星・灰星・せん孔などの係数が変わります。選択を変えると予報を再取得します。</p>
+      <div class="peach-risk-stages" role="group" aria-label="生育ステージ">${buttons}</div>
+    </div>`;
+  }
+
   function bindInteractions() {
+    root.querySelectorAll(".peach-risk-stage").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-stage-id");
+        if (!id) return;
+        PeachRiskModel.saveGrowthStageId(id);
+        render();
+      });
+    });
     function pickDisease(id) {
       selectedDiseaseId = id;
       render();
@@ -382,10 +407,12 @@ document.addEventListener("DOMContentLoaded", () => {
               : ""
           }</span>
           <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
+          <span><strong>生育:</strong> ${escapeHtml(state.stageLabel)}</span>
           <span><strong>昨年発生:</strong> ${escapeHtml(state.priorYearLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
           <button type="button" class="peach-risk-btn" id="peach-risk-settings-btn">⚙ 設定</button>
         </div>
+        ${renderGrowthStages(state)}
       </header>
       ${renderCurrentTable(state)}
       ${renderHeatmap(state)}
@@ -427,6 +454,11 @@ document.addEventListener("DOMContentLoaded", () => {
           `<label class="peach-risk-cultivation-option"><input type="radio" name="peachCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
       )
       .join("");
+    document.getElementById("peach-growth-stage").innerHTML =
+      PeachRiskModel.GROWTH_STAGES.map(
+        (st) =>
+          `<option value="${escapeHtml(st.id)}"${st.id === s.growthStageId ? " selected" : ""}>${escapeHtml(st.label)}</option>`
+      ).join("");
     document.getElementById("peach-prior-year-radios").innerHTML = (
       PeachRiskModel.PRIOR_YEAR_STATUS || []
     )
@@ -468,7 +500,8 @@ document.addEventListener("DOMContentLoaded", () => {
       cultivationId:
         document.querySelector('input[name="peachCultivation"]:checked')?.value ||
         "unspecified",
-      growthStageId: prev.growthStageId,
+      growthStageId:
+        document.getElementById("peach-growth-stage")?.value || prev.growthStageId,
       priorYearStatusId:
         document.querySelector('input[name="peachPriorYear"]:checked')?.value ?? "",
     });

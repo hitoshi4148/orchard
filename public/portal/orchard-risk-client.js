@@ -87,7 +87,10 @@ const OrchardRiskClient = (() => {
         ...d,
         level: uiLevel,
         reason: (forecast.rationales[id] || "—").slice(0, 200),
-        stageNote: "生育ステージは設定を参照",
+        stageNote:
+          baseState.stageLabel && baseState.stageLabel !== "—"
+            ? `現在の設定: ${baseState.stageLabel}（感染モデルに反映）`
+            : "生育ステージ未設定",
         ...riskMeta[uiLevel],
       };
     });

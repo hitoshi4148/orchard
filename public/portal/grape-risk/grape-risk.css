@@ -573,3 +573,49 @@
 .orchard-disease-sample-credit a {
   color: #166534;
 }
+
+.grape-risk-header-stages {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--grape-green-border);
+}
+
+.grape-risk-header-stages-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.grape-risk-stages-lead {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+}
+
+.grape-risk-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button.grape-risk-stage {
+  flex: 1 1 88px;
+  min-width: 72px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.76rem;
+  text-align: center;
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.grape-risk-stage.is-current {
+  background: var(--grape-green-soft);
+  border-color: var(--grape-green);
+  color: #14532d;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
+}

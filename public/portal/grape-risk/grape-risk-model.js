@@ -273,6 +273,14 @@ const GrapeRiskModel = (() => {
     );
   }
 
+  function saveGrowthStageId(growthStageId) {
+    if (!GROWTH_STAGES.some((s) => s.id === growthStageId)) {
+      return;
+    }
+    const prev = loadSettings();
+    saveSettings({ ...prev, growthStageId });
+  }
+
   function saveSharedLocation(lat, lon, locationName = "") {
     if (typeof OrchardLocationCookie === "undefined") {
       return false;
@@ -397,6 +405,7 @@ const GrapeRiskModel = (() => {
     DISEASE_ORDER,
     loadSettings,
     saveSettings,
+    saveGrowthStageId,
     saveSharedLocation,
     buildViewState,
     buildViewStateLive,

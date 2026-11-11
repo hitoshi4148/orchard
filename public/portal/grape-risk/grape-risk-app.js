@@ -281,11 +281,37 @@ document.addEventListener("DOMContentLoaded", () => {
     </section>`;
   }
 
+  function renderGrowthStages(state) {
+    const currentId = state.settings.growthStageId;
+    const buttons = GrapeRiskModel.GROWTH_STAGES.map((stage) => {
+      const current = stage.id === currentId;
+      return `<button type="button" class="grape-risk-stage${
+        current ? " is-current" : ""
+      }" data-stage-id="${escapeHtml(stage.id)}"${
+        current ? ' aria-current="step"' : ""
+      }>${escapeHtml(stage.label)}</button>`;
+    }).join("");
+    return `<div class="grape-risk-header-stages" aria-labelledby="grape-stage-heading">
+      <h2 id="grape-stage-heading" class="grape-risk-header-stages-title">生育ステージ</h2>
+      <p class="grape-muted grape-risk-stages-lead">いまの時期に合わせて選ぶと、灰色かび・黒とうなどの係数が変わります。選択を変えると予報を再取得します。</p>
+      <div class="grape-risk-stages" role="group" aria-label="生育ステージ">${buttons}</div>
+    </div>`;
+  }
+
   function bindInteractions(state) {
     function pickDisease(id) {
       selectedDiseaseId = id;
       render();
     }
+
+    root.querySelectorAll(".grape-risk-stage").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-stage-id");
+        if (!id) return;
+        GrapeRiskModel.saveGrowthStageId(id);
+        render();
+      });
+    });
 
     root.querySelectorAll("[data-disease-id]").forEach((el) => {
       const id = el.getAttribute("data-disease-id");
@@ -325,9 +351,11 @@ document.addEventListener("DOMContentLoaded", () => {
               : ""
           }</span>
           <span><strong>栽培方式:</strong> ${escapeHtml(state.cultivationLabel)}</span>
+          <span><strong>生育:</strong> ${escapeHtml(state.stageLabel)}</span>
           <span><strong>更新:</strong> ${escapeHtml(state.updatedAt)}（表示時刻・JST）</span>
           <button type="button" class="grape-risk-btn" id="grape-risk-settings-btn">⚙ 設定</button>
         </div>
+        ${renderGrowthStages(state)}
       </header>
       ${renderCurrentTable(state)}
       ${renderHeatmap(state)}
@@ -366,6 +394,11 @@ document.addEventListener("DOMContentLoaded", () => {
       (opt) =>
         `<label class="grape-risk-cultivation-option"><input type="radio" name="grapeCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
     ).join("");
+    document.getElementById("grape-growth-stage").innerHTML =
+      GrapeRiskModel.GROWTH_STAGES.map(
+        (st) =>
+          `<option value="${escapeHtml(st.id)}"${st.id === s.growthStageId ? " selected" : ""}>${escapeHtml(st.label)}</option>`
+      ).join("");
     settingsModal?.classList.remove("hidden");
   }
 
@@ -396,7 +429,9 @@ document.addEventListener("DOMContentLoaded", () => {
       cultivationId:
         document.querySelector('input[name="grapeCultivation"]:checked')?.value ||
         "unspecified",
-      growthStageId: GrapeRiskModel.loadSettings().growthStageId,
+      growthStageId:
+        document.getElementById("grape-growth-stage")?.value ||
+        GrapeRiskModel.loadSettings().growthStageId,
     });
     closeGrapeSettingsModal();
     render();
