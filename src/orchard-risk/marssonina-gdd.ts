@@ -251,6 +251,54 @@ export function computeMarssoninaGddEstimate(
   };
 }
 
+/** 一次感染開始日〜対象暦日までの GDD（6日表の日別補正用） */
+export function marssoninaGddThroughDate(
+  primaryInfectionStartDate: string,
+  targetYmd: string,
+  nasaDaily: DailyWeatherRecord[],
+  forecastHourly: HourlyWeatherRecord[],
+  yesterday: string,
+  today: string = jstTodayString()
+): number | null {
+  if (targetYmd < primaryInfectionStartDate) {
+    return 0;
+  }
+  const base = MARSSONINA_GDD_BASE_C;
+  const dailyByDate = new Map<string, DailyWeatherRecord>();
+  for (const row of nasaDaily) {
+    dailyByDate.set(row.date, row);
+  }
+
+  let total = 0;
+  const measuredEnd = targetYmd <= yesterday ? targetYmd : yesterday;
+  if (primaryInfectionStartDate <= measuredEnd) {
+    for (const date of listDatesInclusive(primaryInfectionStartDate, measuredEnd)) {
+      const row = dailyByDate.get(date);
+      const temp = row?.temperature_avg;
+      if (temp == null || Number.isNaN(temp) || temp <= -900) {
+        continue;
+      }
+      total += gddForDay(temp, base);
+    }
+  }
+
+  if (targetYmd > yesterday) {
+    let d = addDaysToDateString(yesterday, 1);
+    if (d < today) {
+      d = today;
+    }
+    while (d <= targetYmd) {
+      const avg = dailyAvgFromHourly(forecastHourly, d);
+      if (avg != null) {
+        total += gddForDay(avg, base);
+      }
+      d = addDaysToDateString(d, 1);
+    }
+  }
+
+  return roundDayC(total);
+}
+
 /** 単体テスト用: 日次系列から GDD（欠測日は加算しない） */
 export function sumGddFromDailySeries(
   records: DailyWeatherRecord[],

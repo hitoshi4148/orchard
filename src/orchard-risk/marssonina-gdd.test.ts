@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
-import { computeMarssoninaGddEstimate } from "./marssonina-gdd";
+import {
+  computeMarssoninaGddEstimate,
+  marssoninaGddThroughDate,
+} from "./marssonina-gdd";
 import { MARSSONINA_GDD_THRESHOLD_DAYC } from "./marssonina-constants";
 
 function daily(date: string, avg: number): DailyWeatherRecord {
@@ -138,5 +141,32 @@ describe("marssonina-gdd P3", () => {
     );
     assert.equal(res.dataQuality, "insufficient");
     assert.match(res.predictedOnsetWindow, /予測データ不足/);
+  });
+
+  it("marssoninaGddThroughDate stops at target ymd", () => {
+    const primary = "2026-05-01";
+    const records = [
+      daily("2026-05-01", 20),
+      daily("2026-05-02", 22),
+      daily("2026-05-03", 24),
+    ];
+    const throughTwo = marssoninaGddThroughDate(
+      primary,
+      "2026-05-02",
+      records,
+      [],
+      "2026-05-03",
+      "2026-05-04"
+    );
+    const throughThree = marssoninaGddThroughDate(
+      primary,
+      "2026-05-03",
+      records,
+      [],
+      "2026-05-03",
+      "2026-05-04"
+    );
+    assert.ok(throughTwo != null && throughThree != null);
+    assert.ok(throughThree > throughTwo);
   });
 });

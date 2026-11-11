@@ -13,6 +13,8 @@ export interface MarssoninaForecastContext {
   primaryInfectionDate: string | null;
   /** 感染後〜予報末尾までの積算（日℃） */
   totalGddDayC: number | null;
+  /** 6日表用 — 対象 JST 日までの積算 GDD */
+  gddThroughTargetYmd?: (targetYmd: string) => number | null;
 }
 
 function targetDateKeyJst(targetDateTime: string): string {
@@ -96,7 +98,8 @@ export function calcMarssoninaForecastInfection(
     detail = `P2 軽微濡れ ${dayStat.wetDurationHours}h（降水 ${dayStat.precipWetHourCount}h）`;
   }
 
-  const gdd = ctx.totalGddDayC;
+  const gdd =
+    ctx.gddThroughTargetYmd?.(targetKey) ?? ctx.totalGddDayC;
   if (gdd != null && gdd >= MARSSONINA_GDD_THRESHOLD_DAYC) {
     percent = Math.min(95, percent + 12);
     detail += `。GDD ${gdd.toFixed(0)} 日℃（閾値 ${MARSSONINA_GDD_THRESHOLD_DAYC} 到達後）`;

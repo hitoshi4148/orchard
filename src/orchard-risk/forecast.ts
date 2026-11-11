@@ -29,7 +29,10 @@ import {
   calcMarssoninaForecastInfection,
   MarssoninaForecastContext,
 } from "./marssonina-forecast-risk";
-import { computeMarssoninaGddEstimate } from "./marssonina-gdd";
+import {
+  computeMarssoninaGddEstimate,
+  marssoninaGddThroughDate,
+} from "./marssonina-gdd";
 import {
   fetchMarssoninaExplorationHourly,
   resolveMarssoninaNasaWindow,
@@ -376,13 +379,22 @@ export async function fetchOrchardRiskForecast(
   const varietyFactor = getVarietyFactor(cropId, variety);
   const diseaseIds = DISEASE_IDS_BY_CROP[cropId];
 
-  const marssoninaCtx: MarssoninaForecastContext | null =
-    marssoninaSearch?.primary?.infectionDate
-      ? {
-          primaryInfectionDate: marssoninaSearch.primary.infectionDate,
-          totalGddDayC: marssoninaGdd?.totalGddThroughForecastDayC ?? null,
-        }
-      : null;
+  const marssoninaPrimary = marssoninaSearch?.primary?.infectionDate ?? null;
+  const marssoninaCtx: MarssoninaForecastContext | null = marssoninaPrimary
+    ? {
+        primaryInfectionDate: marssoninaPrimary,
+        totalGddDayC: marssoninaGdd?.totalGddThroughForecastDayC ?? null,
+        gddThroughTargetYmd: (targetYmd) =>
+          marssoninaGddThroughDate(
+            marssoninaPrimary,
+            targetYmd,
+            nasaDaily,
+            forecastHourly,
+            endDate,
+            today
+          ),
+      }
+    : null;
 
   const ascosporePoolInitialPercent =
     cropId === "apple"

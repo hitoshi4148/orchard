@@ -11,13 +11,15 @@ import {
   type OrchardRiskFetchOptions,
 } from "../src/orchard-risk/forecast";
 import { parseGymnosporangiumHostNearby } from "../src/orchard-risk/parse-gymnosporangium-host";
+import { parseScabInoculumLevel } from "../src/orchard-risk/parse-ascospore-inoculum";
 import { DISEASE_DISPLAY_NAME } from "../src/orchard-risk/catalog";
 import type { OrchardCropId } from "../src/orchard-risk/types";
 
 function usage(): never {
   console.error(`Usage: orchard-risk-cli --lat <num> --lon <num> [--crop apple|nashi] [--variety 名]
        [--growth_stage youngfruit] [--bloom YYYY-MM-DD] [--green-tip YYYY-MM-DD]
-       [--gymnosporangium-host 0|1] [--no-marssonina-onset] [--out path.json] [--quiet]`);
+       [--gymnosporangium-host 0|1] [--scab-inoculum low|normal|high]
+       [--no-marssonina-onset] [--out path.json] [--quiet]`);
   process.exit(1);
 }
 
@@ -63,6 +65,12 @@ async function main() {
   if (crop === "nashi" && gymnoHost != null) {
     options.gymnosporangiumHostNearby = gymnoHost;
   }
+  if (crop === "apple") {
+    const inoculumArg = arg("scab-inoculum");
+    if (inoculumArg) {
+      options.scabInoculumLevel = parseScabInoculumLevel(inoculumArg);
+    }
+  }
 
   const forecast = await fetchOrchardRiskForecast(
     lat,
@@ -86,6 +94,12 @@ async function main() {
 
   console.log(`${forecast.dataSourceLabel}`);
   console.log(`更新: ${forecast.updatedAt}  品種: ${forecast.variety} (×${forecast.varietyFactor})`);
+  if (forecast.ascosporePool) {
+    const p = forecast.ascosporePool;
+    console.log(
+      `升孢子プール: 残 ${p.remainingPercent}%（初期 ${p.initialPoolPercent}%・基準日 ${p.date}）`
+    );
+  }
   console.log("--- 発病予測（onset）---");
   for (const row of forecast.onset) {
     const name = DISEASE_DISPLAY_NAME[row.diseaseId] ?? row.diseaseId;
