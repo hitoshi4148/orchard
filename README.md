@@ -373,7 +373,7 @@ Wrangler CLI から Git 連携はできないため、Cloudflare ダッシュボ
 
 fork 元の [tool-portal](https://github.com/hitoshi4148/tool-portal) は別 Pages プロジェクト（`tool-portal-9y2.pages.dev`）および `turf-tools.jp/portal/` で稼働しています。本リポジトリ `orchard` とは別管理です。
 
-**境界の仕組み:** `workers/turf-tools-router/routing-policy.ts` + `npm run test:turf-router`。詳細は [docs/orchard-vs-turf-portal.md](docs/orchard-vs-turf-portal.md)。
+**境界の仕組み:** ルーターは [tool-portal](https://github.com/hitoshi4148/tool-portal) リポ。詳細は [docs/orchard-vs-turf-portal.md](docs/orchard-vs-turf-portal.md)。
 
 ## 外部 API の利用方針
 

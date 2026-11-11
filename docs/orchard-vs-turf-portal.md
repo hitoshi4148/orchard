@@ -15,18 +15,18 @@
 
 1. **果樹の実装**は `src/orchard-risk/`・`functions/portal/api/orchard-risk.ts`・`public/portal/risk/apple-*`・`public/portal/lab/` など。
 2. **`public/portal/risk/app.js`（Leaflet 芝地図）** は fork 残置。**index.html は果樹用に差し替え済み** — 芝地図の改修は tool-portal 側で行う。
-3. **`workers/turf-tools-router/`** は turf-tools.jp 用。**果樹機能のコアロジックを置かない**。振り分けは `routing-policy.ts` のみ。
+3. **`turf-tools-router`** は **[tool-portal](https://github.com/hitoshi4148/tool-portal)** リポのみ（`workers/turf-tools-router/`）。**orchard リポに Worker ソースは置かない**。
 4. **デプロイ**
    - 果樹: `npm run pages:deploy` → orchard Pages
-   - 芝ドメインのプロキシ: `npm run deploy:turf-router` → Worker `turf-tools-router`
+   - 芝ドメインのプロキシ: tool-portal で `npm run deploy:router`
 5. **リンク**
    - Lab のりんご・なし病害 → `https://orchard-aa7.pages.dev/portal/risk/`（絶対 URL）
    - turf-tools 上で果樹 UI を `/portal/risk/` に載せない
 
 ## 回帰防止
 
-- `npm run test:turf-router` … `/portal/risk` が orchard に向かないことを単体テスト
-- Cursor ルール `.cursor/rules/orchard-vs-turf.mdc`
+- tool-portal: `npm run test:router` … `/portal/risk` が orchard に向かないことを単体テスト
+- Cursor ルール `.cursor/rules/orchard-vs-turf.mdc`（orchard リポ）
 
 ## トラブル時の確認
 
