@@ -10,6 +10,7 @@ const OrchardRiskModel = (() => {
   const STORAGE_BLOOM_START_APPLE = "orchardRiskBloomStart:apple";
   const STORAGE_GREEN_TIP_APPLE = "orchardRiskGreenTip:apple";
   const STORAGE_GYMNOS_HOST_NASHI = "orchardRiskGymnosporangiumHost:nashi";
+  const STORAGE_SCAB_INOCULUM_APPLE = "orchardRiskScabInoculum:apple";
   const STORAGE_POME_SETTINGS = "orchardRiskPomeSettings";
   const LEGACY_STAGE_KEY = "appleRiskGrowthStage";
   const LEGACY_LOCATION_KEY = "appleRiskLocation";
@@ -103,7 +104,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills × 升孢子（GDD・降水放出・枯渇プール）+ 分生胞子。MacHardy/RIMpro 系",
+        note: "Mills × 升孢子（GDD・降水放出・枯渇プール）+ 分生胞子。残病葉量は下の設定で初期プールを変更",
       },
     },
     "apple:marssonina": {
@@ -525,6 +526,20 @@ const OrchardRiskModel = (() => {
     return null;
   }
 
+  function loadScabInoculumApple() {
+    const raw = localStorage.getItem(STORAGE_SCAB_INOCULUM_APPLE);
+    if (raw === "low" || raw === "high") return raw;
+    return "normal";
+  }
+
+  function saveScabInoculumApple(level) {
+    if (level === "low" || level === "high" || level === "normal") {
+      localStorage.setItem(STORAGE_SCAB_INOCULUM_APPLE, level);
+      return;
+    }
+    localStorage.removeItem(STORAGE_SCAB_INOCULUM_APPLE);
+  }
+
   function saveGymnosporangiumHostNashi(value) {
     if (value === true || value === "1") {
       localStorage.setItem(STORAGE_GYMNOS_HOST_NASHI, "1");
@@ -875,6 +890,10 @@ const OrchardRiskModel = (() => {
         baseDashboard.cropId === "apple"
           ? (forecast.greenTipDate ?? (loadGreenTipApple() || null))
           : null,
+      scabInoculumApple:
+        baseDashboard.cropId === "apple"
+          ? (forecast.scabInoculumLevel ?? loadScabInoculumApple())
+          : null,
       gymnosporangiumHostNearby:
         baseDashboard.cropId === "nashi"
           ? (forecast.gymnosporangiumHostNearby ??
@@ -948,6 +967,10 @@ const OrchardRiskModel = (() => {
       const greenTip = loadGreenTipApple();
       if (greenTip) {
         params.set("green_tip", greenTip);
+      }
+      const inoculum = loadScabInoculumApple();
+      if (inoculum && inoculum !== "normal") {
+        params.set("scab_inoculum", inoculum);
       }
     }
     if (cropId === "nashi") {
@@ -1063,6 +1086,7 @@ const OrchardRiskModel = (() => {
       variety: loadVariety(cropId),
       bloomStartApple: cropId === "apple" ? loadBloomStartApple() || null : null,
       greenTipApple: cropId === "apple" ? loadGreenTipApple() || null : null,
+      scabInoculumApple: cropId === "apple" ? loadScabInoculumApple() : null,
       gymnosporangiumHostNearby:
         cropId === "nashi" ? loadGymnosporangiumHostNashi() : null,
       varieties: crop.varieties,
@@ -1105,6 +1129,8 @@ const OrchardRiskModel = (() => {
     saveBloomStartApple,
     loadGreenTipApple,
     saveGreenTipApple,
+    loadScabInoculumApple,
+    saveScabInoculumApple,
     loadGymnosporangiumHostNashi,
     saveGymnosporangiumHostNashi,
     syncBloomStartFromPortalIfEmpty,

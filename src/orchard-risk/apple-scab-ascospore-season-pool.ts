@@ -15,7 +15,14 @@ import {
   ascosporeDiurnalDischargeFactor,
 } from "./apple-scab-ascospore-rain-release";
 
+/** 標準圃場の升孢子枯渇プール初期値（%） */
 export const ASCOSPORE_SEASON_INITIAL_POOL = 100;
+
+/** MacHardy/RIMpro 系 — 1 降雨イベントあたりの基準放出割合（群馬ゴールデン調整用） */
+export const ASCOSPORE_RELEASE_FRACTION_BASE = 0.14;
+
+/** 成熟升孢子がこれ未満なら降雨放出なし */
+export const ASCOSPORE_MATURITY_MIN_FOR_RELEASE = 8;
 
 export interface AscosporePoolSnapshot {
   date: string;
@@ -46,12 +53,12 @@ function releaseFractionForRainPeriod(
   maturityPercent: number,
   diurnal: number
 ): number {
-  if (maturityPercent < 8) {
+  if (maturityPercent < ASCOSPORE_MATURITY_MIN_FOR_RELEASE) {
     return 0;
   }
   const wetness = Math.min(1.6, durationHours / 6);
   const maturity = Math.min(1, maturityPercent / 100);
-  return 0.14 * wetness * maturity * diurnal;
+  return ASCOSPORE_RELEASE_FRACTION_BASE * wetness * maturity * diurnal;
 }
 
 /**
@@ -61,7 +68,8 @@ export function buildAscosporePoolSnapshots(
   biofixDate: string,
   biofixSource: AppleScabBiofixSource,
   measuredDaily: DailyWeatherRecord[],
-  hourly: HourlyWeatherRecord[]
+  hourly: HourlyWeatherRecord[],
+  initialPoolPercent: number = ASCOSPORE_SEASON_INITIAL_POOL
 ): Map<string, AscosporePoolSnapshot> {
   const sorted = [...hourly].sort(
     (a, b) =>
@@ -73,7 +81,8 @@ export function buildAscosporePoolSnapshots(
   }
 
   const periods = findWetPeriods(inSeason).filter(periodHasRain);
-  let remaining = ASCOSPORE_SEASON_INITIAL_POOL;
+  const poolCap = Math.max(0, initialPoolPercent);
+  let remaining = poolCap;
   let cumulativeReleased = 0;
   let eventCount = 0;
 
@@ -118,10 +127,7 @@ export function buildAscosporePoolSnapshots(
     if (frac > 0 && remaining > 0) {
       const released = remaining * frac;
       remaining = Math.max(0, remaining - released);
-      cumulativeReleased = Math.min(
-        ASCOSPORE_SEASON_INITIAL_POOL,
-        cumulativeReleased + released
-      );
+      cumulativeReleased = Math.min(poolCap, cumulativeReleased + released);
       eventCount += 1;
     }
 

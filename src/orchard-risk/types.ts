@@ -1,3 +1,5 @@
+import type { ScabInoculumLevel } from "./parse-ascospore-inoculum";
+
 export type OrchardCropId = "apple" | "nashi";
 
 export type RiskLevel = "low" | "caution" | "high";
@@ -108,6 +110,8 @@ export interface OrchardRiskForecast {
   bloomStart: string | null;
   /** 緑期日（green tip・りんご黒星升孢子 GDD）。未設定時は季節窓代理 */
   greenTipDate: string | null;
+  /** りんご黒星 — 残病葉量（枯渇プール初期）。なし作物は null */
+  scabInoculumLevel: ScabInoculumLevel | null;
   /** なし赤星 — 中間宿主（ビャクシン類）の圃場近傍。未設定は null */
   gymnosporangiumHostNearby: boolean | null;
   weather5d: OrchardDailyWeather[];

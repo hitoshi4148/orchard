@@ -1,5 +1,6 @@
 import { fetchOrchardRiskForecast } from "../../../src/orchard-risk/forecast";
 import { parseGymnosporangiumHostNearby } from "../../../src/orchard-risk/parse-gymnosporangium-host";
+import { parseScabInoculumLevel } from "../../../src/orchard-risk/parse-ascospore-inoculum";
 import { parseOrchardCalendarDate } from "../../../src/orchard-risk/parse-orchard-date";
 import { OrchardCropId } from "../../../src/orchard-risk/types";
 
@@ -25,6 +26,9 @@ export const onRequestGet: PagesFunction = async (context) => {
     const gymnosporangiumHostNearby = parseGymnosporangiumHostNearby(
       url.searchParams.get("gymnosporangium_host")
     );
+    const scabInoculumLevel = parseScabInoculumLevel(
+      url.searchParams.get("scab_inoculum")
+    );
 
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return Response.json(
@@ -46,6 +50,7 @@ export const onRequestGet: PagesFunction = async (context) => {
       {
         includeMarssoninaOnset,
         greenTipDate: crop === "apple" ? greenTipDate : null,
+        scabInoculumLevel: crop === "apple" ? scabInoculumLevel : null,
         gymnosporangiumHostNearby:
           crop === "nashi" ? gymnosporangiumHostNearby : null,
       }

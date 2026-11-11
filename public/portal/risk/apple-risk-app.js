@@ -297,6 +297,29 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>`;
   }
 
+  function renderScabInoculumField(dashboard) {
+    if (dashboard.cropId !== "apple") return "";
+    const level = dashboard.scabInoculumApple || Model.loadScabInoculumApple();
+    return `<fieldset class="apple-risk-bloom-field apple-risk-host-fieldset">
+        <legend class="apple-risk-bloom-label">黒星病 — 圃場残病葉（升孢子プール初期）</legend>
+        <div class="apple-risk-host-options" role="radiogroup" aria-label="残病葉量">
+          <label class="apple-risk-host-option">
+            <input type="radio" name="apple-risk-scab-inoculum" value="low" ${level === "low" ? "checked" : ""}>
+            少ない（落下葉処理良好・60%）
+          </label>
+          <label class="apple-risk-host-option">
+            <input type="radio" name="apple-risk-scab-inoculum" value="normal" ${level === "normal" ? "checked" : ""}>
+            標準（100%）
+          </label>
+          <label class="apple-risk-host-option">
+            <input type="radio" name="apple-risk-scab-inoculum" value="high" ${level === "high" ? "checked" : ""}>
+            多い（前作事象あり・130%）
+          </label>
+        </div>
+        <p class="apple-risk-wet-est apple-risk-bloom-help">シーズン枯渇プールの初期値を変えます。簡易設定であり、樹冠残病率の詳細モデルではありません。</p>
+      </fieldset>`;
+  }
+
   function renderBloomStartField(dashboard) {
     if (dashboard.cropId !== "apple") return "";
     const bloom = dashboard.bloomStartApple || Model.loadBloomStartApple() || "";
@@ -308,6 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
         <p class="apple-risk-wet-est apple-risk-bloom-help">Green tip（緑期）が確認された日＝升孢子 GDD の積算起算日です。Cookie <code>agromap_apple_green_tip_date</code> を未入力時に取り込みます（TOP の GDD 設定とは別）。群馬地点で未入力なら目安 3/25。</p>
       </div>
+      ${renderScabInoculumField(dashboard)}
       <div class="apple-risk-bloom-field">
         <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（褐斑一次感染の起点）</label>
         <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(bloom)}">
@@ -469,6 +493,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (v === "1") Model.saveGymnosporangiumHostNashi(true);
         else if (v === "0") Model.saveGymnosporangiumHostNashi(false);
         else Model.saveGymnosporangiumHostNashi(null);
+        refreshDashboard(dashboard.cropId);
+      });
+    });
+    root.querySelectorAll('input[name="apple-risk-scab-inoculum"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        if (!input.checked) return;
+        Model.saveScabInoculumApple(input.value);
         refreshDashboard(dashboard.cropId);
       });
     });

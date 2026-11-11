@@ -53,6 +53,10 @@ import { calcOrchardHeuristicDisease } from "./heuristic-disease";
 import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
 import { buildAscosporePoolSnapshots } from "./apple-scab-ascospore-season-pool";
 import { getAppleScabSeasonWindow } from "./apple-scab-season";
+import {
+  scabInoculumInitialPoolPercent,
+  type ScabInoculumLevel,
+} from "./parse-ascospore-inoculum";
 
 export interface OrchardRiskFetchOptions {
   /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
@@ -61,6 +65,8 @@ export interface OrchardRiskFetchOptions {
   greenTipDate?: string | null;
   /** なし赤星 — 中間宿主（ビャクシン類）が圃場近傍にあるか */
   gymnosporangiumHostNearby?: boolean | null;
+  /** りんご黒星 — 圃場残病葉量（枯渇プール初期値） */
+  scabInoculumLevel?: ScabInoculumLevel | null;
 }
 
 function calculateForDisease(
@@ -188,6 +194,10 @@ export async function fetchOrchardRiskForecast(
   const greenTipDate = options.greenTipDate ?? null;
   const gymnosporangiumHostNearby =
     options.gymnosporangiumHostNearby ?? null;
+  const scabInoculumLevel =
+    cropId === "apple"
+      ? (options.scabInoculumLevel ?? "normal")
+      : null;
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
@@ -274,7 +284,10 @@ export async function fetchOrchardRiskForecast(
           appleScabBiofixForPool.date,
           appleScabBiofixForPool.source,
           appleScabGddDaily,
-          [...(appleScabSeasonHourly ?? []), ...forecastHourly]
+          [...(appleScabSeasonHourly ?? []), ...forecastHourly],
+          scabInoculumInitialPoolPercent(
+            scabInoculumLevel ?? "normal"
+          )
         )
       : null;
 
@@ -423,6 +436,8 @@ export async function fetchOrchardRiskForecast(
     growthStageId,
     bloomStart: cropId === "apple" ? bloomStart : null,
     greenTipDate: cropId === "apple" ? greenTipDate : null,
+    scabInoculumLevel:
+      cropId === "apple" ? (scabInoculumLevel ?? "normal") : null,
     gymnosporangiumHostNearby:
       cropId === "nashi" ? gymnosporangiumHostNearby : null,
     weather5d,

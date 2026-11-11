@@ -19,6 +19,12 @@ import {
 import { fetchOrchardRiskForecast } from "../src/orchard-risk/forecast";
 import { jstTodayString, addDaysToDateString } from "../src/disease/met-norway-forecast";
 import {
+  ascosporePoolAtDate,
+  buildAscosporePoolSnapshots,
+} from "../src/orchard-risk/apple-scab-ascospore-season-pool";
+import {
+  APPLE_SCAB_POOL_GOLDEN_EXPECTATIONS,
+  APPLE_SCAB_POOL_GOLDEN_WINDOW,
   MARSSONINA_GOLDEN_EXPECTATIONS,
   MARSSONINA_GOLDEN_WINDOW,
   VALIDATION_SITES,
@@ -114,6 +120,61 @@ async function marssoninaGoldenForSite(site: (typeof VALIDATION_SITES)[0]) {
   };
 }
 
+async function appleScabPoolGoldenForSite(site: (typeof VALIDATION_SITES)[0]) {
+  const { greenTip, seasonEnd } = APPLE_SCAB_POOL_GOLDEN_WINDOW;
+  const expectedList = APPLE_SCAB_POOL_GOLDEN_EXPECTATIONS[site.id];
+  if (!expectedList?.length) {
+    return {
+      siteId: site.id,
+      label: site.label,
+      skipped: true,
+      checks: { pass: true },
+    };
+  }
+
+  const [daily, hourly] = await Promise.all([
+    fetchNasaPowerDaily(site.lat, site.lon, greenTip, seasonEnd),
+    fetchNasaPowerHourly(site.lat, site.lon, greenTip, seasonEnd, {
+      timeStandard: "LST",
+    }),
+  ]);
+  const snaps = buildAscosporePoolSnapshots(
+    greenTip,
+    "green_tip",
+    daily,
+    hourly
+  );
+
+  const rows = expectedList.map((expected) => {
+    const snap = ascosporePoolAtDate(
+      snaps,
+      `${expected.queryDate}T18:00:00+09:00`
+    );
+    const ok =
+      snap != null &&
+      snap.remainingPercent === expected.remainingPercent &&
+      snap.cumulativeReleasedPercent === expected.cumulativeReleasedPercent &&
+      snap.rainEventsProcessed === expected.rainEventsProcessed &&
+      (!expected.snapDate || snap.date === expected.snapDate);
+    return {
+      queryDate: expected.queryDate,
+      expected,
+      actual: snap,
+      pass: ok,
+    };
+  });
+
+  return {
+    siteId: site.id,
+    label: site.label,
+    skipped: false,
+    greenTip,
+    seasonEnd,
+    rows,
+    checks: { pass: rows.every((r) => r.pass) },
+  };
+}
+
 async function liveApiSnapshot(site: (typeof VALIDATION_SITES)[0]) {
   const bloom = MARSSONINA_GOLDEN_WINDOW.bloomStart;
   const t0 = Date.now();
@@ -205,6 +266,30 @@ function renderMarkdown(report: Record<string, unknown>): string {
     ""
   );
 
+  const ascosporePool = report.ascosporePoolGolden as Record<string, unknown>[];
+  if (ascosporePool?.length) {
+    lines.push(
+      "## りんご黒星・升孢子プール（固定窓）",
+      "",
+      `- 緑期日: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.greenTip}`,
+      `- 終了: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.seasonEnd}`,
+      ""
+    );
+    let poolPass = true;
+    for (const row of ascosporePool) {
+      if (row.skipped) continue;
+      poolPass &&= (row.checks as { pass: boolean }).pass;
+      lines.push(`### ${row.label} (${row.siteId})`, "");
+      for (const cp of row.rows as { queryDate: string; pass: boolean; expected: { remainingPercent: number }; actual: { remainingPercent: number } | null }[]) {
+        lines.push(
+          `- ${cp.queryDate}: 残 ${cp.actual?.remainingPercent ?? "—"}% (期待 ${cp.expected.remainingPercent}%) — ${cp.pass ? "✓" : "✗"}`
+        );
+      }
+      lines.push("");
+    }
+    lines.push(`**升孢子プール総合: ${poolPass ? "PASS" : "FAIL"}**`, "");
+  }
+
   if (report.liveApi) {
     lines.push("## ライブ API スナップショット（`fetchOrchardRiskForecast`）", "");
     for (const snap of report.liveApi as Record<string, unknown>[]) {
@@ -235,8 +320,12 @@ async function main() {
   const unit = runUnitTests();
 
   const golden: Awaited<ReturnType<typeof marssoninaGoldenForSite>>[] = [];
+  const ascosporePoolGolden: Awaited<
+    ReturnType<typeof appleScabPoolGoldenForSite>
+  >[] = [];
   for (const site of VALIDATION_SITES) {
     golden.push(await marssoninaGoldenForSite(site));
+    ascosporePoolGolden.push(await appleScabPoolGoldenForSite(site));
   }
 
   let liveApi: Awaited<ReturnType<typeof liveApiSnapshot>>[] | null = null;
@@ -254,6 +343,7 @@ async function main() {
     unitTestsOk: unit.ok,
     unitTestsSummary: unit.summary,
     golden,
+    ascosporePoolGolden,
     liveApi,
   };
 
@@ -265,13 +355,14 @@ async function main() {
   writeFileSync(mdPath, renderMarkdown(report), "utf8");
 
   const goldenPass = golden.every((g) => g.checks.pass);
+  const poolPass = ascosporePoolGolden.every((g) => g.checks.pass);
   console.log(renderMarkdown(report));
   console.log(`\nWrote:\n  ${jsonPath}\n  ${mdPath}`);
   console.log(
-    `\nSummary: unit=${unit.ok ? "PASS" : "FAIL"} golden=${goldenPass ? "PASS" : "FAIL"}`
+    `\nSummary: unit=${unit.ok ? "PASS" : "FAIL"} marssonina=${goldenPass ? "PASS" : "FAIL"} ascosporePool=${poolPass ? "PASS" : "FAIL"}`
   );
 
-  if (!unit.ok || !goldenPass) {
+  if (!unit.ok || !goldenPass || !poolPass) {
     process.exit(1);
   }
 }
