@@ -8,6 +8,7 @@ const OrchardRiskModel = (() => {
   const STORAGE_VARIETY_PREFIX = "orchardRiskVariety:";
   const STORAGE_STAGE_PREFIX = "orchardRiskStage:";
   const STORAGE_BLOOM_START_APPLE = "orchardRiskBloomStart:apple";
+  const STORAGE_GREEN_TIP_APPLE = "orchardRiskGreenTip:apple";
   const STORAGE_POME_SETTINGS = "orchardRiskPomeSettings";
   const LEGACY_STAGE_KEY = "appleRiskGrowthStage";
   const LEGACY_LOCATION_KEY = "appleRiskLocation";
@@ -101,7 +102,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills × MacHardy 系升孢子 GDD（0℃・緑弁＝季節窓開始代用）。群馬専用暦日",
+        note: "Mills × MacHardy 系升孢子 GDD（0℃）。緑弁日入力でバイオフィックスを指定",
       },
     },
     "apple:marssonina": {
@@ -470,11 +471,42 @@ const OrchardRiskModel = (() => {
     return `${y}-04-22`;
   }
 
+  function gunmaTypicalGreenTipIso(year) {
+    const y = Number(year);
+    if (!Number.isFinite(y) || y < 2000) return "";
+    return `${y}-03-25`;
+  }
+
   function suggestBloomStartIfEmpty(lat, lon) {
     if (loadBloomStartApple()) return;
     if (!isGunmaOrchardLatLon(lat, lon)) return;
     const y = new Date().getFullYear();
     saveBloomStartApple(gunmaTypicalBloomStartIso(y));
+  }
+
+  function suggestGreenTipIfEmpty(lat, lon) {
+    if (loadGreenTipApple()) return;
+    if (!isGunmaOrchardLatLon(lat, lon)) return;
+    const y = new Date().getFullYear();
+    saveGreenTipApple(gunmaTypicalGreenTipIso(y));
+  }
+
+  function loadGreenTipApple() {
+    const raw = localStorage.getItem(STORAGE_GREEN_TIP_APPLE);
+    if (!raw) return "";
+    const trimmed = String(raw).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : "";
+  }
+
+  function saveGreenTipApple(dateStr) {
+    const trimmed = String(dateStr || "").trim();
+    if (!trimmed) {
+      localStorage.removeItem(STORAGE_GREEN_TIP_APPLE);
+      return;
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      localStorage.setItem(STORAGE_GREEN_TIP_APPLE, trimmed);
+    }
   }
 
   function migrateLegacyStorage() {
@@ -789,6 +821,10 @@ const OrchardRiskModel = (() => {
         baseDashboard.cropId === "apple"
           ? (forecast.bloomStart ?? (loadBloomStartApple() || null))
           : null,
+      greenTipApple:
+        baseDashboard.cropId === "apple"
+          ? (forecast.greenTipDate ?? (loadGreenTipApple() || null))
+          : null,
       dataSource: "live",
       dataSourceLabel: forecast.dataSourceLabel || baseDashboard.dataSourceLabel,
       updatedAt: forecast.updatedAt || baseDashboard.updatedAt,
@@ -834,6 +870,7 @@ const OrchardRiskModel = (() => {
     const loc = loadLocation();
     if (cropId === "apple") {
       suggestBloomStartIfEmpty(loc.lat, loc.lon);
+      suggestGreenTipIfEmpty(loc.lat, loc.lon);
     }
     const lat = parseFloat(String(loc.lat));
     const lon = parseFloat(String(loc.lon));
@@ -851,6 +888,10 @@ const OrchardRiskModel = (() => {
       const bloom = loadBloomStartApple();
       if (bloom) {
         params.set("bloom_start", bloom);
+      }
+      const greenTip = loadGreenTipApple();
+      if (greenTip) {
+        params.set("green_tip", greenTip);
       }
     }
     if (options.marssoninaOnset === false) {
@@ -957,6 +998,7 @@ const OrchardRiskModel = (() => {
       cropLabel: crop.label,
       variety: loadVariety(cropId),
       bloomStartApple: cropId === "apple" ? loadBloomStartApple() || null : null,
+      greenTipApple: cropId === "apple" ? loadGreenTipApple() || null : null,
       varieties: crop.varieties,
       dataSource: "demo",
       dataSourceLabel: `デモ表示（${crop.label}・気象 API 未接続）`,
@@ -995,6 +1037,8 @@ const OrchardRiskModel = (() => {
     saveGrowthStageId,
     loadBloomStartApple,
     saveBloomStartApple,
+    loadGreenTipApple,
+    saveGreenTipApple,
     syncBloomStartFromPortalIfEmpty,
     suggestBloomStartIfEmpty,
     GUNMA_LOCATION_PRESETS,

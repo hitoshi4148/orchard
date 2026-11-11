@@ -15,7 +15,7 @@ import type { OrchardCropId } from "../src/orchard-risk/types";
 
 function usage(): never {
   console.error(`Usage: orchard-risk-cli --lat <num> --lon <num> [--crop apple|nashi] [--variety 名]
-       [--growth_stage youngfruit] [--bloom YYYY-MM-DD] [--no-marssonina-onset] [--out path.json] [--quiet]`);
+       [--growth_stage youngfruit] [--bloom YYYY-MM-DD] [--green-tip YYYY-MM-DD] [--no-marssonina-onset] [--out path.json] [--quiet]`);
   process.exit(1);
 }
 
@@ -40,14 +40,22 @@ async function main() {
     (crop === "nashi" ? "幸水" : "ふじ");
   const growthStage = arg("growth_stage")?.trim() || "youngfruit";
   const bloom = arg("bloom")?.trim() || null;
+  const greenTip = arg("green-tip")?.trim() || null;
   if (crop === "apple" && bloom && !/^\d{4}-\d{2}-\d{2}$/.test(bloom)) {
     console.error("Invalid --bloom (YYYY-MM-DD)");
+    process.exit(1);
+  }
+  if (crop === "apple" && greenTip && !/^\d{4}-\d{2}-\d{2}$/.test(greenTip)) {
+    console.error("Invalid --green-tip (YYYY-MM-DD)");
     process.exit(1);
   }
 
   const options: OrchardRiskFetchOptions = {};
   if (hasFlag("no-marssonina-onset")) {
     options.includeMarssoninaOnset = false;
+  }
+  if (crop === "apple" && greenTip) {
+    options.greenTipDate = greenTip;
   }
 
   const forecast = await fetchOrchardRiskForecast(

@@ -271,11 +271,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderBloomStartField(dashboard) {
     if (dashboard.cropId !== "apple") return "";
-    const value = dashboard.bloomStartApple || Model.loadBloomStartApple() || "";
-    return `<div class="apple-risk-bloom-field">
-      <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（一次感染推定の起点）</label>
-      <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(value)}">
-      <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）モデルは開花始期以降が対象です。群馬のふじは例年4月下旬（目安 4/20〜25）。未入力で群馬地点のときは暦日 4/22 を自動セットします。</p>
+    const bloom = dashboard.bloomStartApple || Model.loadBloomStartApple() || "";
+    const greenTip =
+      dashboard.greenTipApple || Model.loadGreenTipApple() || "";
+    return `<div class="apple-risk-phenology-fields">
+      <div class="apple-risk-bloom-field">
+        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">緑弁日（黒星・升孢子 GDD 起点）</label>
+        <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
+        <p class="apple-risk-wet-est apple-risk-bloom-help">MacHardy 系升孢子成熟の積算起算日です。未入力時は季節窓開始（群馬は 4/1）を代用。群馬地点で空欄のときは目安 3/25 を自動セットします。</p>
+      </div>
+      <div class="apple-risk-bloom-field">
+        <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（褐斑一次感染の起点）</label>
+        <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(bloom)}">
+        <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）褐斑モデル用。群馬のふじは例年4月下旬（4/20〜25）。未入力で群馬地点のときは 4/22 を自動セットします。</p>
+      </div>
     </div>`;
   }
 
@@ -414,6 +423,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const bloomInput = document.getElementById("apple-risk-bloom-start");
     bloomInput?.addEventListener("change", () => {
       Model.saveBloomStartApple(bloomInput.value);
+      refreshDashboard(dashboard.cropId);
+    });
+    const greenTipInput = document.getElementById("apple-risk-green-tip");
+    greenTipInput?.addEventListener("change", () => {
+      Model.saveGreenTipApple(greenTipInput.value);
       refreshDashboard(dashboard.cropId);
     });
   }

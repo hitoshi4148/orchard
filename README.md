@@ -439,7 +439,10 @@ npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検�
 
 `orchard-risk:fetch` は API と同じ `fetchOrchardRiskForecast` を Node から呼びます。`--out file.json` で UI 確認用のスナップショットを保存できます。
 
-**主な利用地域は群馬県**（標準地点: 前橋 36.39/139.06）。検証ゴールデンは前橋・高崎・渋川・沼田＋弘前参照。開花始期はリスク画面の日付入力、果樹園しごと満開 Cookie、または群馬地点で未入力時の暦日目安（4/22）から取り込みます。
+**主な利用地域は群馬県**（標準地点: 前橋 36.39/139.06）。検証ゴールデンは前橋・高崎・渋川・沼田＋弘前参照。
+
+- **緑弁日**（`green_tip`）: 黒星・升孢子 GDD の起点。UI / `GET /portal/api/orchard-risk?green_tip=YYYY-MM-DD`
+- **開花始期**（`bloom_start`）: 褐斑一次感染の起点。満開 Cookie または群馬目安（4/22）
 
 ## プロジェクト構成
 

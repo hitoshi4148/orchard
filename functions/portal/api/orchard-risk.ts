@@ -1,29 +1,9 @@
 import { fetchOrchardRiskForecast } from "../../../src/orchard-risk/forecast";
+import { parseOrchardCalendarDate } from "../../../src/orchard-risk/parse-orchard-date";
 import { OrchardCropId } from "../../../src/orchard-risk/types";
 
 function parseCrop(value: string | null): OrchardCropId {
   return value === "nashi" ? "nashi" : "apple";
-}
-
-/** YYYY-MM-DD のみ受理 */
-function parseBloomStart(value: string | null): string | null {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return null;
-  }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    return null;
-  }
-  const [y, m, d] = trimmed.split("-").map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  if (
-    date.getUTCFullYear() !== y ||
-    date.getUTCMonth() !== m - 1 ||
-    date.getUTCDate() !== d
-  ) {
-    return null;
-  }
-  return trimmed;
 }
 
 export const onRequestGet: PagesFunction = async (context) => {
@@ -35,7 +15,12 @@ export const onRequestGet: PagesFunction = async (context) => {
     const variety = url.searchParams.get("variety")?.trim() || "";
     const growthStage =
       url.searchParams.get("growth_stage")?.trim() || "youngfruit";
-    const bloomStart = parseBloomStart(url.searchParams.get("bloom_start"));
+    const bloomStart = parseOrchardCalendarDate(
+      url.searchParams.get("bloom_start")
+    );
+    const greenTipDate = parseOrchardCalendarDate(
+      url.searchParams.get("green_tip")
+    );
 
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return Response.json(
@@ -54,7 +39,10 @@ export const onRequestGet: PagesFunction = async (context) => {
       variety || (crop === "nashi" ? "幸水" : "ふじ"),
       growthStage,
       crop === "apple" ? bloomStart : null,
-      { includeMarssoninaOnset }
+      {
+        includeMarssoninaOnset,
+        greenTipDate: crop === "apple" ? greenTipDate : null,
+      }
     );
 
     return Response.json({

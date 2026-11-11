@@ -13,8 +13,11 @@ export const APPLE_SCAB_ASCOSPORE_GDD_BASE_C = 0;
 /** 文献上 98% 成熟付近の目安（緑弁起算・基準 0℃） */
 export const APPLE_SCAB_ASCOSPORE_DEPLETION_GDD = 600;
 
+export type AppleScabBiofixSource = "green_tip" | "season_window_proxy";
+
 export interface AppleScabAscosporeMaturity {
   biofixDate: string;
+  biofixSource: AppleScabBiofixSource;
   targetDate: string;
   gddDayC: number;
   maturityPercent: number;
@@ -35,15 +38,32 @@ function jstYearFromIso(isoDateTime: string): number {
   return Number(ymd.slice(0, 4));
 }
 
-/** 季節窓の暦日を当年のバイオフィックス（緑弁未入力時の代理）にする */
+export function resolveAppleScabBiofix(
+  lat: number,
+  lon: number | undefined,
+  targetDateTime: string,
+  greenTipDate?: string | null
+): { date: string; source: AppleScabBiofixSource } {
+  const trimmed = greenTipDate?.trim();
+  if (trimmed && /^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return { date: trimmed, source: "green_tip" };
+  }
+  const window = getAppleScabSeasonWindow(lat, lon);
+  const year = jstYearFromIso(targetDateTime);
+  return {
+    date: `${year}-${window.start}`,
+    source: "season_window_proxy",
+  };
+}
+
+/** @deprecated resolveAppleScabBiofix を使用 */
 export function resolveAppleScabBiofixDate(
   lat: number,
   lon: number | undefined,
-  targetDateTime: string
+  targetDateTime: string,
+  greenTipDate?: string | null
 ): string {
-  const window = getAppleScabSeasonWindow(lat, lon);
-  const year = jstYearFromIso(targetDateTime);
-  return `${year}-${window.start}`;
+  return resolveAppleScabBiofix(lat, lon, targetDateTime, greenTipDate).date;
 }
 
 function dailyAvgFromHourly(
@@ -86,7 +106,8 @@ export function computeAppleScabAscosporeMaturity(
   biofixDate: string,
   targetDateTime: string,
   measuredDaily: DailyWeatherRecord[],
-  hourlyForTarget: HourlyWeatherRecord[]
+  hourlyForTarget: HourlyWeatherRecord[],
+  biofixSource: AppleScabBiofixSource = "season_window_proxy"
 ): AppleScabAscosporeMaturity {
   const targetDate = jstYmdFromIso(targetDateTime);
   const dailyMap = new Map(measuredDaily.map((r) => [r.date, r]));
@@ -111,17 +132,23 @@ export function computeAppleScabAscosporeMaturity(
   const roundedGdd = Math.round(gdd * 10) / 10;
   const maturityPercent = ascosporeMaturityPercentFromGdd(roundedGdd);
 
+  const biofixLabel =
+    biofixSource === "green_tip"
+      ? `緑弁日 ${biofixDate}`
+      : `季節窓代理 ${biofixDate}`;
+
   let summary: string;
   if (roundedGdd < 30) {
-    summary = `升孢子は未熟（基準0℃積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%）。`;
+    summary = `升孢子は未熟（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%）。`;
   } else if (roundedGdd >= APPLE_SCAB_ASCOSPORE_DEPLETION_GDD * 0.95) {
-    summary = `升孢子は概ね放出末期（積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%・600日℃目安）。`;
+    summary = `升孢子は概ね放出末期（${biofixLabel} 起算・積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%・600日℃目安）。`;
   } else {
-    summary = `升孢子成熟率 ${maturityPercent}%（バイオフィックス ${biofixDate} 起算・基準0℃積算 ${roundedGdd} 日℃）。`;
+    summary = `升孢子成熟率 ${maturityPercent}%（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃）。`;
   }
 
   return {
     biofixDate,
+    biofixSource,
     targetDate,
     gddDayC: roundedGdd,
     maturityPercent,

@@ -49,11 +49,14 @@ import {
 import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
 import { getVarietyFactor } from "./variety";
 import { calcOrchardHeuristicDisease } from "./heuristic-disease";
+import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
 import { getAppleScabSeasonWindow } from "./apple-scab-season";
 
 export interface OrchardRiskFetchOptions {
   /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
   includeMarssoninaOnset?: boolean;
+  /** りんご黒星・升孢子 GDD のバイオフィックス（緑弁日 YYYY-MM-DD） */
+  greenTipDate?: string | null;
 }
 
 function calculateForDisease(
@@ -65,6 +68,7 @@ function calculateForDisease(
     lon: number;
     growthStageId: string;
     ascosporeGddDaily?: DailyWeatherRecord[];
+    greenTipDate?: string | null;
   }
 ): { percent: number | null; rationale: string } {
   switch (diseaseId) {
@@ -101,7 +105,8 @@ function buildOnsetRows(
   lat: number,
   lon: number,
   growthStageId: string,
-  ascosporeGddDaily: DailyWeatherRecord[] | null
+  ascosporeGddDaily: DailyWeatherRecord[] | null,
+  greenTipDate: string | null
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
@@ -115,7 +120,8 @@ function buildOnsetRows(
           lat,
           lon,
           growthStageId,
-          ascosporeGddDaily
+          ascosporeGddDaily,
+          greenTipDate
         )
       );
       continue;
@@ -169,6 +175,7 @@ export async function fetchOrchardRiskForecast(
   options: OrchardRiskFetchOptions = {}
 ): Promise<OrchardRiskForecast> {
   const includeMarssoninaOnset = options.includeMarssoninaOnset !== false;
+  const greenTipDate = options.greenTipDate ?? null;
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
@@ -193,8 +200,12 @@ export async function fetchOrchardRiskForecast(
   let appleScabGddDailyPromise: Promise<DailyWeatherRecord[] | null> =
     Promise.resolve(null);
   if (cropId === "apple") {
-    const scabWindow = getAppleScabSeasonWindow(lat, lon);
-    const biofix = `${today.slice(0, 4)}-${scabWindow.start}`;
+    const biofix = resolveAppleScabBiofix(
+      lat,
+      lon,
+      `${today}T12:00:00+09:00`,
+      greenTipDate
+    ).date;
     if (biofix <= endDate) {
       appleScabGddDailyPromise = fetchNasaPowerDaily(
         lat,
@@ -315,6 +326,7 @@ export async function fetchOrchardRiskForecast(
         lon,
         growthStageId,
         ascosporeGddDaily: appleScabGddDaily ?? undefined,
+        greenTipDate,
       });
       const adjusted = applyVarietyFactor(raw.percent, varietyFactor);
       const level = percentToInfectionLevel(adjusted) ?? "low";
@@ -364,6 +376,7 @@ export async function fetchOrchardRiskForecast(
     varietyFactor,
     growthStageId,
     bloomStart: cropId === "apple" ? bloomStart : null,
+    greenTipDate: cropId === "apple" ? greenTipDate : null,
     weather5d,
     infectionByDiseaseId,
     rationales,
@@ -383,7 +396,8 @@ export async function fetchOrchardRiskForecast(
       lat,
       lon,
       growthStageId,
-      appleScabGddDaily
+      appleScabGddDaily,
+      greenTipDate
     ),
     modelStatusByDisease,
     demoDiseaseIds,

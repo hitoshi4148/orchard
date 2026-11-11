@@ -105,6 +105,8 @@ export interface OrchardRiskForecast {
   growthStageId: string;
   /** リクエストで受け取った開花始期（りんご・参照用） */
   bloomStart: string | null;
+  /** 緑弁日（りんご黒星・升孢子 GDD）。未設定時は季節窓代理 */
+  greenTipDate: string | null;
   weather5d: OrchardDailyWeather[];
   infectionByDiseaseId: Record<string, RiskLevel[]>;
   rationales: Record<string, string>;

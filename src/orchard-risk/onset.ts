@@ -7,7 +7,7 @@ import {
 } from "./apple-scab-season";
 import {
   computeAppleScabAscosporeMaturity,
-  resolveAppleScabBiofixDate,
+  resolveAppleScabBiofix,
 } from "./apple-scab-ascospore-gdd";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
@@ -248,7 +248,8 @@ export function buildAppleScabOnsetFromHourly(
   lat: number,
   lon: number,
   growthStageId: string,
-  ascosporeGddDaily: DailyWeatherRecord[] | null = null
+  ascosporeGddDaily: DailyWeatherRecord[] | null = null,
+  greenTipDate: string | null = null
 ): OrchardOnsetRow {
   const season = evaluateAppleScabPrimarySeason(
     lat,
@@ -260,12 +261,21 @@ export function buildAppleScabOnsetFromHourly(
 
   const ascosporeNote =
     ascosporeGddDaily?.length && hourly.length
-      ? computeAppleScabAscosporeMaturity(
-          resolveAppleScabBiofixDate(lat, lon, targetDateTime),
-          targetDateTime,
-          ascosporeGddDaily,
-          hourly
-        ).summary
+      ? (() => {
+          const biofix = resolveAppleScabBiofix(
+            lat,
+            lon,
+            targetDateTime,
+            greenTipDate
+          );
+          return computeAppleScabAscosporeMaturity(
+            biofix.date,
+            targetDateTime,
+            ascosporeGddDaily,
+            hourly,
+            biofix.source
+          ).summary;
+        })()
       : "";
 
   if (!season.inPrimarySeason) {

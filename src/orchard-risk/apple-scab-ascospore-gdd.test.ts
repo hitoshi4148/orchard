@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   ascosporeMaturityPercentFromGdd,
   computeAppleScabAscosporeMaturity,
+  resolveAppleScabBiofix,
   resolveAppleScabBiofixDate,
 } from "./apple-scab-ascospore-gdd";
 
@@ -12,6 +13,17 @@ describe("apple-scab-ascospore-gdd", () => {
       resolveAppleScabBiofixDate(36.39, 139.06, "2026-05-10T18:00:00+09:00"),
       "2026-04-01"
     );
+  });
+
+  it("prefers green tip over season proxy", () => {
+    const b = resolveAppleScabBiofix(
+      36.39,
+      139.06,
+      "2026-05-10T18:00:00+09:00",
+      "2026-03-28"
+    );
+    assert.equal(b.date, "2026-03-28");
+    assert.equal(b.source, "green_tip");
   });
 
   it("approximates logistic anchors", () => {

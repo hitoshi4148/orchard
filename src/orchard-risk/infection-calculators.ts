@@ -1,7 +1,7 @@
 import { calculateAppleScabRisk } from "../disease/models/apple-scab";
 import {
   computeAppleScabAscosporeMaturity,
-  resolveAppleScabBiofixDate,
+  resolveAppleScabBiofix,
 } from "./apple-scab-ascospore-gdd";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { DailyWeatherRecord } from "../disease/nasa-power";
@@ -20,6 +20,7 @@ export interface OrchardAppleScabContext {
   lon?: number;
   growthStageId: string;
   ascosporeGddDaily?: DailyWeatherRecord[];
+  greenTipDate?: string | null;
 }
 
 /** りんご黒星病 — Mills 法 + 季節窓 + MacHardy 系升孢子 GDD */
@@ -66,16 +67,18 @@ export function calcAppleScab(
     ctx?.ascosporeGddDaily?.length &&
     input.hourly?.length
   ) {
-    const biofix = resolveAppleScabBiofixDate(
+    const biofix = resolveAppleScabBiofix(
       ctx.lat,
       ctx.lon,
-      input.targetDateTime
+      input.targetDateTime,
+      ctx.greenTipDate
     );
     const maturity = computeAppleScabAscosporeMaturity(
-      biofix,
+      biofix.date,
       input.targetDateTime,
       ctx.ascosporeGddDaily,
-      input.hourly
+      input.hourly,
+      biofix.source
     );
     ascosporeNote = maturity.summary;
     if (maturity.maturityPercent < 3) {
