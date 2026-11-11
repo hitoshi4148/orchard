@@ -1,5 +1,7 @@
 import { calculateGddFromDaily } from "../gdd/fetch-gdd";
-import { DailyWeatherRecord } from "../disease/nasa-power";
+import { findLatestMillsInfectionEvent } from "../disease/models/apple-scab";
+import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
+import { findLatestNashiScabInfectionEvent } from "./nashi-scab-ishii";
 import {
   addDaysToDateString,
   jstTodayString,
@@ -221,30 +223,96 @@ export function buildMarssoninaOnset(
   };
 }
 
-export function buildAppleScabOnset(): OrchardOnsetRow {
+function formatJstDateFromIso(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(iso));
+}
+
+export function buildAppleScabOnsetFromHourly(
+  hourly: HourlyWeatherRecord[],
+  targetDateTime: string
+): OrchardOnsetRow {
+  const latest = findLatestMillsInfectionEvent(hourly, targetDateTime);
+  if (!latest) {
+    return {
+      diseaseId: "apple:scab",
+      estimatedInfectionDate: "—",
+      gddSinceInfectionDayC: null,
+      predictedOnsetWindow: "直近7日で Mills 感染イベントなし",
+      confidence: "低",
+      note:
+        "りんご黒星病: 6日感染表は Mills 法。発病予測は直近の濡れ期間感染イベントから推定（子实体形成・潜伏期の詳細モデルは未接続）。",
+      modelStatus: "mills",
+      isDemo: false,
+    };
+  }
+
+  const infectionDate = formatJstDateFromIso(latest.wetPeriod.endDateTime);
+  const ratio = latest.severityRatio;
+  const confidence = ratio >= 1.5 ? "中" : "低";
+
   return {
     diseaseId: "apple:scab",
-    estimatedInfectionDate: "—",
+    estimatedInfectionDate: infectionDate,
     gddSinceInfectionDayC: null,
-    predictedOnsetWindow: "潜伏期モデル未接続",
-    confidence: "低",
-    note: "りんご黒星病: 5日間の感染危険は Mills 法（MET+NASA）で算出。発病時期予測は次フェーズ。",
+    predictedOnsetWindow:
+      "感染イベント後 約9–17日に初発の目安（品種・管理により変動・参考文献レンジ）",
+    confidence,
+    note:
+      `直近の Mills 感染イベント: 濡れ ${latest.wetPeriod.durationHours.toFixed(1)}h（必要 ${latest.requiredHours}h）・平均 ${latest.wetPeriod.averageTemperature.toFixed(1)}℃（${latest.wetPeriod.startDateTime}〜${latest.wetPeriod.endDateTime}）。`,
     modelStatus: "mills",
     isDemo: false,
   };
 }
 
-export function buildNashiScabOnset(): OrchardOnsetRow {
+export function buildNashiScabOnsetFromHourly(
+  hourly: HourlyWeatherRecord[],
+  targetDateTime: string
+): OrchardOnsetRow {
+  const latest = findLatestNashiScabInfectionEvent(hourly, targetDateTime);
+  if (!latest) {
+    return {
+      diseaseId: "nashi:scab",
+      estimatedInfectionDate: "—",
+      gddSinceInfectionDayC: null,
+      predictedOnsetWindow: "直近で Ishii 最小濡れ条件を満たす期間なし",
+      confidence: "低",
+      note:
+        "なし黒星病: Ishii & Yanase (2003) 最小濡れモデルで 6 日感染危険を算出。Duthie (2007) 動的発病予測は未接続。",
+      modelStatus: "duthie",
+      isDemo: false,
+    };
+  }
+
+  const confidence =
+    latest.durationHours >= latest.requiredWetnessHours * 1.3 ? "中" : "低";
+
   return {
     diseaseId: "nashi:scab",
-    estimatedInfectionDate: "—",
+    estimatedInfectionDate: latest.infectionDateKey,
     gddSinceInfectionDayC: null,
-    predictedOnsetWindow: "Duthie モデル未接続",
-    confidence: "低",
-    note: "なし黒星病: Duthie モデル実装後に発病予測を表示します（現状は感染危険のみ暫定）。",
+    predictedOnsetWindow:
+      "潜伏期は品種・分生胞子帰率により変動（Duthie 動的モデル接続後に精密化）",
+    confidence,
+    note:
+      `Ishii & Yanase 感染候補: 濡れ ${latest.durationHours.toFixed(1)}h（平均 ${latest.averageTemperature.toFixed(1)}℃・必要 ${latest.requiredWetnessHours.toFixed(1)}h）。`,
     modelStatus: "duthie",
-    isDemo: true,
+    isDemo: false,
   };
+}
+
+/** @deprecated buildAppleScabOnsetFromHourly を使用 */
+export function buildAppleScabOnset(): OrchardOnsetRow {
+  return buildAppleScabOnsetFromHourly([], "");
+}
+
+/** @deprecated buildNashiScabOnsetFromHourly を使用 */
+export function buildNashiScabOnset(): OrchardOnsetRow {
+  return buildNashiScabOnsetFromHourly([], "");
 }
 
 export function buildDemoOnset(

@@ -22,8 +22,7 @@ import {
 import { buildSixDayWeather } from "./daily-aggregate";
 import {
   calcAppleScab,
-  calcNashiScabPlaceholder,
-  calcWetTempHeuristic,
+  calcNashiScab,
 } from "./infection-calculators";
 import {
   calcMarssoninaForecastInfection,
@@ -37,10 +36,10 @@ import {
 } from "./marssonina-infection";
 import {
   buildDemoOnset,
-  buildAppleScabOnset,
+  buildAppleScabOnsetFromHourly,
   buildMarssoninaBloomUnsetOnset,
   buildMarssoninaOnsetFromSearch,
-  buildNashiScabOnset,
+  buildNashiScabOnsetFromHourly,
 } from "./onset";
 import {
   applyVarietyFactor,
@@ -48,6 +47,7 @@ import {
 } from "./risk-level";
 import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
 import { getVarietyFactor } from "./variety";
+import { calcOrchardHeuristicDisease } from "./heuristic-disease";
 
 export interface OrchardRiskFetchOptions {
   /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
@@ -63,65 +63,17 @@ function calculateForDisease(
     case "apple:scab":
       return calcAppleScab(input);
     case "nashi:scab":
-      return calcNashiScabPlaceholder(input);
+      return calcNashiScab(input);
     case "apple:marssonina":
       return calcMarssoninaForecastInfection(input, marssoninaCtx);
     case "apple:alternaria":
-      return calcWetTempHeuristic(input, {
-        tempMin: 24,
-        tempMax: 32,
-        diseaseLabel: "りんご斑点落葉病",
-        wetHoursHigh: 8,
-        wetHoursCaution: 4,
-      });
     case "apple:anthracnose":
-      return calcWetTempHeuristic(input, {
-        tempMin: 20,
-        tempMax: 28,
-        diseaseLabel: "りんご炭疽病",
-        wetHoursHigh: 6,
-        wetHoursCaution: 3,
-      });
     case "apple:blotch":
-      return calcWetTempHeuristic(input, {
-        tempMin: 18,
-        tempMax: 26,
-        diseaseLabel: "りんご輪紋病",
-        wetHoursHigh: 5,
-        wetHoursCaution: 2,
-      });
     case "nashi:red_spot":
-      return calcWetTempHeuristic(input, {
-        tempMin: 14,
-        tempMax: 22,
-        diseaseLabel: "なし赤星病",
-        wetHoursHigh: 8,
-        wetHoursCaution: 4,
-      });
     case "nashi:blotch":
-      return calcWetTempHeuristic(input, {
-        tempMin: 18,
-        tempMax: 26,
-        diseaseLabel: "なし輪紋病",
-        wetHoursHigh: 5,
-        wetHoursCaution: 2,
-      });
     case "nashi:black_spot":
-      return calcWetTempHeuristic(input, {
-        tempMin: 24,
-        tempMax: 32,
-        diseaseLabel: "なし黒斑病",
-        wetHoursHigh: 10,
-        wetHoursCaution: 5,
-      });
     case "nashi:anthracnose":
-      return calcWetTempHeuristic(input, {
-        tempMin: 20,
-        tempMax: 28,
-        diseaseLabel: "なし炭疽病",
-        wetHoursHigh: 6,
-        wetHoursCaution: 3,
-      });
+      return calcOrchardHeuristicDisease(diseaseId, input);
     default:
       return {
         percent: null,
@@ -134,14 +86,18 @@ function buildOnsetRows(
   cropId: OrchardCropId,
   bloomStart: string | null,
   marssoninaSearch: ReturnType<typeof searchPrimaryMarssoninaInfection> | null,
-  marssoninaGdd: ReturnType<typeof computeMarssoninaGddEstimate> | null
+  marssoninaGdd: ReturnType<typeof computeMarssoninaGddEstimate> | null,
+  hourlyForOnset: import("../disease/nasa-power").HourlyWeatherRecord[],
+  onsetTargetDateTime: string
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
   const rows = [];
 
   for (const id of ids) {
     if (id === "apple:scab") {
-      rows.push(buildAppleScabOnset());
+      rows.push(
+        buildAppleScabOnsetFromHourly(hourlyForOnset, onsetTargetDateTime)
+      );
       continue;
     }
     if (id === "apple:marssonina") {
@@ -161,7 +117,9 @@ function buildOnsetRows(
       continue;
     }
     if (id === "nashi:scab") {
-      rows.push(buildNashiScabOnset());
+      rows.push(
+        buildNashiScabOnsetFromHourly(hourlyForOnset, onsetTargetDateTime)
+      );
       continue;
     }
     rows.push(buildDemoOnset(id, DISEASE_DISPLAY_NAME[id] ?? id));
@@ -323,9 +281,6 @@ export async function fetchOrchardRiskForecast(
     if (MODEL_STATUS[diseaseId] === "heuristic" && !marssoninaLive) {
       demoDiseaseIds.push(diseaseId);
     }
-    if (diseaseId === "nashi:scab") {
-      demoDiseaseIds.push(diseaseId);
-    }
 
     infectionByDiseaseId[diseaseId] = levels;
     rationales[diseaseId] = `${lastRationale}${
@@ -363,7 +318,14 @@ export async function fetchOrchardRiskForecast(
       cropId,
       cropId === "apple" ? bloomStart : null,
       marssoninaSearch,
-      marssoninaGdd
+      marssoninaGdd,
+      prepareWeatherAtTarget(
+        nasaDaily,
+        nasaHourly,
+        forecastHourly,
+        buildTargetDateTimeJst(0, 18)
+      ).hourly,
+      buildTargetDateTimeJst(0, 18)
     ),
     modelStatusByDisease,
     demoDiseaseIds,

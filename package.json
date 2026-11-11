@@ -6,7 +6,7 @@
     "dev": "wrangler pages dev public --port 8790",
     "deploy": "npm run sync:fruit-retail && wrangler pages deploy public --project-name=orchard --commit-dirty=true",
     "pages:deploy": "wrangler pages deploy public --project-name=orchard --commit-dirty=true",
-    "test:marssonina": "tsx --test src/orchard-risk/marssonina-infection.test.ts src/orchard-risk/marssonina-precip-day.test.ts src/orchard-risk/marssonina-wetness-suzuki.test.ts src/orchard-risk/marssonina-gdd.test.ts src/orchard-risk/marssonina-forecast-risk.test.ts",
+    "test:marssonina": "tsx --test src/orchard-risk/marssonina-infection.test.ts src/orchard-risk/marssonina-precip-day.test.ts src/orchard-risk/marssonina-wetness-suzuki.test.ts src/orchard-risk/marssonina-gdd.test.ts src/orchard-risk/marssonina-forecast-risk.test.ts src/orchard-risk/nashi-scab-ishii.test.ts src/orchard-risk/heuristic-disease.test.ts",
     "report:marssonina-phase2": "tsx scripts/marssonina-phase2-compare.ts",
     "test:marssonina:integration": "tsx --test src/orchard-risk/marssonina-infection.integration.test.ts src/orchard-risk/marssonina-phase2-gdd.integration.test.ts",
     "test:orchard-risk": "npm run test:marssonina && npm run test:marssonina:integration",

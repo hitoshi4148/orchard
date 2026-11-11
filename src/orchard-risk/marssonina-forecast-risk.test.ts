@@ -26,14 +26,15 @@ describe("marssonina-forecast-risk", () => {
     assert.equal(res.percent, 6);
   });
 
-  it("scores high when 6+ precip-wet hours at qualifying temp", () => {
+  it("scores high when P2 precip day qualifies", () => {
     const hours = [];
-    for (let h = 0; h < 8; h += 1) {
+    for (let h = 0; h < 24; h += 1) {
+      const precip = h >= 9 && h <= 16 ? 0.6 : 0;
       hours.push(
         baseHour(
-          `2026-05-25T${String(10 + h).padStart(2, "0")}:00:00+09:00`,
+          `2026-05-25T${String(h).padStart(2, "0")}:00:00+09:00`,
           18,
-          0.6
+          precip
         )
       );
     }

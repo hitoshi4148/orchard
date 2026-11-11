@@ -33,9 +33,9 @@ orchard の `nashi:scab` は **Duthie 動的モデル接続予定**（`catalog.t
 
 | 層 | 状態 |
 |----|------|
-| 6日感染表 | `calcNashiScabPlaceholder` — 12–22℃濡れ時間の暫定 |
-| onset | `buildNashiScabOnset` — 未接続 |
-| UI | `modelStatus: duthie`、判定ロジックは「予定」表示 |
+| 6日感染表 | `nashi-scab-ishii.ts` — Ishii & Yanase (2003) L(T) + 濡れ期間 |
+| onset | 直近の Ishii 感染候補日（`buildNashiScabOnsetFromHourly`） |
+| UI | `modelStatus: duthie`（Duthie 動的モデル接続前の MVP） |
 
 ## 実装案（Phase N）
 

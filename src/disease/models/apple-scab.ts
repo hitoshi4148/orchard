@@ -42,6 +42,14 @@ function detectMillsInfectionEvents(
   return events.sort((a, b) => b.endMs - a.endMs);
 }
 
+export function findLatestMillsInfectionEvent(
+  hourly: HourlyWeatherRecord[],
+  targetDateTime: string
+): MillsInfectionEvent | null {
+  const targetMs = new Date(targetDateTime).getTime();
+  return detectMillsInfectionEvents(hourly, targetMs)[0] ?? null;
+}
+
 function eventContribution(
   event: MillsInfectionEvent,
   targetMs: number

@@ -90,7 +90,7 @@ const OrchardRiskModel = (() => {
       pathogen: "Venturia inaequalis",
       mainSeason: "展葉期〜幼果期",
       infectionTempC: "15〜20℃前後",
-      wetHours: "連続濡れ（Mills 法で評価予定）",
+      wetHours: "連続葉面濡れ（Mills 改訂）",
       summary:
         "りんごの葉・果に黒褐色の斑点が出る病害。新梢展開期の濡れと適温が重なると感染が進みます。",
       infectionFactors: [
@@ -100,8 +100,8 @@ const OrchardRiskModel = (() => {
       ],
       onsetModel: {
         type: "mills",
-        implemented: false,
-        note: "将来: Mills 法（改訂版）による一次感染リスク",
+        implemented: true,
+        note: "6日感染は Mills 接続済。発病予測は直近感染イベントから推定",
       },
     },
     "apple:marssonina": {
@@ -118,8 +118,8 @@ const OrchardRiskModel = (() => {
         type: "gdd",
         baseTempC: 4.6,
         thresholdGddDayC: 159,
-        implemented: false,
-        note: "研究で検討中の積算温度パラメータ（りんご褐斑病専用・未接続）",
+        implemented: true,
+        note: "P2/P3 一次感染・GDD159 接続済（6日表は予報二次）",
       },
     },
     "apple:alternaria": {
@@ -162,7 +162,7 @@ const OrchardRiskModel = (() => {
       pathogen: "Venturia nashicola（ほか種差あり）",
       mainSeason: "展葉期〜幼果期",
       infectionTempC: "15〜22℃前後",
-      wetHours: "連続葉面濡れ（Duthie モデル予定）",
+      wetHours: "Ishii & Yanase 温度別最小濡れ（10–26℃）",
       summary:
         "日本なしの葉・果に黒褐色星状斑。りんご黒星病とは病原・条件が異なります。",
       infectionFactors: [
@@ -172,8 +172,8 @@ const OrchardRiskModel = (() => {
       ],
       onsetModel: {
         type: "duthie",
-        implemented: false,
-        note: "将来: Duthie モデル（日本なし黒星病専用・未接続）",
+        implemented: true,
+        note: "Ishii & Yanase (2003) 最小濡れ MVP 接続済。Duthie (2007) 動的モデルは未接続",
       },
     },
     "nashi:red_spot": {

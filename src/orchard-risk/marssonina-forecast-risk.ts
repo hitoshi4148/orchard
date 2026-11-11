@@ -1,13 +1,13 @@
+import { addDaysToDateString } from "../disease/met-norway-forecast";
 import { DiseaseWeatherInput } from "../disease/types";
-import { filterHourlyInWindow } from "../disease/models/risk-utils";
 import {
   MARSSONINA_GDD_THRESHOLD_DAYC,
-  MARSSONINA_PRECIP_WET_MM_H,
   MARSSONINA_WET_AVG_TEMP_MIN_C,
   MARSSONINA_WET_DURATION_MIN_H,
 } from "./marssonina-constants";
 import { InfectionCalcResult } from "./infection-calculators";
 import { calcWetTempHeuristic } from "./infection-calculators";
+import { listMarssoninaPrecipDayStats } from "./marssonina-precip-day";
 
 export interface MarssoninaForecastContext {
   primaryInfectionDate: string | null;
@@ -29,14 +29,9 @@ function targetDateKeyJst(targetDateTime: string): string {
   return `${y}-${m}-${day}`;
 }
 
-function isPrecipWetHour(row: DiseaseWeatherInput["hourly"][number]): boolean {
-  const p = row.precipitation_mm ?? 0;
-  return p >= MARSSONINA_PRECIP_WET_MM_H && row.temperature != null;
-}
-
 /**
- * 6日間感染危険（MET 予報）— 一次感染開始後の「降水日型」濡れを簡易評価。
- * 発病予測（P2/P3）は別途 onset で算出。
+ * 6日間感染危険（MET+履歴）— 対象 JST 日の P2 鈴木濡れ延長を評価。
+ * 発病予測（P2/P3 onset）は別 API 経路。
  */
 export function calcMarssoninaForecastInfection(
   input: DiseaseWeatherInput,
@@ -61,44 +56,44 @@ export function calcMarssoninaForecastInfection(
     };
   }
 
-  const targetMs = new Date(input.targetDateTime).getTime();
-  const window = filterHourlyInWindow(input.hourly, targetMs, 24);
-  const precipWet = window.filter(isPrecipWetHour);
-  const precipWetCount = precipWet.length;
-
-  if (window.length < 6) {
+  if (!input.hourly?.length) {
     return {
       percent: null,
       rationale:
-        "りんご褐斑病: 24h 予報が不足しているため感染危険を算出できませんでした。",
+        "りんご褐斑病: 時別予報が不足しているため感染危険を算出できませんでした。",
     };
   }
 
-  let avgTemp = 0;
-  if (precipWetCount > 0) {
-    avgTemp =
-      precipWet.reduce((s, r) => s + (r.temperature as number), 0) /
-      precipWetCount;
-  }
+  const windowStart = addDaysToDateString(targetKey, -1);
+  const dayStats = listMarssoninaPrecipDayStats(
+    input.hourly,
+    windowStart,
+    targetKey,
+    "phase2"
+  );
+  const dayStat = dayStats.find((s) => s.precipDay === targetKey);
 
   let percent = 12;
-  let detail = `24h 内の降水濡れ（≥${MARSSONINA_PRECIP_WET_MM_H}mm/h）${precipWetCount}h`;
+  let detail = "対象日の P2 鈴木濡れ: 条件未達";
 
-  if (
-    precipWetCount >= MARSSONINA_WET_DURATION_MIN_H &&
-    avgTemp >= MARSSONINA_WET_AVG_TEMP_MIN_C
-  ) {
-    percent = 82;
-    detail += `・平均 ${avgTemp.toFixed(1)}℃ — P2 降水日条件に近い`;
+  if (!dayStat) {
+    percent = 8;
+    detail = "対象日の気象格子が不足";
+  } else if (dayStat.incomplete) {
+    percent = 18;
+    detail = `P2 評価（時刻欠損 ${dayStat.missingHourCount}h）濡れ ${dayStat.wetDurationHours}h`;
+  } else if (dayStat.qualifies) {
+    percent = 85;
+    detail = `P2 降水日合格 — 濡れ ${dayStat.wetDurationHours}h（延長 ${dayStat.extensionWetHourCount ?? 0}h）・平均 ${dayStat.wetAvgTempC?.toFixed(1) ?? "—"}℃`;
   } else if (
-    precipWetCount >= 3 &&
-    avgTemp >= MARSSONINA_WET_AVG_TEMP_MIN_C
+    dayStat.wetDurationHours >= 3 &&
+    (dayStat.wetAvgTempC ?? 0) >= MARSSONINA_WET_AVG_TEMP_MIN_C
   ) {
-    percent = 52;
-    detail += `・平均 ${avgTemp.toFixed(1)}℃ — 注意域`;
-  } else if (precipWetCount >= 1) {
-    percent = 28;
-    detail += " — 軽い降水濡れ";
+    percent = 50;
+    detail = `P2 参考 — 濡れ ${dayStat.wetDurationHours}h（必要 ${MARSSONINA_WET_DURATION_MIN_H}h）・平均 ${dayStat.wetAvgTempC?.toFixed(1)}℃`;
+  } else if (dayStat.wetDurationHours >= 1) {
+    percent = 26;
+    detail = `P2 軽微濡れ ${dayStat.wetDurationHours}h（降水 ${dayStat.precipWetHourCount}h）`;
   }
 
   const gdd = ctx.totalGddDayC;
@@ -112,6 +107,6 @@ export function calcMarssoninaForecastInfection(
 
   return {
     percent,
-    rationale: `りんご褐斑病（予報二次感染）: ${detail} から ${percent}%（一次開始 ${ctx.primaryInfectionDate}・P2 閾値参照）。`,
+    rationale: `りんご褐斑病（予報二次・鈴木延長P2）: ${detail} → ${percent}%（一次開始 ${ctx.primaryInfectionDate}）。`,
   };
 }

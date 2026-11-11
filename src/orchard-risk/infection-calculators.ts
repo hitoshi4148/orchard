@@ -1,4 +1,5 @@
 import { calculateAppleScabRisk } from "../disease/models/apple-scab";
+import { calculateNashiScabIshiiRisk } from "./nashi-scab-ishii";
 import { DiseaseWeatherInput } from "../disease/types";
 import { filterHourlyInWindow } from "../disease/models/risk-utils";
 import { isHourWet } from "../disease/wetness";
@@ -70,39 +71,20 @@ export function calcWetTempHeuristic(
  * なし黒星病 — Duthie モデル接続前。
  * りんご Mills 表は使用しない。濡れと気温帯のみの暫定指標。
  */
-export function calcNashiScabPlaceholder(
+/** なし黒星 — Ishii & Yanase (2003) 最小濡れ L(T)（Duthie 動的モデル前段） */
+export function calcNashiScab(
   input: DiseaseWeatherInput
 ): InfectionCalcResult {
-  const targetMs = new Date(input.targetDateTime).getTime();
-  const window = filterHourlyInWindow(input.hourly, targetMs, 72);
-  let wetHours = 0;
-  let warmWet = 0;
-
-  for (const row of window) {
-    if (!isHourWet(row)) {
-      continue;
-    }
-    wetHours += 1;
-    const t = row.temperature ?? NaN;
-    if (t >= 12 && t <= 22) {
-      warmWet += 1;
-    }
-  }
-
-  if (window.length < 8) {
+  const percent = calculateNashiScabIshiiRisk(input);
+  if (percent == null) {
     return {
       percent: null,
       rationale:
-        "なし黒星病: Duthie モデルは未接続。予報データが不足しているため暫定評価を省略しました。",
+        "なし黒星病: 気象データが不足しているため Ishii & Yanase 最小濡れモデルを算出できませんでした。",
     };
   }
-
-  const percent = Math.min(
-    70,
-    Math.round(warmWet * 4 + Math.min(20, wetHours))
-  );
   return {
     percent,
-    rationale: `なし黒星病: Duthie モデル未接続のため、12–22℃帯の推定濡れ ${warmWet}h のみを暫定表示（${percent}%）。正式予測ではありません。`,
+    rationale: `なし黒星病（V. nashicola）: Ishii & Yanase (2003) の温度別最小濡れ時間と推定葉面濡れ期間から感染危険 ${percent}%（0–100）。Duthie (2007) 動的モデルは未接続。`,
   };
 }

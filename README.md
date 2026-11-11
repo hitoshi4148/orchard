@@ -419,9 +419,9 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 |------|-------------|-------------------|------|
 | りんご黒星 | Mills（接続済） | 簡易 | `src/disease/models/apple-scab` |
 | りんご褐斑 | **予報二次（降水濡れ+P2閾値・GDD加算）** ※一次未推定時は簡易 | **P2 一次感染 + P3 GDD 159日℃**（開花始期必須） | `marssonina_onset=0` で onset のみ省略し高速化 |
-| りんご他3病 | ヒューリスティック | デモ | |
-| なし黒星 | Duthie 未完了 | デモ | 次の接続候補 |
-| なし他4病 | ヒューリスティック | デモ | |
+| りんご他3病 | `heuristic-disease.ts`（温帯×濡れ・文献メモ付き） | デモ | |
+| なし黒星 | Ishii L(T) 最小濡れ（MVP） | 同モデル由来の感染候補日 | Duthie (2007) は後回し |
+| なし他4病 | `heuristic-disease.ts` | デモ | 赤星はビャクシン未考慮 |
 
 ### よく使うコマンド
 
