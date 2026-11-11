@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const confLevel =
           item.confidence === "高" ? "high" : item.confidence === "中" ? "medium" : "low";
         return `<article class="peach-onset-card">
-          <h3>${escapeHtml(item.diseaseName)} <span class="peach-risk-demo-badge">サンプル</span></h3>
+          <h3>${escapeHtml(item.diseaseName)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">サンプル</span>'}</h3>
           <dl class="peach-risk-dl peach-onset-dl">
             <dt>感染が想定された時期</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
             <dt>発病予測時期</dt><dd>${escapeHtml(item.onsetWindow)}</dd>
@@ -147,13 +147,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="onset-heading">
-      <h2 id="onset-heading" class="peach-risk-panel-title">発病予測（今後20日間・サンプル）</h2>
+      <h2 id="onset-heading" class="peach-risk-panel-title">発病予測（簡易${state.isLive ? "・気象連動" : "・表示例"}）</h2>
       <p class="peach-risk-lead">${state.isLive ? "感染危険が高かった日を起点にした簡易の発病目安です。専用の積算温度モデルは順次拡張予定。" : "潜伏期・積算温度などは病害別に独立管理予定。地点未設定時は表示例です。"}</p>
       <div class="peach-onset-grid">${cards}</div>
-      <div class="peach-timeline" aria-label="20日間タイムライン（サンプル）">
+      ${state.isLive ? "" : `<div class="peach-timeline" aria-label="20日間タイムライン（表示例）">
         <div class="peach-timeline-bar">${segs}</div>
-        <p class="peach-muted">黄: 発病ウィンドウの重なりイメージ（仮）</p>
-      </div>
+        <p class="peach-muted">黄: 発病ウィンドウの重なりイメージ（表示例）</p>
+      </div>`}
     </section>`;
   }
 

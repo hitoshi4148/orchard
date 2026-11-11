@@ -40,13 +40,18 @@ export function calcMarssoninaForecastInfection(
   ctx: MarssoninaForecastContext | null
 ): InfectionCalcResult {
   if (!ctx?.primaryInfectionDate) {
-    return calcWetTempHeuristic(input, {
+    const h = calcWetTempHeuristic(input, {
       tempMin: 22,
       tempMax: 30,
       diseaseLabel: "りんご褐斑病",
       wetHoursHigh: 10,
       wetHoursCaution: 5,
     });
+    return {
+      ...h,
+      rationale:
+        `${h.rationale} 開花始期が未設定のため、一次感染後の P2 二次評価は行わず簡易警戒を表示しています（設定後は鈴木 P2 + GDD に切り替わります）。`,
+    };
   }
 
   const targetKey = targetDateKeyJst(input.targetDateTime);

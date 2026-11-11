@@ -24,11 +24,13 @@ import {
   computeAscosporePoolCarryInFromDaily,
 } from "../src/orchard-risk/apple-scab-ascospore-season-pool";
 import { GUNMA_VALIDATION_SITES } from "../src/orchard-risk/gunma-reference";
+import { calculateNashiScabDuthieRisk } from "../src/orchard-risk/nashi-scab-duthie";
 import {
   APPLE_SCAB_POOL_GOLDEN_EXPECTATIONS,
   APPLE_SCAB_POOL_GOLDEN_WINDOW,
   MARSSONINA_GOLDEN_EXPECTATIONS,
   MARSSONINA_GOLDEN_WINDOW,
+  NASHI_SCAB_DUTHIE_GOLDEN,
   VALIDATION_SITES,
 } from "../src/orchard-risk/validation-golden";
 
@@ -128,6 +130,42 @@ const POOL_CARRY_TOLERANCE = {
   cumulative: 2.5,
   events: 2,
 };
+
+async function nashiScabDuthieGoldenCheck() {
+  const site = GUNMA_VALIDATION_SITES.find(
+    (s) => s.id === NASHI_SCAB_DUTHIE_GOLDEN.siteId
+  );
+  if (!site) {
+    return { skipped: true, checks: { pass: true } };
+  }
+  const { hourlyStart, hourlyEnd, targetDateTime, expectedRiskPercent, tolerance } =
+    NASHI_SCAB_DUTHIE_GOLDEN;
+  const [daily, hourly] = await Promise.all([
+    fetchNasaPowerDaily(site.lat, site.lon, hourlyStart, hourlyEnd),
+    fetchNasaPowerHourly(site.lat, site.lon, hourlyStart, hourlyEnd, {
+      timeStandard: "LST",
+    }),
+  ]);
+  const actual = calculateNashiScabDuthieRisk({
+    hourly,
+    daily,
+    targetDateTime,
+  });
+  const pass =
+    actual != null &&
+    Math.abs(actual - expectedRiskPercent) <= tolerance;
+  return {
+    siteId: site.id,
+    label: site.label,
+    hourlyStart,
+    hourlyEnd,
+    targetDateTime,
+    expectedRiskPercent,
+    tolerance,
+    actual,
+    checks: { pass },
+  };
+}
 
 async function appleScabPoolCarryGoldenForSite(
   site: (typeof GUNMA_VALIDATION_SITES)[0]
@@ -402,6 +440,18 @@ function renderMarkdown(report: Record<string, unknown>): string {
     lines.push(`**プール繰越ゴールデン総合: ${carryPass ? "PASS" : "FAIL"}**`, "");
   }
 
+  const nashiDuthie = report.nashiScabDuthie as Record<string, unknown> | undefined;
+  if (nashiDuthie && !nashiDuthie.skipped) {
+    lines.push(
+      "## なし黒星 Duthie（群馬・5月窓）",
+      "",
+      `- 期間: ${nashiDuthie.hourlyStart} 〜 ${nashiDuthie.hourlyEnd}`,
+      `- 評価: ${nashiDuthie.targetDateTime}`,
+      `- 期待 ${nashiDuthie.expectedRiskPercent}%（±${nashiDuthie.tolerance}）/ 実測 ${nashiDuthie.actual ?? "—"}% — **${nashiDuthie.checks?.pass ? "PASS" : "FAIL"}**`,
+      ""
+    );
+  }
+
   if (report.liveApi) {
     lines.push("## ライブ API スナップショット（`fetchOrchardRiskForecast`）", "");
     for (const snap of report.liveApi as Record<string, unknown>[]) {
@@ -445,6 +495,7 @@ async function main() {
   for (const site of GUNMA_VALIDATION_SITES) {
     ascosporePoolCarryGolden.push(await appleScabPoolCarryGoldenForSite(site));
   }
+  const nashiScabDuthie = await nashiScabDuthieGoldenCheck();
 
   let liveApi: Awaited<ReturnType<typeof liveApiSnapshot>>[] | null = null;
   if (!skipLive) {
@@ -463,6 +514,7 @@ async function main() {
     golden,
     ascosporePoolGolden,
     ascosporePoolCarryGolden,
+    nashiScabDuthie,
     liveApi,
   };
 
@@ -476,13 +528,15 @@ async function main() {
   const goldenPass = golden.every((g) => g.checks.pass);
   const poolPass = ascosporePoolGolden.every((g) => g.checks.pass);
   const poolCarryPass = ascosporePoolCarryGolden.every((g) => g.checks.pass);
+  const nashiDuthiePass =
+    (nashiScabDuthie as { checks?: { pass: boolean } }).checks?.pass !== false;
   console.log(renderMarkdown(report));
   console.log(`\nWrote:\n  ${jsonPath}\n  ${mdPath}`);
   console.log(
-    `\nSummary: unit=${unit.ok ? "PASS" : "FAIL"} marssonina=${goldenPass ? "PASS" : "FAIL"} ascosporePool=${poolPass ? "PASS" : "FAIL"} ascosporePoolCarry=${poolCarryPass ? "PASS" : "FAIL"}`
+    `\nSummary: unit=${unit.ok ? "PASS" : "FAIL"} marssonina=${goldenPass ? "PASS" : "FAIL"} ascosporePool=${poolPass ? "PASS" : "FAIL"} ascosporePoolCarry=${poolCarryPass ? "PASS" : "FAIL"} nashiDuthie=${nashiDuthiePass ? "PASS" : "FAIL"}`
   );
 
-  if (!unit.ok || !goldenPass || !poolPass || !poolCarryPass) {
+  if (!unit.ok || !goldenPass || !poolPass || !poolCarryPass || !nashiDuthiePass) {
     process.exit(1);
   }
 }

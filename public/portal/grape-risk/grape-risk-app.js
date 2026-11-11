@@ -142,10 +142,14 @@ document.addEventListener("DOMContentLoaded", () => {
       <h2 id="onset-heading" class="grape-risk-panel-title">発病予測（簡易${state.isLive ? "・気象連動" : "・サンプル"}）</h2>
       <p class="grape-risk-lead">${state.isLive ? "感染危険が高かった日を起点にした簡易の発病目安です。" : "地点未設定時は表示例です。"}晩腐病は感染と果実症状のタイムラグに注意。</p>
       <div class="grape-onset-grid">${cards}</div>
-      <div class="grape-timeline" aria-label="20日間タイムライン${state.isLive ? "" : "（表示例）"}">
+      ${
+        state.isLive
+          ? ""
+          : `<div class="grape-timeline" aria-label="20日間タイムライン（表示例）">
         <div class="grape-timeline-bar">${segs}</div>
-        ${state.isLive ? "" : '<p class="grape-muted">黄: 発病ウィンドウの重なりイメージ（表示例）</p>'}
-      </div>
+        <p class="grape-muted">黄: 発病ウィンドウの重なりイメージ（表示例）</p>
+      </div>`
+      }
     </section>`;
   }
 
