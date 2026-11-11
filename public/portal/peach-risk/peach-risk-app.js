@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="current-heading">
-      <h2 id="current-heading" class="peach-risk-panel-title">病害別リスク一覧（サンプル）</h2>
+      <h2 id="current-heading" class="peach-risk-panel-title">病害別リスク一覧${state.isLive ? "" : "（サンプル）"}</h2>
       <p class="peach-risk-lead">病害名を選択すると詳細・5日感染予報の気象根拠を確認できます。</p>
       <div class="peach-risk-table-wrap">
         <table class="peach-risk-table">
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<li><strong>風速・風向:</strong> ${escapeHtml(det.windNote || "—")}</li>`;
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="infection-heading">
-      <h2 id="infection-heading" class="peach-risk-panel-title">感染危険予報（今後5日間・サンプル）</h2>
+      <h2 id="infection-heading" class="peach-risk-panel-title">感染危険予報（今後5日間${state.isLive ? "" : "・サンプル"}）</h2>
       <p class="peach-risk-lead">感染が新たに成立しうる危険度（発病予測とは別指標）。</p>
       <div class="peach-heat-legend" aria-hidden="true">
         <span><i class="dot risk-low"></i>低</span>
@@ -320,12 +320,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function render() {
-    const state = PeachRiskModel.buildViewState(selectedDiseaseId);
+  async function render() {
+    root.innerHTML = '<p class="peach-risk-lead">気象データを取得中...</p>';
+    const state = await PeachRiskModel.buildViewStateLive(selectedDiseaseId);
+    const errBanner = state.fetchError
+      ? `<p class="peach-risk-error" role="alert">${escapeHtml(state.fetchError)}（サンプル表示にフォールバック）</p>`
+      : "";
     root.innerHTML = `
       <header class="peach-risk-header">
         <h1>もも病害リスク予報</h1>
         <p class="peach-risk-subtitle">気象データから、ももの病害発生リスクを予測</p>
+        ${errBanner}
         <div class="peach-risk-meta">
           <span class="peach-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>

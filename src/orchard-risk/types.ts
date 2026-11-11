@@ -1,6 +1,6 @@
 import type { ScabInoculumLevel } from "./parse-ascospore-inoculum";
 
-export type OrchardCropId = "apple" | "nashi";
+export type OrchardCropId = "apple" | "nashi" | "grape" | "peach";
 
 export type RiskLevel = "low" | "caution" | "high";
 

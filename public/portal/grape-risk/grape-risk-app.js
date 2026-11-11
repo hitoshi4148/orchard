@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     return `<section class="grape-risk-panel grape-risk-panel--focus" aria-labelledby="current-heading">
-      <h2 id="current-heading" class="grape-risk-panel-title">病害別リスク一覧（サンプル）</h2>
+      <h2 id="current-heading" class="grape-risk-panel-title">病害別リスク一覧${state.isLive ? "" : "（サンプル）"}</h2>
       <p class="grape-risk-lead">行を選択すると詳細と5日予報の根拠を表示します。</p>
       <div class="grape-risk-table-wrap">
         <table class="grape-risk-table">
@@ -41,9 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDiseaseDetail(state) {
     const d = state.selectedDisease;
-    const det = state.selectedDetail;
     return `<article class="grape-risk-detail">
-      <h3>${escapeHtml(d.name)} <span class="grape-risk-demo-badge">サンプル</span></h3>
+      <h3>${escapeHtml(d.name)}${state.isLive ? "" : ' <span class="grape-risk-demo-badge">サンプル</span>'}</h3>
       <p>${escapeHtml(d.summary)}</p>
       <dl class="grape-risk-dl">
         <dt>病原菌</dt><dd>${escapeHtml(d.pathogen)}</dd>
@@ -76,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const selName = state.selectedDisease.name;
 
     return `<section class="grape-risk-panel grape-risk-panel--focus" aria-labelledby="infection-heading">
-      <h2 id="infection-heading" class="grape-risk-panel-title">感染危険予報（今後5日間・サンプル）</h2>
+      <h2 id="infection-heading" class="grape-risk-panel-title">感染危険予報（今後5日間${state.isLive ? "" : "・サンプル"}）</h2>
       <p class="grape-risk-lead">感染が新たに成立しうる危険度の目安です（発病予測とは別）。</p>
       <div class="grape-heat-legend" aria-hidden="true">
         <span><i class="dot risk-low"></i>低</span>
@@ -121,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ? "medium"
               : "low";
         return `<article class="grape-onset-card">
-          <h3>${escapeHtml(item.diseaseName)} <span class="grape-risk-demo-badge">サンプル</span></h3>
+          <h3>${escapeHtml(item.diseaseName)}${state.isLive ? "" : ' <span class="grape-risk-demo-badge">サンプル</span>'}</h3>
           <dl class="grape-risk-dl grape-onset-dl">
             <dt>感染が想定された時期</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
             <dt>発病予測時期</dt><dd>${escapeHtml(item.onsetWindow)}</dd>
@@ -140,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
 
     return `<section class="grape-risk-panel grape-risk-panel--focus" aria-labelledby="onset-heading">
-      <h2 id="onset-heading" class="grape-risk-panel-title">発病予測（今後20日間・サンプル）</h2>
+      <h2 id="onset-heading" class="grape-risk-panel-title">発病予測（簡易${state.isLive ? "・気象連動" : "・サンプル"}）</h2>
       <p class="grape-risk-lead">既に感染した可能性がある場合の症状出現の目安。晩腐病は感染と果実症状のタイムラグに注意。</p>
       <div class="grape-onset-grid">${cards}</div>
       <div class="grape-timeline" aria-label="20日間タイムライン（サンプル）">
@@ -209,8 +208,8 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     return `<section class="grape-risk-panel" aria-labelledby="weather-heading">
-      <h2 id="weather-heading" class="grape-risk-panel-title">気象データ（時間別・サンプル）</h2>
-      <p class="grape-risk-lead">感染危険予報の根拠確認用。実 API 未接続の仮波形です。</p>
+      <h2 id="weather-heading" class="grape-risk-panel-title">気象データ（${state.isLive ? "5日集計" : "時間別・サンプル"}）</h2>
+      <p class="grape-risk-lead">${state.isLive ? "API から取得した日次集計です。" : "感染危険予報の根拠確認用。実 API 未接続の仮波形です。"}</p>
       <div class="grape-chart-legend">
         <span class="lg-temp">気温</span>
         <span class="lg-hum">湿度</span>
@@ -234,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTips(state) {
     const items = state.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join("");
     return `<section class="grape-risk-panel" aria-labelledby="tips-heading">
-      <h2 id="tips-heading" class="grape-risk-panel-title">今日の管理ポイント（サンプル）</h2>
+      <h2 id="tips-heading" class="grape-risk-panel-title">今日の管理ポイント${state.isLive ? "" : "（サンプル）"}</h2>
       <p class="grape-risk-lead">防除指示・農薬使用は表示しません。気象と生育ステージ向けの注意例です。</p>
       <ul class="grape-tips-list">${items}</ul>
       <p class="grape-muted">現在の設定: ${escapeHtml(state.settings.locationLabel)}／${escapeHtml(state.settings.variety)}／${escapeHtml(state.cultivationLabel)}</p>
@@ -264,12 +263,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function render() {
-    const state = GrapeRiskModel.buildViewState(selectedDiseaseId);
+  async function render() {
+    root.innerHTML =
+      '<p class="grape-risk-lead">気象データを取得中...</p>';
+    const state = await GrapeRiskModel.buildViewStateLive(selectedDiseaseId);
+    const errBanner = state.fetchError
+      ? `<p class="grape-risk-error" role="alert">${escapeHtml(state.fetchError)}（サンプル表示にフォールバック）</p>`
+      : "";
     root.innerHTML = `
       <header class="grape-risk-header">
         <h1>ぶどう病害リスク予報</h1>
         <p class="grape-risk-subtitle">気象データから、ぶどうの病害発生リスクを予測</p>
+        ${errBanner}
         <div class="grape-risk-meta">
           <span class="grape-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>

@@ -15,6 +15,20 @@ export const DISEASE_IDS_BY_CROP: Record<OrchardCropId, string[]> = {
     "nashi:black_spot",
     "nashi:anthracnose",
   ],
+  grape: [
+    "grape:downy_mildew",
+    "grape:black_rot",
+    "grape:late_rot",
+    "grape:gray_mold",
+    "grape:anthracnose",
+  ],
+  peach: [
+    "peach:bacterial_shot_hole",
+    "peach:gray_spot",
+    "peach:scab",
+    "peach:leaf_curl",
+    "peach:anthracnose",
+  ],
 };
 
 export const MODEL_STATUS: Record<string, ModelStatus> = {
@@ -28,6 +42,16 @@ export const MODEL_STATUS: Record<string, ModelStatus> = {
   "nashi:blotch": "heuristic",
   "nashi:black_spot": "heuristic",
   "nashi:anthracnose": "heuristic",
+  "grape:downy_mildew": "heuristic",
+  "grape:black_rot": "heuristic",
+  "grape:late_rot": "heuristic",
+  "grape:gray_mold": "heuristic",
+  "grape:anthracnose": "heuristic",
+  "peach:bacterial_shot_hole": "heuristic",
+  "peach:gray_spot": "heuristic",
+  "peach:scab": "heuristic",
+  "peach:leaf_curl": "heuristic",
+  "peach:anthracnose": "heuristic",
 };
 
 export const DISEASE_DISPLAY_NAME: Record<string, string> = {
@@ -41,4 +65,14 @@ export const DISEASE_DISPLAY_NAME: Record<string, string> = {
   "nashi:blotch": "輪紋病",
   "nashi:black_spot": "黒斑病",
   "nashi:anthracnose": "炭疽病",
+  "grape:downy_mildew": "べと病",
+  "grape:black_rot": "黒とう病",
+  "grape:late_rot": "晩腐病",
+  "grape:gray_mold": "灰色かび病",
+  "grape:anthracnose": "褐斑病",
+  "peach:bacterial_shot_hole": "細菌性穿孔病",
+  "peach:gray_spot": "灰色炭疽病",
+  "peach:scab": "黒星病",
+  "peach:leaf_curl": "ももいさか病",
+  "peach:anthracnose": "炭疽病",
 };

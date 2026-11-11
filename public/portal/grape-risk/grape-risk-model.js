@@ -1,5 +1,5 @@
 /**
- * ぶどう病害リスク予報 — 画面用データ（仮データのみ・API未接続）
+ * ぶどう病害リスク予報 — MET Norway + NASA POWER（簡易病害モデル）
  */
 const GrapeRiskModel = (() => {
   const STORAGE_KEY = "grapeRiskSettings";
@@ -331,6 +331,8 @@ const GrapeRiskModel = (() => {
       settings: { ...settings, locationLabel },
       stageLabel: stage,
       cultivationLabel: cultivation,
+      isLive: false,
+      fetchError: null,
       dataSourceLabel: "サンプル表示（予測モデル・気象 API 未接続）",
       updatedAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
       currentRisks,
@@ -345,6 +347,47 @@ const GrapeRiskModel = (() => {
     };
   }
 
+  async function buildViewStateLive(selectedDiseaseId = DISEASE_ORDER[0]) {
+    const base = buildViewState(selectedDiseaseId);
+    const loc =
+      typeof OrchardLocationCookie !== "undefined"
+        ? OrchardLocationCookie.load()
+        : { lat: "", lon: "" };
+    const lat = parseFloat(String(loc.lat));
+    const lon = parseFloat(String(loc.lon));
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      return {
+        ...base,
+        fetchError: "地点が未設定です。設定から緯度・経度を保存してください。",
+      };
+    }
+    if (typeof OrchardRiskClient === "undefined") {
+      return { ...base, fetchError: "orchard-risk-client.js が読み込まれていません。" };
+    }
+    try {
+      const settings = loadSettings();
+      const forecast = await OrchardRiskClient.fetchForecast({
+        crop: "grape",
+        lat,
+        lon,
+        variety: settings.variety,
+        growthStageId: settings.growthStageId,
+      });
+      return OrchardRiskClient.applyToCropViewState(
+        base,
+        forecast,
+        DISEASE_ORDER,
+        DISEASES,
+        RISK
+      );
+    } catch (err) {
+      return {
+        ...base,
+        fetchError: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
   return {
     RISK,
     VARIETIES,
@@ -356,6 +399,7 @@ const GrapeRiskModel = (() => {
     saveSettings,
     saveSharedLocation,
     buildViewState,
+    buildViewStateLive,
     getDayLabels,
   };
 })();

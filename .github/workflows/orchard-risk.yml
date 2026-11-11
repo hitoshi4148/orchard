@@ -1,0 +1,45 @@
+name: orchard-risk
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 16 * * 1"
+
+concurrency:
+  group: orchard-risk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-and-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:orchard-risk
+
+  validation-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: unit-and-integration
+    if: github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:orchard-risk-validation-report
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: orchard-risk-validation-${{ github.run_id }}
+          path: reports/orchard-risk/output/
+          retention-days: 30

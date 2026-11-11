@@ -108,6 +108,16 @@ function calculateForDisease(
     case "nashi:blotch":
     case "nashi:black_spot":
     case "nashi:anthracnose":
+    case "grape:downy_mildew":
+    case "grape:black_rot":
+    case "grape:late_rot":
+    case "grape:gray_mold":
+    case "grape:anthracnose":
+    case "peach:bacterial_shot_hole":
+    case "peach:gray_spot":
+    case "peach:scab":
+    case "peach:leaf_curl":
+    case "peach:anthracnose":
       return calcOrchardHeuristicDisease(diseaseId, input);
     default:
       return {
@@ -510,7 +520,13 @@ export async function fetchOrchardRiskForecast(
     minute: "2-digit",
   }).format(new Date());
 
-  const cropLabel = cropId === "nashi" ? "なし" : "りんご";
+  const cropLabels: Record<OrchardCropId, string> = {
+    apple: "りんご",
+    nashi: "なし",
+    grape: "ぶどう",
+    peach: "もも",
+  };
+  const cropLabel = cropLabels[cropId];
   const demoNote =
     demoDiseaseIds.length > 0
       ? `（一部病害は簡易／未接続モデル）`

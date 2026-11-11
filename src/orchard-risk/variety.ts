@@ -20,6 +20,20 @@ const VARIETY_FACTOR: Record<OrchardCropId, Record<string, number>> = {
     あきづき: 1.0,
     その他: 1.0,
   },
+  grape: {
+    シャインマスカット: 1.0,
+    巨峰: 1.0,
+    ピオーネ: 1.02,
+    甲州: 0.95,
+    その他: 1.0,
+  },
+  peach: {
+    川中島白桃: 1.0,
+    白鳳: 1.0,
+    大紅水: 0.95,
+    夢みずき: 1.0,
+    その他: 1.0,
+  },
 };
 
 export function getVarietyFactor(

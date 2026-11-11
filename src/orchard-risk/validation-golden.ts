@@ -48,6 +48,16 @@ export const MARSSONINA_GOLDEN_EXPECTATIONS: Record<
 };
 
 /** りんご黒星・升孢子枯渇プール（NASA 固定窓・緑期 3/25） */
+/** なし黒星 Duthie — 群馬・5月窓（NASA 固定） */
+export const NASHI_SCAB_DUTHIE_GOLDEN = {
+  siteId: "maebashi",
+  hourlyStart: "2026-05-01",
+  hourlyEnd: "2026-05-20",
+  targetDateTime: "2026-05-20T18:00:00+09:00",
+  expectedRiskPercent: 65,
+  tolerance: 22,
+} as const;
+
 export const APPLE_SCAB_POOL_GOLDEN_WINDOW = {
   greenTip: "2026-03-25",
   seasonEnd: "2026-06-30",

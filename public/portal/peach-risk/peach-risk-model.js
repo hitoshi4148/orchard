@@ -412,6 +412,8 @@ const PeachRiskModel = (() => {
       stageLabel: stage,
       cultivationLabel: cultivation,
       priorYearLabel: priorYear,
+      isLive: false,
+      fetchError: null,
       dataSourceLabel: "サンプル表示（予測モデル・気象 API 未接続）",
       updatedAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
       currentRisks,
@@ -428,6 +430,47 @@ const PeachRiskModel = (() => {
     };
   }
 
+  async function buildViewStateLive(selectedDiseaseId = DISEASE_ORDER[0]) {
+    const base = buildViewState(selectedDiseaseId);
+    const loc =
+      typeof OrchardLocationCookie !== "undefined"
+        ? OrchardLocationCookie.load()
+        : { lat: "", lon: "" };
+    const lat = parseFloat(String(loc.lat));
+    const lon = parseFloat(String(loc.lon));
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      return {
+        ...base,
+        fetchError: "地点が未設定です。設定から緯度・経度を保存してください。",
+      };
+    }
+    if (typeof OrchardRiskClient === "undefined") {
+      return { ...base, fetchError: "orchard-risk-client.js が読み込まれていません。" };
+    }
+    try {
+      const settings = loadSettings();
+      const forecast = await OrchardRiskClient.fetchForecast({
+        crop: "peach",
+        lat,
+        lon,
+        variety: settings.variety,
+        growthStageId: settings.growthStageId,
+      });
+      return OrchardRiskClient.applyToCropViewState(
+        base,
+        forecast,
+        DISEASE_ORDER,
+        DISEASES,
+        RISK
+      );
+    } catch (err) {
+      return {
+        ...base,
+        fetchError: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
   return {
     RISK,
     VARIETIES,
@@ -440,6 +483,7 @@ const PeachRiskModel = (() => {
     saveSettings,
     saveSharedLocation,
     buildViewState,
+    buildViewStateLive,
     getDayLabels,
   };
 })();

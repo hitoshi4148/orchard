@@ -5,7 +5,10 @@ import { parseOrchardCalendarDate } from "../../../src/orchard-risk/parse-orchar
 import { OrchardCropId } from "../../../src/orchard-risk/types";
 
 function parseCrop(value: string | null): OrchardCropId {
-  return value === "nashi" ? "nashi" : "apple";
+  if (value === "nashi") return "nashi";
+  if (value === "grape") return "grape";
+  if (value === "peach") return "peach";
+  return "apple";
 }
 
 export const onRequestGet: PagesFunction = async (context) => {
@@ -44,7 +47,14 @@ export const onRequestGet: PagesFunction = async (context) => {
       lat,
       lon,
       crop,
-      variety || (crop === "nashi" ? "幸水" : "ふじ"),
+      variety ||
+        (crop === "nashi"
+          ? "幸水"
+          : crop === "grape"
+            ? "シャインマスカット"
+            : crop === "peach"
+              ? "川中島白桃"
+              : "ふじ"),
       growthStage,
       crop === "apple" ? bloomStart : null,
       {

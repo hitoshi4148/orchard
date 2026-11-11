@@ -67,6 +67,89 @@ export const ORCHARD_HEURISTIC_BY_ID: Record<string, HeuristicDiseaseParams> = {
     reference:
       "炭疽類 — 暖湿と果実傷・湿潤の併発期（20–28℃）の簡易スコア。",
   },
+  "grape:downy_mildew": {
+    diseaseLabel: "ぶどうべと病",
+    tempMin: 18,
+    tempMax: 25,
+    wetHoursHigh: 8,
+    wetHoursCaution: 4,
+    reference:
+      "Plasmopara viticola — 18–25℃・夜間高湿・葉面濡れ持続の警戒用（簡易）。",
+  },
+  "grape:black_rot": {
+    diseaseLabel: "ぶどう黒とう病",
+    tempMin: 20,
+    tempMax: 28,
+    wetHoursHigh: 6,
+    wetHoursCaution: 3,
+    reference: "Guignardia — 降雨期の若組織（新梢・幼果）× 湿潤（簡易）。",
+  },
+  "grape:late_rot": {
+    diseaseLabel: "ぶどう晩腐病",
+    tempMin: 22,
+    tempMax: 30,
+    wetHoursHigh: 5,
+    wetHoursCaution: 2,
+    reference: "Greeneria 系 — 熟期前後の降雨・果面濡れの警戒用（簡易）。",
+  },
+  "grape:gray_mold": {
+    diseaseLabel: "ぶどう灰色かび病",
+    tempMin: 15,
+    tempMax: 22,
+    wetHoursHigh: 8,
+    wetHoursCaution: 4,
+    reference: "Botrytis — 開花前後の持続湿潤（15–22℃）の簡易スコア。",
+  },
+  "grape:anthracnose": {
+    diseaseLabel: "ぶどう褐斑病",
+    tempMin: 24,
+    tempMax: 32,
+    wetHoursHigh: 5,
+    wetHoursCaution: 2,
+    reference: "Elsinoe — 高温多湿・新梢展開期の警戒（簡易）。",
+  },
+  "peach:bacterial_shot_hole": {
+    diseaseLabel: "もも細菌性穿孔病",
+    tempMin: 15,
+    tempMax: 26,
+    wetHoursHigh: 4,
+    wetHoursCaution: 2,
+    reference:
+      "Xanthomonas — 雨滴・霧吹き経由の感染。風は未モデル化（温湿×濡れの代理）。",
+  },
+  "peach:gray_spot": {
+    diseaseLabel: "もも灰色炭疽病",
+    tempMin: 20,
+    tempMax: 28,
+    wetHoursHigh: 6,
+    wetHoursCaution: 3,
+    reference: "炭疽類 — 暖湿と傷付き葉の警戒用（簡易）。",
+  },
+  "peach:scab": {
+    diseaseLabel: "もも黒星病",
+    tempMin: 18,
+    tempMax: 24,
+    wetHoursHigh: 8,
+    wetHoursCaution: 4,
+    reference:
+      "Cladosporium carpophilum — 展葉〜幼果の湿潤継続（なし黒星とは別病原・簡易）。",
+  },
+  "peach:leaf_curl": {
+    diseaseLabel: "ももいさか病",
+    tempMin: 10,
+    tempMax: 18,
+    wetHoursHigh: 12,
+    wetHoursCaution: 6,
+    reference: "Taphrina — 早春の低温×長時間濡れ（展葉前後）の警戒用。",
+  },
+  "peach:anthracnose": {
+    diseaseLabel: "もも炭疽病",
+    tempMin: 20,
+    tempMax: 28,
+    wetHoursHigh: 6,
+    wetHoursCaution: 3,
+    reference: "炭疽類 — 多雨・暖湿期の果実・葉（簡易）。",
+  },
 };
 
 export interface HeuristicThresholdRow {

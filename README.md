@@ -37,7 +37,7 @@
 | `/portal/grape-risk/` | ぶどう病害リスク予報（画面のみ） |
 | `/portal/peach-risk/` | 桃病害リスク予報（画面のみ） |
 | `/portal/diagnosis/` | 病害画像診断AI（ONNX Runtime Web・端末内推論） |
-| `/portal/api/orchard-risk` | 果樹病害リスク予報 API（MET + NASA・`crop`/`lat`/`lon`） |
+| `/portal/api/orchard-risk` | 果樹病害リスク予報 API（MET + NASA・`crop=apple\|nashi\|grape\|peach`） |
 | `/portal/api/risk-map` | 病害リスク一括取得 API（地図用） |
 | `/portal/api/dashboard` | Lab 用まとめ取得 API（天気等） |
 | `/portal/api/weather` | 天気予報 API（MET Norway・単体） |
@@ -430,16 +430,20 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 | なし黒星 | **Duthie (2007) 動的**（Ishii 2003 発芽＋L(T)） | Duthie イベント由来 | `nashi-scab-duthie.ts` |
 | なし赤星 | 春季降雨×濡れ（`apple-cedar-rust` 流用） | 6日ピーク由来 | `gymnosporangium_host=0` で 4% 抑制 |
 | なし他3病 | `heuristic-disease.ts` | デモ | |
+| ぶどう5病・もも5病 | `heuristic-disease.ts`（簡易警戒） | 6日ピーク由来 | `/portal/grape-risk/`・`/portal/peach-risk/` UI から API 連携 |
 
 ### よく使うコマンド
 
 ```bash
 npm run dev                    # Pages dev（ポート 8790）
-npm run test:orchard-risk      # 褐斑ユニット + NASA 統合テスト
+npm run test:orchard-risk      # ユニット + NASA 統合（なし Duthie ゴールデン含む）
+npm run test:orchard-risk-validation-report  # 検証レポートのみ（ライブ API 省略）
 npm run orchard-risk:fetch -- --lat 36.39 --lon 139.06 --crop apple --bloom 2026-04-22
 npm run report:marssonina-phase2   # 弘前・標準地点の Phase2 比較レポート
 npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検証レポート（reports/…/output/）
 ```
+
+CI（`.github/workflows/orchard-risk.yml`）: PR で `test:orchard-risk`、`main` push と週次で検証レポートを Artifact 保存。
 
 なし黒星 Duthie 調査: [`docs/nashi-scab-duthie-research.md`](docs/nashi-scab-duthie-research.md)
 
