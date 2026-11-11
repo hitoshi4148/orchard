@@ -14,6 +14,31 @@ const baseHour = (
 });
 
 describe("marssonina-forecast-risk", () => {
+  it("scores P2 when primary is unknown but hourly data exists", () => {
+    const hours = [];
+    for (let h = 0; h < 24; h += 1) {
+      const precip = h >= 9 && h <= 16 ? 0.6 : 0;
+      hours.push(
+        baseHour(
+          `2026-05-25T${String(h).padStart(2, "0")}:00:00+09:00`,
+          18,
+          precip
+        )
+      );
+    }
+    const res = calcMarssoninaForecastInfection(
+      {
+        daily: [],
+        hourly: hours,
+        targetDateTime: "2026-05-25T18:00:00+09:00",
+      },
+      null
+    );
+    assert.ok((res.percent ?? 0) >= 75);
+    assert.match(res.rationale, /P2/);
+    assert.match(res.rationale, /一次感染日未定/);
+  });
+
   it("returns low before primary infection date", () => {
     const res = calcMarssoninaForecastInfection(
       {

@@ -15,12 +15,12 @@ export interface HeuristicDiseaseParams {
 export const ORCHARD_HEURISTIC_BY_ID: Record<string, HeuristicDiseaseParams> = {
   "apple:alternaria": {
     diseaseLabel: "りんご斑点落葉病",
-    tempMin: 24,
+    tempMin: 23,
     tempMax: 32,
     wetHoursHigh: 8,
     wetHoursCaution: 4,
     reference:
-      "Alternaria mali — 高温期（25–30℃）× 長時間葉面濡れで重症化しやすい（.extension 系レビュー・簡易閾値）。",
+      "Alternaria mali — 夏至〜8月の高温（おおよそ 25–30℃）と葉面濡れ持続で進展（果樹病害要覧・ extension レビューに基づく警戒目安）。",
   },
   "apple:anthracnose": {
     diseaseLabel: "りんご炭疽病",
@@ -29,16 +29,16 @@ export const ORCHARD_HEURISTIC_BY_ID: Record<string, HeuristicDiseaseParams> = {
     wetHoursHigh: 6,
     wetHoursCaution: 3,
     reference:
-      "Colletotrichum — 暖湿（20–28℃）・降雨後の湿潤持続が感染の鍵（果実期も含む・ヒューリスティック）。",
+      "Colletotrichum gloeosporioides 系 — 果皮の湿潤が続く 20–28℃帯で果実期に警戒（降雨・冠内湿度の代理指標）。",
   },
   "apple:blotch": {
     diseaseLabel: "りんご輪紋病",
     tempMin: 18,
-    tempMax: 26,
+    tempMax: 27,
     wetHoursHigh: 5,
     wetHoursCaution: 2,
     reference:
-      "Botryosphaeria 系 — 輪紋・黒化は満雨季の湿害ストレスと併発しやすい（18–26℃・濡れ持続の代理指標）。",
+      "Botryosphaeria / Phlyctaena 系 — 梅雨〜晩夏の湿害ストレス後に症状進展しやすい（18–27℃・連続濡れの簡易スコア）。",
   },
   "nashi:blotch": {
     diseaseLabel: "なし輪紋病",
