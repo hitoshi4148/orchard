@@ -58,6 +58,8 @@ export interface OrchardRiskFetchOptions {
   includeMarssoninaOnset?: boolean;
   /** りんご黒星・升孢子 GDD のバイオフィックス（緑弁日 YYYY-MM-DD） */
   greenTipDate?: string | null;
+  /** なし赤星 — 中間宿主（ビャクシン類）が圃場近傍にあるか */
+  gymnosporangiumHostNearby?: boolean | null;
 }
 
 function calculateForDisease(
@@ -70,7 +72,8 @@ function calculateForDisease(
     growthStageId: string;
     ascosporeGddDaily?: DailyWeatherRecord[];
     greenTipDate?: string | null;
-  }
+  },
+  nashiRedSpotCtx: { gymnosporangiumHostNearby: boolean | null }
 ): { percent: number | null; rationale: string } {
   switch (diseaseId) {
     case "apple:scab":
@@ -78,7 +81,7 @@ function calculateForDisease(
     case "nashi:scab":
       return calcNashiScab(input);
     case "nashi:red_spot":
-      return calcNashiRedSpot(input);
+      return calcNashiRedSpot(input, nashiRedSpotCtx);
     case "apple:marssonina":
       return calcMarssoninaForecastInfection(input, marssoninaCtx);
     case "apple:alternaria":
@@ -182,6 +185,8 @@ export async function fetchOrchardRiskForecast(
 ): Promise<OrchardRiskForecast> {
   const includeMarssoninaOnset = options.includeMarssoninaOnset !== false;
   const greenTipDate = options.greenTipDate ?? null;
+  const gymnosporangiumHostNearby =
+    options.gymnosporangiumHostNearby ?? null;
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
@@ -327,13 +332,19 @@ export async function fetchOrchardRiskForecast(
         forecastHourly,
         target
       );
-      const raw = calculateForDisease(diseaseId, input, marssoninaCtx, {
-        lat,
-        lon,
-        growthStageId,
-        ascosporeGddDaily: appleScabGddDaily ?? undefined,
-        greenTipDate,
-      });
+      const raw = calculateForDisease(
+        diseaseId,
+        input,
+        marssoninaCtx,
+        {
+          lat,
+          lon,
+          growthStageId,
+          ascosporeGddDaily: appleScabGddDaily ?? undefined,
+          greenTipDate,
+        },
+        { gymnosporangiumHostNearby }
+      );
       const adjusted = applyVarietyFactor(raw.percent, varietyFactor);
       const level = percentToInfectionLevel(adjusted) ?? "low";
       levels.push(level);
@@ -383,6 +394,8 @@ export async function fetchOrchardRiskForecast(
     growthStageId,
     bloomStart: cropId === "apple" ? bloomStart : null,
     greenTipDate: cropId === "apple" ? greenTipDate : null,
+    gymnosporangiumHostNearby:
+      cropId === "nashi" ? gymnosporangiumHostNearby : null,
     weather5d,
     infectionByDiseaseId,
     rationales,

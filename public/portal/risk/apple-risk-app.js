@@ -269,6 +269,34 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>`;
   }
 
+  function renderGymnosporangiumHostField(dashboard) {
+    if (dashboard.cropId !== "nashi") return "";
+    const host = dashboard.gymnosporangiumHostNearby;
+    const unknownChecked = host !== true && host !== false;
+    const yesChecked = host === true;
+    const noChecked = host === false;
+    return `<div class="apple-risk-phenology-fields">
+      <fieldset class="apple-risk-bloom-field apple-risk-host-fieldset">
+        <legend class="apple-risk-bloom-label">赤星病 — 中間宿主（ビャクシン類）</legend>
+        <div class="apple-risk-host-options" role="radiogroup" aria-label="ビャクシン類の有無">
+          <label class="apple-risk-host-option">
+            <input type="radio" name="apple-risk-gymno-host" value="" ${unknownChecked ? "checked" : ""}>
+            未設定（気象のみ）
+          </label>
+          <label class="apple-risk-host-option">
+            <input type="radio" name="apple-risk-gymno-host" value="1" ${yesChecked ? "checked" : ""}>
+            あり（圃場おおよそ 1–2km 以内）
+          </label>
+          <label class="apple-risk-host-option">
+            <input type="radio" name="apple-risk-gymno-host" value="0" ${noChecked ? "checked" : ""}>
+            なし
+          </label>
+        </div>
+        <p class="apple-risk-wet-est apple-risk-bloom-help">Gymnosporangium はビャクシン上で小生子が発生します。「なし」のとき赤星リスクは 4% に抑制表示します。</p>
+      </fieldset>
+    </div>`;
+  }
+
   function renderBloomStartField(dashboard) {
     if (dashboard.cropId !== "apple") return "";
     const bloom = dashboard.bloomStartApple || Model.loadBloomStartApple() || "";
@@ -307,6 +335,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (m.type === "duthie") {
       return `<p class="model-note">発病モデル（Duthie・${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
+    }
+    if (m.type === "gymnosporangium") {
+      return `<p class="model-note">感染モデル（${escapeHtml(m.type)}・${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
     }
     return `<p class="model-note">感染モデル（${escapeHtml(m.type)}・未接続）— ${escapeHtml(m.note || "")}</p>`;
   }
@@ -362,6 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="apple-risk-section-lead apple-risk-header-stages-lead">感染しやすい病害はステージによって異なります。${escapeHtml(dashboard.cropLabel)}ごとに保存されます（将来は気温から自動推定）。</p>
           <div class="apple-risk-stages" id="apple-risk-stages">${renderStages(dashboard)}</div>
           ${renderBloomStartField(dashboard)}
+          ${renderGymnosporangiumHostField(dashboard)}
         </div>
       </header>
 
@@ -429,6 +461,16 @@ document.addEventListener("DOMContentLoaded", () => {
     greenTipInput?.addEventListener("change", () => {
       Model.saveGreenTipApple(greenTipInput.value);
       refreshDashboard(dashboard.cropId);
+    });
+    root.querySelectorAll('input[name="apple-risk-gymno-host"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        if (!input.checked) return;
+        const v = input.value;
+        if (v === "1") Model.saveGymnosporangiumHostNashi(true);
+        else if (v === "0") Model.saveGymnosporangiumHostNashi(false);
+        else Model.saveGymnosporangiumHostNashi(null);
+        refreshDashboard(dashboard.cropId);
+      });
     });
   }
 

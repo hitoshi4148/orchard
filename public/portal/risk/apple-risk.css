@@ -192,6 +192,27 @@
   max-width: 320px;
 }
 
+.apple-risk-host-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.apple-risk-host-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.apple-risk-host-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
 .apple-risk-bloom-label {
   display: block;
   font-size: 0.9rem;

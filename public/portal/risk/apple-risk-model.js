@@ -9,6 +9,7 @@ const OrchardRiskModel = (() => {
   const STORAGE_STAGE_PREFIX = "orchardRiskStage:";
   const STORAGE_BLOOM_START_APPLE = "orchardRiskBloomStart:apple";
   const STORAGE_GREEN_TIP_APPLE = "orchardRiskGreenTip:apple";
+  const STORAGE_GYMNOS_HOST_NASHI = "orchardRiskGymnosporangiumHost:nashi";
   const STORAGE_POME_SETTINGS = "orchardRiskPomeSettings";
   const LEGACY_STAGE_KEY = "appleRiskGrowthStage";
   const LEGACY_LOCATION_KEY = "appleRiskLocation";
@@ -190,7 +191,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "gymnosporangium",
         implemented: true,
-        note: "春季降雨×濡れ継続（ビャクシン未考慮）",
+        note: "春季降雨×濡れ継続。中間宿主（ビャクシン）の有無は下の設定で反映",
       },
     },
     "nashi:blotch": {
@@ -515,6 +516,25 @@ const OrchardRiskModel = (() => {
     if (!raw) return "";
     const trimmed = String(raw).trim();
     return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : "";
+  }
+
+  function loadGymnosporangiumHostNashi() {
+    const raw = localStorage.getItem(STORAGE_GYMNOS_HOST_NASHI);
+    if (raw === "1") return true;
+    if (raw === "0") return false;
+    return null;
+  }
+
+  function saveGymnosporangiumHostNashi(value) {
+    if (value === true || value === "1") {
+      localStorage.setItem(STORAGE_GYMNOS_HOST_NASHI, "1");
+      return;
+    }
+    if (value === false || value === "0") {
+      localStorage.setItem(STORAGE_GYMNOS_HOST_NASHI, "0");
+      return;
+    }
+    localStorage.removeItem(STORAGE_GYMNOS_HOST_NASHI);
   }
 
   function saveGreenTipApple(dateStr) {
@@ -855,6 +875,11 @@ const OrchardRiskModel = (() => {
         baseDashboard.cropId === "apple"
           ? (forecast.greenTipDate ?? (loadGreenTipApple() || null))
           : null,
+      gymnosporangiumHostNearby:
+        baseDashboard.cropId === "nashi"
+          ? (forecast.gymnosporangiumHostNearby ??
+            loadGymnosporangiumHostNashi())
+          : null,
       dataSource: "live",
       dataSourceLabel: forecast.dataSourceLabel || baseDashboard.dataSourceLabel,
       updatedAt: forecast.updatedAt || baseDashboard.updatedAt,
@@ -923,6 +948,14 @@ const OrchardRiskModel = (() => {
       const greenTip = loadGreenTipApple();
       if (greenTip) {
         params.set("green_tip", greenTip);
+      }
+    }
+    if (cropId === "nashi") {
+      const host = loadGymnosporangiumHostNashi();
+      if (host === true) {
+        params.set("gymnosporangium_host", "1");
+      } else if (host === false) {
+        params.set("gymnosporangium_host", "0");
       }
     }
     if (options.marssoninaOnset === false) {
@@ -1030,6 +1063,8 @@ const OrchardRiskModel = (() => {
       variety: loadVariety(cropId),
       bloomStartApple: cropId === "apple" ? loadBloomStartApple() || null : null,
       greenTipApple: cropId === "apple" ? loadGreenTipApple() || null : null,
+      gymnosporangiumHostNearby:
+        cropId === "nashi" ? loadGymnosporangiumHostNashi() : null,
       varieties: crop.varieties,
       dataSource: "demo",
       dataSourceLabel: `デモ表示（${crop.label}・気象 API 未接続）`,
@@ -1070,6 +1105,8 @@ const OrchardRiskModel = (() => {
     saveBloomStartApple,
     loadGreenTipApple,
     saveGreenTipApple,
+    loadGymnosporangiumHostNashi,
+    saveGymnosporangiumHostNashi,
     syncBloomStartFromPortalIfEmpty,
     syncGreenTipFromPortalIfEmpty,
     suggestBloomStartIfEmpty,

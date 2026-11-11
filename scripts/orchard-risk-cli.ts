@@ -10,12 +10,14 @@ import {
   fetchOrchardRiskForecast,
   type OrchardRiskFetchOptions,
 } from "../src/orchard-risk/forecast";
+import { parseGymnosporangiumHostNearby } from "../src/orchard-risk/parse-gymnosporangium-host";
 import { DISEASE_DISPLAY_NAME } from "../src/orchard-risk/catalog";
 import type { OrchardCropId } from "../src/orchard-risk/types";
 
 function usage(): never {
   console.error(`Usage: orchard-risk-cli --lat <num> --lon <num> [--crop apple|nashi] [--variety 名]
-       [--growth_stage youngfruit] [--bloom YYYY-MM-DD] [--green-tip YYYY-MM-DD] [--no-marssonina-onset] [--out path.json] [--quiet]`);
+       [--growth_stage youngfruit] [--bloom YYYY-MM-DD] [--green-tip YYYY-MM-DD]
+       [--gymnosporangium-host 0|1] [--no-marssonina-onset] [--out path.json] [--quiet]`);
   process.exit(1);
 }
 
@@ -56,6 +58,10 @@ async function main() {
   }
   if (crop === "apple" && greenTip) {
     options.greenTipDate = greenTip;
+  }
+  const gymnoHost = parseGymnosporangiumHostNearby(arg("gymnosporangium-host"));
+  if (crop === "nashi" && gymnoHost != null) {
+    options.gymnosporangiumHostNearby = gymnoHost;
   }
 
   const forecast = await fetchOrchardRiskForecast(

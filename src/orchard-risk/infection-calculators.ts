@@ -103,23 +103,49 @@ export function calcAppleScab(
   };
 }
 
-/** なし赤星病 — 春季降雨×濡れ（Gymnosporangium、ビャクシン未考慮） */
+export interface OrchardNashiRedSpotContext {
+  /** true=近傍に宿主あり, false=なし, null/undefined=未設定 */
+  gymnosporangiumHostNearby?: boolean | null;
+}
+
+const NASHI_RED_SPOT_NO_HOST_CAP = 4;
+
+/** なし赤星病 — 春季降雨×濡れ（Gymnosporangium）+ 中間宿主設定 */
 export function calcNashiRedSpot(
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  ctx?: OrchardNashiRedSpotContext
 ): InfectionCalcResult {
-  const percent = calculateAppleCedarRustRisk(input);
-  if (percent == null) {
+  const weatherPercent = calculateAppleCedarRustRisk(input);
+  if (weatherPercent == null) {
     return {
       percent: null,
       rationale:
         "なし赤星病: 気象データが不足しているため春季感染リスクを算出できませんでした。",
     };
   }
+
+  const host = ctx?.gymnosporangiumHostNearby ?? null;
+  const base =
+    `なし赤星病: 春季降雨・濡れ継続モデル（Gymnosporangium・4–5月季節係数）: 気象素点 ${weatherPercent}%（0–100）。`;
+
+  if (host === false) {
+    return {
+      percent: NASHI_RED_SPOT_NO_HOST_CAP,
+      rationale: `${base} 中間宿主なし（設定）— 世代交代が成立しないため表示を ${NASHI_RED_SPOT_NO_HOST_CAP}% に抑制。`,
+    };
+  }
+
+  if (host === true) {
+    return {
+      percent: weatherPercent,
+      rationale: `${base} 中間宿主あり（圃場設定・おおよそ 1–2km 以内）。`,
+    };
+  }
+
   return {
-    percent,
+    percent: weatherPercent,
     rationale:
-      `なし赤星病: 春季降雨・濡れ継続モデル（Gymnosporangium・4–5月季節係数）: ${percent}%（0–100）。` +
-      " 中間宿主（ビャクシン類）の圃場内外は未反映 — ビャクシンが近くに無い場合は実リスクはより低くなります。",
+      `${base} 中間宿主は未設定 — ビャクシンが近くに無い場合は実リスクはより低くなります（リスク画面で設定可）。`,
   };
 }
 

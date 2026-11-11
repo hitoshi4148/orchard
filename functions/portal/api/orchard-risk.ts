@@ -1,4 +1,5 @@
 import { fetchOrchardRiskForecast } from "../../../src/orchard-risk/forecast";
+import { parseGymnosporangiumHostNearby } from "../../../src/orchard-risk/parse-gymnosporangium-host";
 import { parseOrchardCalendarDate } from "../../../src/orchard-risk/parse-orchard-date";
 import { OrchardCropId } from "../../../src/orchard-risk/types";
 
@@ -21,6 +22,9 @@ export const onRequestGet: PagesFunction = async (context) => {
     const greenTipDate = parseOrchardCalendarDate(
       url.searchParams.get("green_tip")
     );
+    const gymnosporangiumHostNearby = parseGymnosporangiumHostNearby(
+      url.searchParams.get("gymnosporangium_host")
+    );
 
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return Response.json(
@@ -42,6 +46,8 @@ export const onRequestGet: PagesFunction = async (context) => {
       {
         includeMarssoninaOnset,
         greenTipDate: crop === "apple" ? greenTipDate : null,
+        gymnosporangiumHostNearby:
+          crop === "nashi" ? gymnosporangiumHostNearby : null,
       }
     );
 

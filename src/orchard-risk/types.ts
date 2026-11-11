@@ -108,6 +108,8 @@ export interface OrchardRiskForecast {
   bloomStart: string | null;
   /** 緑弁日（りんご黒星・升孢子 GDD）。未設定時は季節窓代理 */
   greenTipDate: string | null;
+  /** なし赤星 — 中間宿主（ビャクシン類）の圃場近傍。未設定は null */
+  gymnosporangiumHostNearby: boolean | null;
   weather5d: OrchardDailyWeather[];
   infectionByDiseaseId: Record<string, RiskLevel[]>;
   rationales: Record<string, string>;

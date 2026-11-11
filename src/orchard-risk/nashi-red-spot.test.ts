@@ -18,4 +18,19 @@ describe("nashi red spot", () => {
     assert.ok(r.percent != null && r.percent <= 15);
     assert.match(r.rationale, /ビャクシン/);
   });
+
+  it("caps risk when gymnosporangium host absent", () => {
+    const input: DiseaseWeatherInput = {
+      targetDateTime: "2026-04-20T18:00:00+09:00",
+      hourly: Array.from({ length: 48 }, (_, i) => ({
+        datetime: `2026-04-20T${String(i % 24).padStart(2, "0")}:00:00+09:00`,
+        temperature: 18,
+        humidity: 96,
+        precipitation_mm: 1.2,
+      })),
+    };
+    const r = calcNashiRedSpot(input, { gymnosporangiumHostNearby: false });
+    assert.equal(r.percent, 4);
+    assert.match(r.rationale, /中間宿主なし/);
+  });
 });

@@ -424,7 +424,7 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 | りんご褐斑 | **予報二次（降水濡れ+P2閾値・GDD加算）** ※一次未推定時は簡易 | **P2 一次感染 + P3 GDD 159日℃**（開花始期必須） | `marssonina_onset=0` で onset のみ省略し高速化 |
 | りんご他3病 | `heuristic-disease.ts`（温帯×濡れ・文献メモ付き） | デモ | |
 | なし黒星 | Ishii L(T) 最小濡れ（MVP） | 同モデル由来の感染候補日 | Duthie (2007) は後回し |
-| なし赤星 | 春季降雨×濡れ（`apple-cedar-rust` 流用） | 6日ピーク由来 | ビャクシン未考慮 |
+| なし赤星 | 春季降雨×濡れ（`apple-cedar-rust` 流用） | 6日ピーク由来 | `gymnosporangium_host=0` で 4% 抑制 |
 | なし他3病 | `heuristic-disease.ts` | デモ | |
 
 ### よく使うコマンド
@@ -445,6 +445,7 @@ npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検�
 
 - **緑弁日**（`green_tip` / Cookie `agromap_apple_green_tip_date`）: 黒星・升孢子 GDD の起点。リスク画面・API・Cookie（TOP には入力欄なし）
 - **開花始期**（`bloom_start`）: 褐斑一次感染の起点。満開 Cookie または群馬目安（4/22）
+- **中間宿主**（`gymnosporangium_host=0|1`）: なし赤星。なしのときリスク 4% に抑制
 
 ## プロジェクト構成
 
