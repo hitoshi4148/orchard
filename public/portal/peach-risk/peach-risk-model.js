@@ -415,7 +415,7 @@ const PeachRiskModel = (() => {
       priorYearLabel: priorYear,
       isLive: false,
       fetchError: null,
-      dataSourceLabel: "サンプル表示（予測モデル・気象 API 未接続）",
+      dataSourceLabel: "表示例（地点未設定・感染危険・発病予測はサンプル）",
       updatedAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
       currentRisks,
       infectionMatrix,

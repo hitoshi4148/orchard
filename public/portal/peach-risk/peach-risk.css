@@ -59,6 +59,16 @@
   font-weight: 700;
 }
 
+.peach-risk-onset-live-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .peach-risk-panel {
   background: #fff;
   border: 1px solid #e5e7eb;

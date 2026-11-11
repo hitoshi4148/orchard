@@ -120,22 +120,46 @@ document.addEventListener("DOMContentLoaded", () => {
     </section>`;
   }
 
+  function onsetCardBadge(state, item) {
+    if (!state.isLive) {
+      return ' <span class="peach-risk-demo-badge">サンプル</span>';
+    }
+    if (item.insufficient) {
+      return item.isDemo
+        ? ' <span class="peach-risk-demo-badge">モデル未接続</span>'
+        : "";
+    }
+    if (item.liveData && !item.isDemo) {
+      return ' <span class="peach-risk-onset-live-badge">簡易連動</span>';
+    }
+    if (item.isDemo) {
+      return ' <span class="peach-risk-demo-badge">モデル未接続</span>';
+    }
+    return "";
+  }
+
   function renderOnset(state) {
+    const infectionDt =
+      state.isLive && !state.onset?.every((o) => o.insufficient)
+        ? "感染危険ピーク（目安）"
+        : "感染が想定された時期";
     const cards = state.onset
       .map((item) => {
         if (item.insufficient) {
           return `<article class="peach-onset-card peach-onset-card--na">
-            <h3>${escapeHtml(item.diseaseName)}</h3>
+            <h3>${escapeHtml(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
             <p class="peach-onset-insufficient">予測データ不足</p>
             <p class="peach-muted">${escapeHtml(item.basis)}</p>
           </article>`;
         }
         const confLevel =
           item.confidence === "高" ? "high" : item.confidence === "中" ? "medium" : "low";
+        const infectionLabel =
+          state.isLive && item.liveData ? "感染危険ピーク（目安）" : infectionDt;
         return `<article class="peach-onset-card">
-          <h3>${escapeHtml(item.diseaseName)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">サンプル</span>'}</h3>
+          <h3>${escapeHtml(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
           <dl class="peach-risk-dl peach-onset-dl">
-            <dt>感染が想定された時期</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
+            <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
             <dt>発病予測時期</dt><dd>${escapeHtml(item.onsetWindow)}</dd>
             <dt>確度</dt><dd>${riskPill(confLevel)} <span class="peach-muted">（感染危険度とは別）</span></dd>
           </dl>
@@ -153,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="onset-heading">
       <h2 id="onset-heading" class="peach-risk-panel-title">発病予測（簡易${state.isLive ? "・気象連動" : "・表示例"}）</h2>
-      <p class="peach-risk-lead">${state.isLive ? "感染危険が高かった日を起点にした簡易の発病目安です。専用の積算温度モデルは順次拡張予定。" : "潜伏期・積算温度などは病害別に独立管理予定。地点未設定時は表示例です。"}</p>
+      <p class="peach-risk-lead">${state.isLive ? "API の発病予測（6日感染危険のピークからの簡易目安）。専用の積算温度モデルは順次拡張予定です。" : "地点未設定時は発病予測のみ表示例です（感染危険もサンプル）。潜伏期・積算温度などは病害別に独立管理予定。"}</p>
       <div class="peach-onset-grid">${cards}</div>
       ${state.isLive ? "" : `<div class="peach-timeline" aria-label="20日間タイムライン（表示例）">
         <div class="peach-timeline-bar">${segs}</div>

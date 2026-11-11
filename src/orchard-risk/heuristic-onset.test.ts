@@ -10,6 +10,7 @@ describe("heuristic onset from infection levels", () => {
       ["low", "low", "caution", "high", "caution", "low"]
     );
     assert.match(row.predictedOnsetWindow, /3日先/);
+    assert.match(row.estimatedInfectionDate, /3日先/);
     assert.equal(row.confidence, "中");
   });
 

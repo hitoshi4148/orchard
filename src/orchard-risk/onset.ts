@@ -464,7 +464,7 @@ export function buildHeuristicOnsetFromInfection(
 
   return {
     diseaseId,
-    estimatedInfectionDate: "—",
+    estimatedInfectionDate: `${dayLabel}（6日予報の感染危険ピーク）`,
     gddSinceInfectionDayC: null,
     predictedOnsetWindow:
       peakOffset === windowEnd

@@ -94,8 +94,6 @@ const OrchardRiskClient = (() => {
     const onset = diseaseOrder.map((id) => {
       const row =
         (forecast.onset || []).find((r) => r.diseaseId === id) || null;
-      const isHeuristic =
-        forecast.demoDiseaseIds?.includes(id) && row?.isDemo !== false;
       if (!row) {
         return {
           diseaseId: id,
@@ -103,10 +101,23 @@ const OrchardRiskClient = (() => {
           infectionWindow: "—",
           onsetWindow: "—",
           confidence: "—",
-          basis: "予測データ不足",
+          basis: "API から発病予測行を取得できませんでした。",
           insufficient: true,
+          isDemo: true,
+          liveData: false,
+          modelStatus: "demo",
         };
       }
+      const serverDemo =
+        row.isDemo === true || row.modelStatus === "demo";
+      const liveData =
+        !serverDemo ||
+        row.modelStatus === "heuristic" ||
+        row.modelStatus === "seasonal";
+      const insufficient =
+        serverDemo &&
+        (row.predictedOnsetWindow === "モデル未接続" ||
+          row.note?.includes("次フェーズ"));
       return {
         diseaseId: id,
         diseaseName: diseases[id].name,
@@ -114,7 +125,10 @@ const OrchardRiskClient = (() => {
         onsetWindow: row.predictedOnsetWindow || "—",
         confidence: row.confidence || "低",
         basis: row.note || forecast.rationales[id] || "",
-        insufficient: row.isDemo === true && isHeuristic,
+        insufficient,
+        isDemo: serverDemo,
+        liveData,
+        modelStatus: row.modelStatus,
       };
     });
 
