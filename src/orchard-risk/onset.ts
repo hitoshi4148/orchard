@@ -9,6 +9,7 @@ import {
   computeAppleScabAscosporeMaturity,
   resolveAppleScabBiofix,
 } from "./apple-scab-ascospore-gdd";
+import { computeAscosporeRainDischargeFactor } from "./apple-scab-ascospore-rain-release";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
 import { findLatestNashiScabDuthieEvent } from "./nashi-scab-duthie";
@@ -268,13 +269,18 @@ export function buildAppleScabOnsetFromHourly(
             targetDateTime,
             greenTipDate
           );
-          return computeAppleScabAscosporeMaturity(
+          const maturity = computeAppleScabAscosporeMaturity(
             biofix.date,
             targetDateTime,
             ascosporeGddDaily,
             hourly,
             biofix.source
-          ).summary;
+          );
+          const discharge = computeAscosporeRainDischargeFactor(
+            hourly,
+            targetDateTime
+          );
+          return `${maturity.summary} ${discharge.summary}`;
         })()
       : "";
 

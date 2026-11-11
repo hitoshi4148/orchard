@@ -52,4 +52,30 @@ describe("apple-scab-ascospore-gdd", () => {
     assert.equal(m.gddDayC, 22);
     assert.ok(m.maturityPercent > 0);
   });
+
+  it("halts GDD accumulation after seven dry days", () => {
+    const mk = (date: string, precip: number) => ({
+      date,
+      temperature_avg: 15,
+      humidity_avg: null,
+      temperature_max: null,
+      temperature_min: null,
+      precipitation_mm: precip,
+    });
+    const daily = [
+      mk("2026-04-01", 2),
+      mk("2026-04-02", 2),
+      ...Array.from({ length: 8 }, (_, i) =>
+        mk(`2026-04-${String(3 + i).padStart(2, "0")}`, 0)
+      ),
+    ];
+    const m = computeAppleScabAscosporeMaturity(
+      "2026-04-01",
+      "2026-04-10T12:00:00+09:00",
+      daily,
+      []
+    );
+    assert.equal(m.gddDayC, 120);
+    assert.equal(m.dryHaltApplied, true);
+  });
 });

@@ -3,8 +3,11 @@
  *
  * - 基準温度 0℃、バイオフィックス＝季節窓開始日（緑期日未入力時の代用、群馬は gunma 窓）
  * - 成熟率は logistic（1/50/99% 付近を 130/280/600 日℃で近似、PDIS 2004 の 600 日℃参照）
- * - Mills スコアに ×(成熟率/100) を適用（供給側の一次感染）
+ * - Mills スコアに ×(成熟率/100) × 降水放出率を適用
+ * - 7 日連続無降雨で GDD 累算停止（Stensvand et al. / MacHardy 干期補正）
  */
+export const APPLE_SCAB_DRY_HALT_CONSECUTIVE_DAYS = 7;
+export const APPLE_SCAB_DRY_DAY_PRECIP_MM = 0.2;
 
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
 import { getAppleScabSeasonWindow } from "./apple-scab-season";
@@ -21,6 +24,8 @@ export interface AppleScabAscosporeMaturity {
   targetDate: string;
   gddDayC: number;
   maturityPercent: number;
+  /** 干期補正で GDD を止めた日があった */
+  dryHaltApplied: boolean;
   summary: string;
 }
 
@@ -113,6 +118,9 @@ export function computeAppleScabAscosporeMaturity(
   const dailyMap = new Map(measuredDaily.map((r) => [r.date, r]));
 
   let gdd = 0;
+  let dryStreak = 0;
+  let gddHalted = false;
+  let dryHaltApplied = false;
   let d = biofixDate;
   while (d <= targetDate) {
     let avg: number | null = null;
@@ -122,7 +130,22 @@ export function computeAppleScabAscosporeMaturity(
     } else if (d === targetDate) {
       avg = dailyAvgFromHourly(hourlyForTarget, d);
     }
-    if (avg != null) {
+
+    const precip = row?.precipitation_mm;
+    const isDryDay =
+      precip != null && precip < APPLE_SCAB_DRY_DAY_PRECIP_MM;
+    if (isDryDay) {
+      dryStreak += 1;
+      if (dryStreak >= APPLE_SCAB_DRY_HALT_CONSECUTIVE_DAYS) {
+        gddHalted = true;
+        dryHaltApplied = true;
+      }
+    } else if (precip != null) {
+      dryStreak = 0;
+      gddHalted = false;
+    }
+
+    if (avg != null && !gddHalted) {
       gdd += gddForDay(avg);
     }
     if (d === targetDate) break;
@@ -145,6 +168,9 @@ export function computeAppleScabAscosporeMaturity(
   } else {
     summary = `升孢子成熟率 ${maturityPercent}%（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃）。`;
   }
+  if (dryHaltApplied) {
+    summary += ` ${APPLE_SCAB_DRY_HALT_CONSECUTIVE_DAYS}日連続無降雨で GDD 累算を一時停止（MacHardy 干期補正）。`;
+  }
 
   return {
     biofixDate,
@@ -152,6 +178,7 @@ export function computeAppleScabAscosporeMaturity(
     targetDate,
     gddDayC: roundedGdd,
     maturityPercent,
+    dryHaltApplied,
     summary,
   };
 }

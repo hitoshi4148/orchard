@@ -9,6 +9,7 @@ import {
   ascosporeReleaseFactorAfterDepletion,
   computeAppleScabConidialRisk,
 } from "./apple-scab-conidia";
+import { computeAscosporeRainDischargeFactor } from "./apple-scab-ascospore-rain-release";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { calculateNashiScabDuthieRisk } from "./nashi-scab-duthie";
@@ -87,13 +88,25 @@ export function calcAppleScab(
       biofix.source
     );
     ascosporeNote = maturity.summary;
-    const releaseFactor =
+    const depletionFactor =
       maturity.gddDayC >= APPLE_SCAB_ASCOSPORE_DEPLETION_GDD * 0.87
         ? ascosporeReleaseFactorAfterDepletion(maturity.gddDayC)
         : 1;
-    const effectiveMaturity =
-      maturity.maturityPercent * releaseFactor;
+    const rainDischarge = computeAscosporeRainDischargeFactor(
+      input.hourly,
+      input.targetDateTime
+    );
+    const supplyPercent = Math.min(
+      100,
+      Math.max(
+        0,
+        maturity.maturityPercent * depletionFactor * rainDischarge.releaseFactor
+      )
+    );
+    const effectiveMaturity = supplyPercent;
     if (maturity.maturityPercent < 3) {
+      ascosporePercent = 4;
+    } else if (effectiveMaturity < 2) {
       ascosporePercent = 4;
     } else {
       ascosporePercent = Math.min(
@@ -104,8 +117,9 @@ export function calcAppleScab(
         )
       );
     }
-    if (releaseFactor < 1) {
-      ascosporeNote += ` 升孢子放出末期係数 ${Math.round(releaseFactor * 100)}%。`;
+    ascosporeNote += ` ${rainDischarge.summary}`;
+    if (depletionFactor < 1) {
+      ascosporeNote += ` 升孢子放出末期係数 ${Math.round(depletionFactor * 100)}%。`;
     }
   }
 
