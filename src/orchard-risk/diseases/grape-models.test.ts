@@ -21,6 +21,7 @@ describe("grape disease models", () => {
       targetDateTime: "2026-01-15T18:00:00+09:00",
     });
     assert.ok((june.percent ?? 0) > (winter.percent ?? 0));
-    assert.match(june.rationale, /ぶどう専用/);
+    assert.match(june.rationale, /ぶどうべと病/);
+    assert.match(june.rationale, /設計: docs/);
   });
 });

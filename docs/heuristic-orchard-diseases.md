@@ -30,7 +30,7 @@
 | 作物 | モジュール | 内容 |
 |------|------------|------|
 | りんご・なしの上記 | `diseases/apple-secondary.ts` / `nashi-secondary.ts` | 輪紋は `apple-ring-rot` 季節モデル、他は季節補正付き |
-| ぶどう5病 | `diseases/grape-models.ts` | 月別季節 × 濡れ閾値 |
-| もも5病 | `diseases/peach-models.ts` | 月別季節 × 濡れ閾値 |
+| ぶどう5病 | `diseases/grape-*.ts`（レジストリ `grape-models.ts`） | 設計: `docs/orchard-disease-models/`。べと病は専用ロジック |
+| もも5病 | `diseases/peach-*.ts`（レジストリ `peach-models.ts`） | 同上。ももいさか病は専用ロジック |
 
 品種係数は `variety.ts` の病害別テーブルで感染％に反映。ぶどう・ももは `/portal/grape-risk/`・`/portal/peach-risk/` から API 連動。
