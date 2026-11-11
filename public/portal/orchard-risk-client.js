@@ -113,7 +113,8 @@ const OrchardRiskClient = (() => {
       const liveData =
         !serverDemo ||
         row.modelStatus === "heuristic" ||
-        row.modelStatus === "seasonal";
+        row.modelStatus === "seasonal" ||
+        row.modelStatus === "gdd";
       const insufficient =
         serverDemo &&
         (row.predictedOnsetWindow === "モデル未接続" ||
@@ -129,6 +130,7 @@ const OrchardRiskClient = (() => {
         isDemo: serverDemo,
         liveData,
         modelStatus: row.modelStatus,
+        gddSinceInfectionDayC: row.gddSinceInfectionDayC ?? null,
       };
     });
 

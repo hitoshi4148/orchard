@@ -117,8 +117,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ? ' <span class="grape-risk-demo-badge">モデル未接続</span>'
         : "";
     }
+    if (item.liveData && !item.isDemo && item.modelStatus === "gdd") {
+      return ' <span class="grape-risk-onset-gdd-badge">GDD目安</span>';
+    }
     if (item.liveData && !item.isDemo) {
-      return ' <span class="grape-risk-onset-live-badge">簡易連動</span>';
+      return ' <span class="grape-risk-onset-live-badge">潜伏期目安</span>';
     }
     if (item.isDemo) {
       return ' <span class="grape-risk-demo-badge">モデル未接続</span>';
@@ -154,6 +157,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
             <dt>発病予測時期</dt><dd>${escapeHtml(item.onsetWindow)}</dd>
             <dt>確度</dt><dd>${riskPill(confLevel)} <span class="grape-muted">（感染危険度とは別）</span></dd>
+            ${
+              item.gddSinceInfectionDayC != null
+                ? `<dt>簡易積算（感染日以降）</dt><dd>${escapeHtml(String(item.gddSinceInfectionDayC))} 日℃</dd>`
+                : ""
+            }
           </dl>
           <p class="grape-rationale">${escapeHtml(item.basis)}</p>
         </article>`;
@@ -169,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `<section class="grape-risk-panel grape-risk-panel--focus" aria-labelledby="onset-heading">
       <h2 id="onset-heading" class="grape-risk-panel-title">発病予測（簡易${state.isLive ? "・気象連動" : "・サンプル"}）</h2>
-      <p class="grape-risk-lead">${state.isLive ? "API の発病予測（6日感染危険のピークからの簡易目安）。潜伏期・GDD などの専用モデルは順次拡張予定です。" : "地点未設定時は発病予測のみ表示例です（感染危険もサンプル）。"}晩腐病は感染と果実症状のタイムラグに注意。</p>
+      <p class="grape-risk-lead">${state.isLive ? "API の発病予測（感染危険ピーク日＋文献ベースの潜伏期／簡易 GDD）。数値は警戒目安です。" : "地点未設定時は発病予測のみ表示例です（感染危険もサンプル）。"}晩腐病は感染と果実症状のタイムラグに注意。</p>
       <div class="grape-onset-grid">${cards}</div>
       ${
         state.isLive

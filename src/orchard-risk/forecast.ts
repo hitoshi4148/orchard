@@ -19,6 +19,7 @@ import {
   DISEASE_IDS_BY_CROP,
   MODEL_STATUS,
 } from "./catalog";
+import { buildCropDiseaseOnsetFromWeather } from "./crop-latency-onset";
 import { buildSixDayWeather } from "./daily-aggregate";
 import {
   calcAppleScab,
@@ -51,7 +52,12 @@ import {
   applyVarietyFactor,
   percentToInfectionLevel,
 } from "./risk-level";
-import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
+import {
+  OrchardCropId,
+  OrchardDailyWeather,
+  OrchardRiskForecast,
+  RiskLevel,
+} from "./types";
 import { getCropVarietyFactor, getDiseaseVarietyFactor } from "./variety";
 import {
   calcAppleAlternaria,
@@ -154,6 +160,7 @@ function buildOnsetRows(
   hourlyForOnset: import("../disease/nasa-power").HourlyWeatherRecord[],
   onsetTargetDateTime: string,
   infectionByDiseaseId: Record<string, RiskLevel[]>,
+  weather5d: OrchardDailyWeather[],
   lat: number,
   lon: number,
   growthStageId: string,
@@ -209,6 +216,21 @@ function buildOnsetRows(
     }
     const levels = infectionByDiseaseId[id];
     const status = MODEL_STATUS[id] ?? "demo";
+    if (
+      (cropId === "grape" || cropId === "peach") &&
+      (status === "seasonal" || status === "heuristic") &&
+      levels?.length
+    ) {
+      rows.push(
+        buildCropDiseaseOnsetFromWeather(
+          id,
+          DISEASE_DISPLAY_NAME[id] ?? id,
+          levels,
+          weather5d
+        )
+      );
+      continue;
+    }
     if (
       (status === "heuristic" ||
         status === "seasonal" ||
@@ -596,6 +618,7 @@ export async function fetchOrchardRiskForecast(
       ).hourly,
       buildTargetDateTimeJst(0, 18),
       infectionByDiseaseId,
+      weather5d,
       lat,
       lon,
       growthStageId,
