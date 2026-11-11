@@ -21,7 +21,9 @@ import { jstTodayString, addDaysToDateString } from "../src/disease/met-norway-f
 import {
   ascosporePoolAtDate,
   buildAscosporePoolSnapshots,
+  computeAscosporePoolCarryInFromDaily,
 } from "../src/orchard-risk/apple-scab-ascospore-season-pool";
+import { GUNMA_VALIDATION_SITES } from "../src/orchard-risk/gunma-reference";
 import {
   APPLE_SCAB_POOL_GOLDEN_EXPECTATIONS,
   APPLE_SCAB_POOL_GOLDEN_WINDOW,
@@ -117,6 +119,77 @@ async function marssoninaGoldenForSite(site: (typeof VALIDATION_SITES)[0]) {
       pass: primaryOk && gddOk,
     },
     gddSummary,
+  };
+}
+
+const POOL_HOURLY_LOOKBACK_DAYS = 75;
+const POOL_CARRY_TOLERANCE = {
+  remaining: 2.5,
+  cumulative: 2.5,
+  events: 2,
+};
+
+async function appleScabPoolCarryGoldenForSite(
+  site: (typeof GUNMA_VALIDATION_SITES)[0]
+) {
+  const { greenTip, seasonEnd } = APPLE_SCAB_POOL_GOLDEN_WINDOW;
+  const expectedList = APPLE_SCAB_POOL_GOLDEN_EXPECTATIONS[site.id];
+  if (!expectedList?.length) {
+    return { siteId: site.id, label: site.label, skipped: true, checks: { pass: true } };
+  }
+
+  const poolHourlyFrom = addDaysToDateString(
+    seasonEnd,
+    -(POOL_HOURLY_LOOKBACK_DAYS - 1)
+  );
+
+  const [daily, hourly] = await Promise.all([
+    fetchNasaPowerDaily(site.lat, site.lon, greenTip, seasonEnd),
+    fetchNasaPowerHourly(site.lat, site.lon, greenTip, seasonEnd, {
+      timeStandard: "LST",
+    }),
+  ]);
+
+  const hourlyTruncated = hourly.filter((h) => h.datetime.slice(0, 10) >= poolHourlyFrom);
+  const carry = computeAscosporePoolCarryInFromDaily(
+    greenTip,
+    "green_tip",
+    daily,
+    addDaysToDateString(poolHourlyFrom, -1),
+    100
+  );
+  const truncSnaps = buildAscosporePoolSnapshots(
+    greenTip,
+    "green_tip",
+    daily,
+    hourlyTruncated,
+    100,
+    { windowStartDate: poolHourlyFrom, ...carry }
+  );
+
+  const rows = expectedList.map((expected) => {
+    const trunc = ascosporePoolAtDate(
+      truncSnaps,
+      `${expected.queryDate}T18:00:00+09:00`
+    );
+    const ok =
+      trunc != null &&
+      Math.abs(trunc.remainingPercent - expected.remainingPercent) <=
+        POOL_CARRY_TOLERANCE.remaining &&
+      Math.abs(
+        trunc.cumulativeReleasedPercent - expected.cumulativeReleasedPercent
+      ) <= POOL_CARRY_TOLERANCE.cumulative &&
+      Math.abs(trunc.rainEventsProcessed - expected.rainEventsProcessed) <=
+        POOL_CARRY_TOLERANCE.events;
+    return { queryDate: expected.queryDate, actual: trunc, pass: ok };
+  });
+
+  return {
+    siteId: site.id,
+    label: site.label,
+    poolHourlyFrom,
+    rows,
+    checks: { pass: rows.every((r) => r.pass) },
   };
 }
 
@@ -323,9 +396,15 @@ async function main() {
   const ascosporePoolGolden: Awaited<
     ReturnType<typeof appleScabPoolGoldenForSite>
   >[] = [];
+  const ascosporePoolCarryGolden: Awaited<
+    ReturnType<typeof appleScabPoolCarryGoldenForSite>
+  >[] = [];
   for (const site of VALIDATION_SITES) {
     golden.push(await marssoninaGoldenForSite(site));
     ascosporePoolGolden.push(await appleScabPoolGoldenForSite(site));
+  }
+  for (const site of GUNMA_VALIDATION_SITES) {
+    ascosporePoolCarryGolden.push(await appleScabPoolCarryGoldenForSite(site));
   }
 
   let liveApi: Awaited<ReturnType<typeof liveApiSnapshot>>[] | null = null;
@@ -344,6 +423,7 @@ async function main() {
     unitTestsSummary: unit.summary,
     golden,
     ascosporePoolGolden,
+    ascosporePoolCarryGolden,
     liveApi,
   };
 
@@ -356,13 +436,14 @@ async function main() {
 
   const goldenPass = golden.every((g) => g.checks.pass);
   const poolPass = ascosporePoolGolden.every((g) => g.checks.pass);
+  const poolCarryPass = ascosporePoolCarryGolden.every((g) => g.checks.pass);
   console.log(renderMarkdown(report));
   console.log(`\nWrote:\n  ${jsonPath}\n  ${mdPath}`);
   console.log(
-    `\nSummary: unit=${unit.ok ? "PASS" : "FAIL"} marssonina=${goldenPass ? "PASS" : "FAIL"} ascosporePool=${poolPass ? "PASS" : "FAIL"}`
+    `\nSummary: unit=${unit.ok ? "PASS" : "FAIL"} marssonina=${goldenPass ? "PASS" : "FAIL"} ascosporePool=${poolPass ? "PASS" : "FAIL"} ascosporePoolCarry=${poolCarryPass ? "PASS" : "FAIL"}`
   );
 
-  if (!unit.ok || !goldenPass || !poolPass) {
+  if (!unit.ok || !goldenPass || !poolPass || !poolCarryPass) {
     process.exit(1);
   }
 }
