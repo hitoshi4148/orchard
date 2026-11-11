@@ -11,7 +11,7 @@ import {
 } from "./apple-scab-conidia";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
 import { DailyWeatherRecord } from "../disease/nasa-power";
-import { calculateNashiScabIshiiRisk } from "./nashi-scab-ishii";
+import { calculateNashiScabDuthieRisk } from "./nashi-scab-duthie";
 import { DiseaseWeatherInput } from "../disease/types";
 import { filterHourlyInWindow } from "../disease/models/risk-utils";
 import { isHourWet } from "../disease/wetness";
@@ -219,24 +219,20 @@ export function calcWetTempHeuristic(
   };
 }
 
-/**
- * なし黒星病 — Duthie モデル接続前。
- * りんご Mills 表は使用しない。濡れと気温帯のみの暫定指標。
- */
-/** なし黒星 — Ishii & Yanase (2003) 最小濡れ L(T)（Duthie 動的モデル前段） */
+/** なし黒星 — Duthie (2007) 動的（Ishii 2003 発芽ロジスティック × 感染 L(T)） */
 export function calcNashiScab(
   input: DiseaseWeatherInput
 ): InfectionCalcResult {
-  const percent = calculateNashiScabIshiiRisk(input);
+  const percent = calculateNashiScabDuthieRisk(input);
   if (percent == null) {
     return {
       percent: null,
       rationale:
-        "なし黒星病: 気象データが不足しているため Ishii & Yanase 最小濡れモデルを算出できませんでした。",
+        "なし黒星病: 気象データが不足しているため Duthie 動的感染モデルを算出できませんでした。",
     };
   }
   return {
     percent,
-    rationale: `なし黒星病（V. nashicola）: Ishii & Yanase (2003) の温度別最小濡れ時間と推定葉面濡れ期間から感染危険 ${percent}%（0–100）。Duthie (2007) 動的モデルは未接続。`,
+    rationale: `なし黒星病（V. nashicola）: Duthie (2007) 系—濡れ期間内の発芽進展（Ishii 2003）と感染最小濡れ L(T) から動的感染危険 ${percent}%（0–100）。`,
   };
 }

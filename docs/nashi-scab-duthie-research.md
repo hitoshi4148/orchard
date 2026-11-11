@@ -33,9 +33,9 @@ orchard の `nashi:scab` は **Duthie 動的モデル接続予定**（`catalog.t
 
 | 層 | 状態 |
 |----|------|
-| 6日感染表 | `nashi-scab-ishii.ts` — Ishii & Yanase (2003) L(T) + 濡れ期間 |
-| onset | 直近の Ishii 感染候補日（`buildNashiScabOnsetFromHourly`） |
-| UI | `modelStatus: duthie`（Duthie 動的モデル接続前の MVP） |
+| 6日感染表 | `nashi-scab-duthie.ts` — 発芽ロジスティック（Ishii Eq.2–3）+ L(T) 感染 |
+| onset | `findLatestNashiScabDuthieEvent`（完全条件優先） |
+| UI | `modelStatus: duthie`（接続済） |
 
 ## 実装案（Phase N）
 

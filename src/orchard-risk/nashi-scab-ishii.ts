@@ -1,7 +1,7 @@
 /**
  * 日本なし黒星（Venturia nashicola）— Ishii & Yanase (2003) 最小濡れ時間 L(T)
  * Plant Pathology 52: 322–327. Table 3 実測（分離葉・自由水）を線形補間。
- * Duthie (2007) 動的モデル接続前の MVP。
+ * L(T) 表は `nashi-scab-duthie.ts` と共有。単独スコアはテスト用に残す。
  */
 import { findWetPeriods } from "../disease/wetness";
 import { filterHourlyInWindow } from "../disease/models/risk-utils";

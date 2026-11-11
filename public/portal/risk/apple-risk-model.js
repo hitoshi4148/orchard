@@ -164,7 +164,7 @@ const OrchardRiskModel = (() => {
       pathogen: "Venturia nashicola（ほか種差あり）",
       mainSeason: "展葉期〜幼果期",
       infectionTempC: "15〜22℃前後",
-      wetHours: "Ishii & Yanase 温度別最小濡れ（10–26℃）",
+      wetHours: "Duthie 動的（発芽ロジスティック＋Ishii L(T)）",
       summary:
         "日本なしの葉・果に黒褐色星状斑。りんご黒星病とは病原・条件が異なります。",
       infectionFactors: [
@@ -175,7 +175,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "duthie",
         implemented: true,
-        note: "Ishii & Yanase (2003) 最小濡れ MVP 接続済。Duthie (2007) 動的モデルは未接続",
+        note: "Duthie (2007) 動的接続済（Ishii 2003 発芽式・感染 L(T)）",
       },
     },
     "nashi:red_spot": {

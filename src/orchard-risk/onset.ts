@@ -11,7 +11,7 @@ import {
 } from "./apple-scab-ascospore-gdd";
 import { DailyWeatherRecord } from "../disease/nasa-power";
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
-import { findLatestNashiScabInfectionEvent } from "./nashi-scab-ishii";
+import { findLatestNashiScabDuthieEvent } from "./nashi-scab-duthie";
 import {
   addDaysToDateString,
   jstTodayString,
@@ -335,33 +335,38 @@ export function buildNashiScabOnsetFromHourly(
   hourly: HourlyWeatherRecord[],
   targetDateTime: string
 ): OrchardOnsetRow {
-  const latest = findLatestNashiScabInfectionEvent(hourly, targetDateTime);
+  const latest = findLatestNashiScabDuthieEvent(hourly, targetDateTime);
   if (!latest) {
     return {
       diseaseId: "nashi:scab",
       estimatedInfectionDate: "—",
       gddSinceInfectionDayC: null,
-      predictedOnsetWindow: "直近で Ishii 最小濡れ条件を満たす期間なし",
+      predictedOnsetWindow: "直近で動的感染条件（濡れ＋発芽）を満たす期間なし",
       confidence: "低",
       note:
-        "なし黒星病: Ishii & Yanase (2003) 最小濡れモデルで 6 日感染危険を算出。Duthie (2007) 動的発病予測は未接続。",
+        "なし黒星病: Duthie (2007) 動的モデル（Ishii 2003 発芽曲線）で 6 日感染危険を算出。",
       modelStatus: "duthie",
       isDemo: false,
     };
   }
 
-  const confidence =
-    latest.durationHours >= latest.requiredWetnessHours * 1.3 ? "中" : "低";
+  const confidence = latest.infectionCriteriaMet
+    ? latest.durationHours >= latest.requiredWetnessHours * 1.3
+      ? "中"
+      : "低"
+    : "低";
 
   return {
     diseaseId: "nashi:scab",
-    estimatedInfectionDate: latest.infectionDateKey,
+    estimatedInfectionDate: latest.infectionCriteriaMet
+      ? latest.infectionDateKey
+      : "—",
     gddSinceInfectionDayC: null,
     predictedOnsetWindow:
-      "潜伏期は品種・分生胞子帰率により変動（Duthie 動的モデル接続後に精密化）",
+      "潜伏期は品種・胞子供給により変動（無防除園検証に基づく目安 10–14 日）",
     confidence,
     note:
-      `Ishii & Yanase 感染候補: 濡れ ${latest.durationHours.toFixed(1)}h（平均 ${latest.averageTemperature.toFixed(1)}℃・必要 ${latest.requiredWetnessHours.toFixed(1)}h）。`,
+      `Duthie 動的感染${latest.infectionCriteriaMet ? "" : "（部分条件）"}: 濡れ ${latest.durationHours.toFixed(1)}h（必要 ${latest.requiredWetnessHours.toFixed(1)}h・平均 ${latest.averageTemperature.toFixed(1)}℃）・推定発芽 ${latest.germinationPercent.toFixed(0)}%。`,
     modelStatus: "duthie",
     isDemo: false,
   };
