@@ -3,7 +3,7 @@
  *
  * 例:
  *   npx tsx scripts/orchard-risk-cli.ts --lat 40.82 --lon 140.74 --crop apple --bloom 2026-04-25
- *   npx tsx scripts/orchard-risk-cli.ts --lat 36.39 --lon 139.06 --crop apple --bloom 2026-04-25 --out tmp-orchard-risk.json
+ *   npx tsx scripts/orchard-risk-cli.ts --lat 36.39 --lon 139.06 --crop apple --bloom 2026-04-22 --out tmp-orchard-risk.json
  */
 import { writeFileSync } from "node:fs";
 import {

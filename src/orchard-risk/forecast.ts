@@ -59,7 +59,7 @@ function calculateForDisease(
   diseaseId: string,
   input: DiseaseWeatherInput,
   marssoninaCtx: MarssoninaForecastContext | null,
-  appleScabCtx: { lat: number; growthStageId: string }
+  appleScabCtx: { lat: number; lon: number; growthStageId: string }
 ): { percent: number | null; rationale: string } {
   switch (diseaseId) {
     case "apple:scab":
@@ -93,6 +93,7 @@ function buildOnsetRows(
   onsetTargetDateTime: string,
   infectionByDiseaseId: Record<string, RiskLevel[]>,
   lat: number,
+  lon: number,
   growthStageId: string
 ): OrchardRiskForecast["onset"] {
   const ids = DISEASE_IDS_BY_CROP[cropId];
@@ -105,6 +106,7 @@ function buildOnsetRows(
           hourlyForOnset,
           onsetTargetDateTime,
           lat,
+          lon,
           growthStageId
         )
       );
@@ -285,6 +287,7 @@ export async function fetchOrchardRiskForecast(
       );
       const raw = calculateForDisease(diseaseId, input, marssoninaCtx, {
         lat,
+        lon,
         growthStageId,
       });
       const adjusted = applyVarietyFactor(raw.percent, varietyFactor);
@@ -352,6 +355,7 @@ export async function fetchOrchardRiskForecast(
       buildTargetDateTimeJst(0, 18),
       infectionByDiseaseId,
       lat,
+      lon,
       growthStageId
     ),
     modelStatusByDisease,

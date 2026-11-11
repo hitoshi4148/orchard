@@ -17,7 +17,7 @@ const LEGACY_A = { hirosaki: "2026-05-25", default: "2026-05-08" };
 
 const SITES = [
   { name: "弘前", lat: 40.82, lon: 140.74, legacyA: LEGACY_A.hirosaki },
-  { name: "デフォルト", lat: 36.39, lon: 139.06, legacyA: LEGACY_A.default },
+  { name: "群馬・前橋", lat: 36.39, lon: 139.06, legacyA: LEGACY_A.default },
 ];
 
 async function main() {

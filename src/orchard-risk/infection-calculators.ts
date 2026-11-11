@@ -12,6 +12,7 @@ export interface InfectionCalcResult {
 
 export interface OrchardAppleScabContext {
   lat: number;
+  lon?: number;
   growthStageId: string;
 }
 
@@ -24,7 +25,8 @@ export function calcAppleScab(
     const season = evaluateAppleScabPrimarySeason(
       ctx.lat,
       input.targetDateTime,
-      ctx.growthStageId
+      ctx.growthStageId,
+      ctx.lon
     );
     if (!season.inPrimarySeason) {
       return {
@@ -46,7 +48,8 @@ export function calcAppleScab(
     ? evaluateAppleScabPrimarySeason(
         ctx.lat,
         input.targetDateTime,
-        ctx.growthStageId
+        ctx.growthStageId,
+        ctx.lon
       ).reason
     : "";
   return {

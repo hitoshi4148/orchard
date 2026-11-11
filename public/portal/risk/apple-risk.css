@@ -207,6 +207,18 @@
   margin-bottom: 0;
 }
 
+.apple-risk-gunma-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.apple-risk-gunma-presets .apple-risk-btn {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+}
+
 .apple-risk-estimate-badge {
   display: inline-block;
   font-size: 0.72rem;

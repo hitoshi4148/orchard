@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<div class="apple-risk-bloom-field">
       <label class="apple-risk-bloom-label" for="apple-risk-bloom-start">開花始期（一次感染推定の起点）</label>
       <input type="date" id="apple-risk-bloom-start" class="apple-risk-bloom-input" value="${escapeHtml(value)}">
-      <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）モデルは開花始期以降が対象です。生育ステージとは別に、実際の開花始めの日付を指定してください。</p>
+      <p class="apple-risk-wet-est apple-risk-bloom-help">猫塚（2023）モデルは開花始期以降が対象です。群馬のふじは例年4月下旬（目安 4/20〜25）。未入力で群馬地点のときは暦日 4/22 を自動セットします。</p>
     </div>`;
   }
 
@@ -461,6 +461,21 @@ document.addEventListener("DOMContentLoaded", () => {
     ).join("");
   }
 
+  function fillGunmaLocationPresets() {
+    const host = document.getElementById("pome-gunma-presets");
+    if (!host || !Array.isArray(Model.GUNMA_LOCATION_PRESETS)) return;
+    host.innerHTML = Model.GUNMA_LOCATION_PRESETS.map(
+      (p) =>
+        `<button type="button" class="apple-risk-btn" data-gunma-preset="${escapeHtml(p.id)}" data-lat="${p.lat}" data-lon="${p.lon}">${escapeHtml(p.label)}</button>`
+    ).join("");
+    host.querySelectorAll("[data-gunma-preset]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.getElementById("pome-lat").value = btn.getAttribute("data-lat") || "";
+        document.getElementById("pome-lon").value = btn.getAttribute("data-lon") || "";
+      });
+    });
+  }
+
   function openSettingsModal() {
     const loc =
       typeof OrchardLocationCookie !== "undefined"
@@ -469,6 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pome = Model.loadPomeSettings();
     document.getElementById("pome-lat").value = loc.lat || "";
     document.getElementById("pome-lon").value = loc.lon || "";
+    fillGunmaLocationPresets();
     fillSelectOptions(
       document.getElementById("pome-apple-variety"),
       Model.POME_APPLE_VARIETIES,

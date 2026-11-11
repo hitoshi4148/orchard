@@ -417,7 +417,7 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 
 | 病害 | 6日間感染表 | 発病予測（onset） | 備考 |
 |------|-------------|-------------------|------|
-| りんご黒星 | Mills + **升孢子簡易季節窓（緯度3帯）** | Mills イベント由来 | `apple-scab-season.ts` |
+| りんご黒星 | Mills + **升孢子簡易季節窓（緯度3帯・群馬県内は専用暦日）** | Mills イベント由来 | `apple-scab-season.ts` · `gunma-reference.ts` |
 | りんご褐斑 | **予報二次（降水濡れ+P2閾値・GDD加算）** ※一次未推定時は簡易 | **P2 一次感染 + P3 GDD 159日℃**（開花始期必須） | `marssonina_onset=0` で onset のみ省略し高速化 |
 | りんご他3病 | `heuristic-disease.ts`（温帯×濡れ・文献メモ付き） | デモ | |
 | なし黒星 | Ishii L(T) 最小濡れ（MVP） | 同モデル由来の感染候補日 | Duthie (2007) は後回し |
@@ -428,7 +428,7 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 ```bash
 npm run dev                    # Pages dev（ポート 8790）
 npm run test:orchard-risk      # 褐斑ユニット + NASA 統合テスト
-npm run orchard-risk:fetch -- --lat 40.82 --lon 140.74 --crop apple --bloom 2026-04-25
+npm run orchard-risk:fetch -- --lat 36.39 --lon 139.06 --crop apple --bloom 2026-04-22
 npm run report:marssonina-phase2   # 弘前・標準地点の Phase2 比較レポート
 npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検証レポート（reports/…/output/）
 ```
@@ -437,7 +437,7 @@ npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検�
 
 `orchard-risk:fetch` は API と同じ `fetchOrchardRiskForecast` を Node から呼びます。`--out file.json` で UI 確認用のスナップショットを保存できます。
 
-開花始期はリスク画面の日付入力、または果樹園しごと設定の満開日 Cookie（`agromap_greenfield_date` / `agromap_warm_seeding_date`）から未入力時のみ自動取り込みします。
+**主な利用地域は群馬県**（標準地点: 前橋 36.39/139.06）。検証ゴールデンは前橋・高崎・渋川・沼田＋弘前参照。開花始期はリスク画面の日付入力、果樹園しごと満開 Cookie、または群馬地点で未入力時の暦日目安（4/22）から取り込みます。
 
 ## プロジェクト構成
 

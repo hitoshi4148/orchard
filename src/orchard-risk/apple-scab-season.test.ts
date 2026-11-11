@@ -14,6 +14,25 @@ describe("apple-scab-season", () => {
     assert.equal(resolveAppleScabLatBand(33.5), "south");
   });
 
+  it("uses Gunma window when lon is inside Gunma", () => {
+    const win = getAppleScabSeasonWindow(36.39, 139.06);
+    assert.equal(win.band, "gunma");
+    assert.equal(win.start, "04-01");
+    const stEarly = evaluateAppleScabPrimarySeason(
+      36.39,
+      "2026-04-03T18:00:00+09:00",
+      "bud",
+      139.06
+    );
+    assert.equal(stEarly.inPrimarySeason, true);
+    const stWithoutLon = evaluateAppleScabPrimarySeason(
+      36.39,
+      "2026-04-03T18:00:00+09:00",
+      "bud"
+    );
+    assert.equal(stWithoutLon.inPrimarySeason, false);
+  });
+
   it("allows Mills season in summer central band", () => {
     const win = getAppleScabSeasonWindow(36.39);
     assert.equal(

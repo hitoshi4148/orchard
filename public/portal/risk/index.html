@@ -8,7 +8,7 @@
   <title>果樹園しごと・りんご・日本なし病害リスク予報</title>
   <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
   <link rel="stylesheet" href="../portal.css">
-  <link rel="stylesheet" href="apple-risk.css?v=20251110set3">
+  <link rel="stylesheet" href="apple-risk.css?v=20251111gunma">
 </head>
 <body>
   <div class="apple-risk-page">
@@ -29,10 +29,12 @@
       <p style="margin:0 0 12px;font-size:0.82rem;color:#6b7280">地点は果樹園しごとと同じ Cookie に保存されます。品種・栽培方式はこの端末に保存されます。</p>
       <fieldset style="border:0;padding:0;margin:0 0 12px">
         <legend style="font-weight:600;font-size:0.9rem;margin-bottom:6px">場所</legend>
+        <p class="apple-risk-wet-est" style="margin:0 0 8px">群馬の代表地点（タップで緯度経度を入力）</p>
+        <div id="pome-gunma-presets" class="apple-risk-gunma-presets" role="group" aria-label="群馬の代表地点"></div>
         <label for="pome-lat">緯度</label>
-        <input type="text" id="pome-lat" inputmode="decimal" placeholder="例: 35.5353">
+        <input type="text" id="pome-lat" inputmode="decimal" placeholder="例: 36.39（前橋）">
         <label for="pome-lon">経度</label>
-        <input type="text" id="pome-lon" inputmode="decimal" placeholder="例: 139.4931">
+        <input type="text" id="pome-lon" inputmode="decimal" placeholder="例: 139.06">
         <button type="button" class="apple-risk-btn apple-risk-btn--locate" id="pome-get-location">現在地を取得</button>
       </fieldset>
       <label for="pome-apple-variety">りんご品種</label>
@@ -51,7 +53,7 @@
   </div>
 
   <script src="/portal/orchard-location-cookie.js?v=20251110set5"></script>
-  <script src="apple-risk-model.js?v=20251111scabseason"></script>
-  <script src="apple-risk-app.js?v=20251111scabseason"></script>
+  <script src="apple-risk-model.js?v=20251111gunma"></script>
+  <script src="apple-risk-app.js?v=20251111gunma"></script>
 </body>
 </html>

@@ -9,13 +9,15 @@ import {
 } from "./marssonina-infection";
 
 describe("marssonina-infection integration", () => {
-  const bloom = "2026-04-25";
+  const bloomHirosaki = "2026-04-25";
+  const bloomGunma = "2026-04-22";
   const end = "2026-11-08";
 
   it(
     "Hirosaki 40.82/140.74 — full coverage and Phase2 primary",
     { timeout: 120_000 },
     async () => {
+      const bloom = bloomHirosaki;
       const win = resolveMarssoninaNasaWindow(bloom, end);
       const raw = await fetchNasaPowerHourly(
         40.82,
@@ -53,9 +55,10 @@ describe("marssonina-infection integration", () => {
   );
 
   it(
-    "default UI 36.39/139.06 — reproducible full search",
+    "Gunma Maebashi 36.39/139.06 — reproducible full search",
     { timeout: 120_000 },
     async () => {
+      const bloom = bloomGunma;
       const win = resolveMarssoninaNasaWindow(bloom, end);
       const raw = await fetchNasaPowerHourly(
         36.39,

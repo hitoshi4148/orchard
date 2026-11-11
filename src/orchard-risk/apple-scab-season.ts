@@ -3,9 +3,13 @@
  *
  * Mills 法は「条件が揃えば感染しうる」評価のため、升孢子放出のない時期は
  * スコアを抑え、根拠に季節を明示する（MacHardy 系の詳細GDDモデルは未接続）。
+ *
+ * 群馬県内（代表顧客地域）は経度込みで監視暦日をやや早めに設定（関東内陸升孢子目安）。
  */
 
-export type AppleScabLatBand = "north" | "central" | "south";
+import { isGunmaOrchardLatLon } from "./gunma-reference";
+
+export type AppleScabLatBand = "north" | "central" | "south" | "gunma";
 
 /** MM-DD（暦日・おおよその升孢子監視期） */
 export interface AppleScabSeasonWindow {
@@ -24,7 +28,7 @@ const WINDOWS: AppleScabSeasonWindow[] = [
   },
   {
     band: "central",
-    label: "中間帯（34.5°≤lat<39.5°）",
+    label: "中間帯（34.5°≤lat<39.5°・関東内陸など）",
     start: "04-05",
     end: "07-31",
   },
@@ -35,6 +39,14 @@ const WINDOWS: AppleScabSeasonWindow[] = [
     end: "08-10",
   },
 ];
+
+/** 群馬県内果樹園向け（中間帯よりやや早い升孢子監視暦日） */
+const GUNMA_WINDOW: AppleScabSeasonWindow = {
+  band: "gunma",
+  label: "群馬県内（関東内陸升孢子目安）",
+  start: "04-01",
+  end: "07-28",
+};
 
 /** 一次升孢子の主対象生育ステージ */
 const PRIMARY_SCAB_STAGES = new Set([
@@ -51,7 +63,13 @@ export function resolveAppleScabLatBand(lat: number): AppleScabLatBand {
   return "south";
 }
 
-export function getAppleScabSeasonWindow(lat: number): AppleScabSeasonWindow {
+export function getAppleScabSeasonWindow(
+  lat: number,
+  lon?: number
+): AppleScabSeasonWindow {
+  if (lon !== undefined && isGunmaOrchardLatLon(lat, lon)) {
+    return GUNMA_WINDOW;
+  }
   const band = resolveAppleScabLatBand(lat);
   return WINDOWS.find((w) => w.band === band)!;
 }
@@ -92,9 +110,10 @@ export interface AppleScabPrimarySeasonStatus {
 export function evaluateAppleScabPrimarySeason(
   lat: number,
   targetDateTime: string,
-  growthStageId: string
+  growthStageId: string,
+  lon?: number
 ): AppleScabPrimarySeasonStatus {
-  const window = getAppleScabSeasonWindow(lat);
+  const window = getAppleScabSeasonWindow(lat, lon);
   const inCalendar = isJstDateInAppleScabWindow(targetDateTime, window);
 
   if (growthStageId === "harvest") {

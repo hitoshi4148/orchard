@@ -20,7 +20,7 @@ const END = "2026-11-08";
 
 const SITES = [
   { id: "hirosaki", label: "弘前", lat: 40.82, lon: 140.74 },
-  { id: "default", label: "デフォルト", lat: 36.39, lon: 139.06 },
+  { id: "maebashi", label: "群馬・前橋", lat: 36.39, lon: 139.06 },
 ];
 
 const TODAY = "2026-11-09";

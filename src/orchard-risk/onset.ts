@@ -241,14 +241,16 @@ export function buildAppleScabOnsetFromHourly(
   hourly: HourlyWeatherRecord[],
   targetDateTime: string,
   lat: number,
+  lon: number,
   growthStageId: string
 ): OrchardOnsetRow {
   const season = evaluateAppleScabPrimarySeason(
     lat,
     targetDateTime,
-    growthStageId
+    growthStageId,
+    lon
   );
-  const window = getAppleScabSeasonWindow(lat);
+  const window = getAppleScabSeasonWindow(lat, lon);
 
   if (!season.inPrimarySeason) {
     return {
@@ -268,7 +270,7 @@ export function buildAppleScabOnsetFromHourly(
     targetDateTime,
     (endIso) =>
       isJstDateInAppleScabWindow(endIso, window) &&
-      evaluateAppleScabPrimarySeason(lat, endIso, growthStageId)
+      evaluateAppleScabPrimarySeason(lat, endIso, growthStageId, lon)
         .inPrimarySeason
   );
 
@@ -341,7 +343,7 @@ export function buildNashiScabOnsetFromHourly(
 
 /** @deprecated buildAppleScabOnsetFromHourly を使用 */
 export function buildAppleScabOnset(): OrchardOnsetRow {
-  return buildAppleScabOnsetFromHourly([], "", 36.5, "youngfruit");
+  return buildAppleScabOnsetFromHourly([], "", 36.5, 139.06, "youngfruit");
 }
 
 /** @deprecated buildNashiScabOnsetFromHourly を使用 */

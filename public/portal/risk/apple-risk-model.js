@@ -15,10 +15,10 @@ const OrchardRiskModel = (() => {
   const POME_APPLE_VARIETIES = [
     "ふじ",
     "ぐんま名月",
+    "あかぎ",
     "陽光",
     "おぜの紅",
     "紅鶴",
-    "あかぎ",
     "スリムレッド",
     "つがる",
     "王林",
@@ -101,7 +101,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills + 升孢子簡易季節窓（緯度3帯）。期外は低リスク表示",
+        note: "Mills + 升孢子簡易季節窓（群馬県内は専用暦日）。期外は低リスク表示",
       },
     },
     "apple:marssonina": {
@@ -436,6 +436,46 @@ const OrchardRiskModel = (() => {
     lon: "139.06",
     source: "demo",
   };
+
+  /** @type {{ id: string, label: string, lat: number, lon: number }[]} */
+  const GUNMA_LOCATION_PRESETS = [
+    { id: "maebashi", label: "前橋（標準）", lat: 36.39, lon: 139.06 },
+    { id: "takasaki", label: "高崎", lat: 36.322, lon: 139.003 },
+    { id: "shibukawa", label: "渋川・赤城南麓", lat: 36.489, lon: 139.007 },
+    { id: "numata", label: "沼田", lat: 36.646, lon: 139.043 },
+  ];
+
+  const GUNMA_BBOX = {
+    latMin: 36.0,
+    latMax: 37.15,
+    lonMin: 138.65,
+    lonMax: 139.75,
+  };
+
+  function isGunmaOrchardLatLon(lat, lon) {
+    const la = Number(lat);
+    const lo = Number(lon);
+    if (Number.isNaN(la) || Number.isNaN(lo)) return false;
+    return (
+      la >= GUNMA_BBOX.latMin &&
+      la <= GUNMA_BBOX.latMax &&
+      lo >= GUNMA_BBOX.lonMin &&
+      lo <= GUNMA_BBOX.lonMax
+    );
+  }
+
+  function gunmaTypicalBloomStartIso(year) {
+    const y = Number(year);
+    if (!Number.isFinite(y) || y < 2000) return "";
+    return `${y}-04-22`;
+  }
+
+  function suggestBloomStartIfEmpty(lat, lon) {
+    if (loadBloomStartApple()) return;
+    if (!isGunmaOrchardLatLon(lat, lon)) return;
+    const y = new Date().getFullYear();
+    saveBloomStartApple(gunmaTypicalBloomStartIso(y));
+  }
 
   function migrateLegacyStorage() {
     if (!localStorage.getItem(STORAGE_LOCATION) && localStorage.getItem(LEGACY_LOCATION_KEY)) {
@@ -792,6 +832,9 @@ const OrchardRiskModel = (() => {
       syncBloomStartFromPortalIfEmpty();
     }
     const loc = loadLocation();
+    if (cropId === "apple") {
+      suggestBloomStartIfEmpty(loc.lat, loc.lon);
+    }
     const lat = parseFloat(String(loc.lat));
     const lon = parseFloat(String(loc.lon));
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
@@ -953,6 +996,9 @@ const OrchardRiskModel = (() => {
     loadBloomStartApple,
     saveBloomStartApple,
     syncBloomStartFromPortalIfEmpty,
+    suggestBloomStartIfEmpty,
+    GUNMA_LOCATION_PRESETS,
+    isGunmaOrchardLatLon,
     tryLoadPortalLocation,
     buildDashboard,
     buildDashboardLive,
