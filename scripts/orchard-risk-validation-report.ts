@@ -363,6 +363,45 @@ function renderMarkdown(report: Record<string, unknown>): string {
     lines.push(`**升孢子プール総合: ${poolPass ? "PASS" : "FAIL"}**`, "");
   }
 
+  const poolCarry = report.ascosporePoolCarryGolden as Record<string, unknown>[];
+  if (poolCarry?.length) {
+    lines.push(
+      "## りんご黒星・升孢子プール（75日窓 + 日次繰越）",
+      "",
+      `- 緑期日: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.greenTip}`,
+      `- 終了: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.seasonEnd}`,
+      `- hourly 開始: シーズン終了の ${POOL_HOURLY_LOOKBACK_DAYS} 日前から（本番 API と同じ）`,
+      `- 許容: 残・累積 ±${POOL_CARRY_TOLERANCE.remaining}% / 降雨回 ±${POOL_CARRY_TOLERANCE.events}`,
+      ""
+    );
+    let carryPass = true;
+    for (const row of poolCarry) {
+      if (row.skipped) continue;
+      carryPass &&= (row.checks as { pass: boolean }).pass;
+      lines.push(
+        `### ${row.label} (${row.siteId})`,
+        `- poolHourlyFrom: \`${row.poolHourlyFrom ?? "—"}\``,
+        ""
+      );
+      for (const cp of row.rows as {
+        queryDate: string;
+        pass: boolean;
+        actual: {
+          remainingPercent: number;
+          cumulativeReleasedPercent: number;
+          rainEventsProcessed: number;
+        } | null;
+      }[]) {
+        const a = cp.actual;
+        lines.push(
+          `- ${cp.queryDate}: 残 ${a?.remainingPercent ?? "—"}% / 累積放出 ${a?.cumulativeReleasedPercent ?? "—"}% / 降雨 ${a?.rainEventsProcessed ?? "—"} — ${cp.pass ? "✓" : "✗"}`
+        );
+      }
+      lines.push("");
+    }
+    lines.push(`**プール繰越ゴールデン総合: ${carryPass ? "PASS" : "FAIL"}**`, "");
+  }
+
   if (report.liveApi) {
     lines.push("## ライブ API スナップショット（`fetchOrchardRiskForecast`）", "");
     for (const snap of report.liveApi as Record<string, unknown>[]) {

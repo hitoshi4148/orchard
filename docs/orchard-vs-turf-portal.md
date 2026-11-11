@@ -20,8 +20,8 @@
    - 果樹: `npm run pages:deploy` → orchard Pages
    - 芝ドメインのプロキシ: tool-portal で `npm run deploy:router`
 5. **リンク**
-   - Lab のりんご・なし病害 → `https://orchard-aa7.pages.dev/portal/risk/`（絶対 URL）
-   - turf-tools 上で果樹 UI を `/portal/risk/` に載せない
+   - orchard 上の Lab → 相対パス `/portal/risk/`（果樹 UI）
+   - turf-tools 上で果樹 UI を `/portal/risk/` に載せない（芝地図は tool-portal のみ）
 
 ## 回帰防止
 
