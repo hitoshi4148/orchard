@@ -1,0 +1,24 @@
+---
+description: 果樹園orchardと芝tool-portalの境界（パス衝突・デプロイ・ルーター）
+alwaysApply: true
+---
+
+# 果樹園 vs 芝しごと
+
+本リポジトリは **果樹園しごと（orchard）** です。芝しごとの本体は **tool-portal** 別リポ。
+
+## 禁止
+
+- `turf-tools-router` で `/portal/risk` を orchard にプロキシしない（芝地図が壊れる）。
+- 果樹の変更を「芝ポータルに載るから」と `/portal/risk/` 同一パス前提で turf-tools 全体に適用しない。
+- `npm run pages:deploy` と `npm run deploy:turf-router` を混同しない。
+
+## 参照
+
+- 詳細: `docs/orchard-vs-turf-portal.md`
+- ルーター単一ソース: `workers/turf-tools-router/routing-policy.ts`（変更時は `routing-policy.test.ts` 必須）
+
+## 果樹病害の正 URL
+
+- UI: `https://orchard-aa7.pages.dev/portal/risk/`
+- API: 同一オリジン `GET /portal/api/orchard-risk`
