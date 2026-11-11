@@ -2,6 +2,7 @@ import { fetchOrchardRiskForecast } from "../../../src/orchard-risk/forecast";
 import { parseGymnosporangiumHostNearby } from "../../../src/orchard-risk/parse-gymnosporangium-host";
 import { parseScabInoculumLevel } from "../../../src/orchard-risk/parse-ascospore-inoculum";
 import { parsePriorYearStatus } from "../../../src/orchard-risk/parse-prior-year-status";
+import { parseGrapeCultivationId } from "../../../src/orchard-risk/parse-grape-cultivation";
 import { parseOrchardCalendarDate } from "../../../src/orchard-risk/parse-orchard-date";
 import { OrchardCropId } from "../../../src/orchard-risk/types";
 
@@ -36,6 +37,10 @@ export const onRequestGet: PagesFunction = async (context) => {
     const priorYearStatus = parsePriorYearStatus(
       url.searchParams.get("prior_year")
     );
+    const grapeCultivationId = parseGrapeCultivationId(
+      url.searchParams.get("grape_cultivation") ??
+        url.searchParams.get("cultivation")
+    );
 
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return Response.json(
@@ -68,6 +73,7 @@ export const onRequestGet: PagesFunction = async (context) => {
         gymnosporangiumHostNearby:
           crop === "nashi" ? gymnosporangiumHostNearby : null,
         priorYearStatus: crop === "peach" ? priorYearStatus : null,
+        grapeCultivationId: crop === "grape" ? grapeCultivationId : null,
       }
     );
 

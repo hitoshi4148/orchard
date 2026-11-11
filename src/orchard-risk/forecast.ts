@@ -89,6 +89,11 @@ import {
   priorYearRationaleSuffix,
   priorYearSummaryLabel,
 } from "./prior-year-infection";
+import {
+  parseGrapeCultivationId,
+  type GrapeCultivationId,
+} from "./parse-grape-cultivation";
+import { grapeCultivationSummaryLabel } from "./grape-cultivation-weather";
 
 export interface OrchardRiskFetchOptions {
   /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
@@ -101,6 +106,8 @@ export interface OrchardRiskFetchOptions {
   scabInoculumLevel?: ScabInoculumLevel | null;
   /** もも — 昨年発生状況 */
   priorYearStatus?: PriorYearStatus | null;
+  /** ぶどう — 栽培方式（雨よけ） */
+  grapeCultivationId?: GrapeCultivationId | null;
 }
 
 /** 枯渇プール用 hourly の最大遡及日数（Pages Worker CPU 上限対策） */
@@ -114,6 +121,7 @@ function calculateForDisease(
     lat: number;
     lon: number;
     growthStageId: string;
+    grapeCultivationId?: GrapeCultivationId | null;
     ascosporeGddDaily?: DailyWeatherRecord[];
     greenTipDate?: string | null;
   },
@@ -147,6 +155,7 @@ function calculateForDisease(
     case "grape:anthracnose":
       return calcGrapeDisease(diseaseId, input, {
         growthStageId: appleScabCtx.growthStageId,
+        cultivationId: appleScabCtx.grapeCultivationId ?? "open",
       });
     case "peach:bacterial_shot_hole":
     case "peach:gray_spot":
@@ -284,6 +293,10 @@ export async function fetchOrchardRiskForecast(
       : null;
   const priorYearStatus =
     cropId === "peach" ? (options.priorYearStatus ?? null) : null;
+  const grapeCultivationId: GrapeCultivationId =
+    cropId === "grape"
+      ? (options.grapeCultivationId ?? parseGrapeCultivationId("open"))
+      : "open";
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
@@ -529,6 +542,7 @@ export async function fetchOrchardRiskForecast(
           lat,
           lon,
           growthStageId,
+          grapeCultivationId: cropId === "grape" ? grapeCultivationId : null,
           ascosporeGddDaily: appleScabGddDaily ?? undefined,
           greenTipDate,
           ascosporePoolSnapshots: appleScabPoolSnapshots ?? undefined,
@@ -624,6 +638,11 @@ export async function fetchOrchardRiskForecast(
     priorYearStatus: cropId === "peach" ? priorYearStatus : null,
     priorYearInfectionNote:
       cropId === "peach" ? priorYearSummaryLabel(priorYearStatus) : null,
+    grapeCultivationId: cropId === "grape" ? grapeCultivationId : null,
+    grapeCultivationInfectionNote:
+      cropId === "grape"
+        ? grapeCultivationSummaryLabel(grapeCultivationId)
+        : null,
     weather5d,
     infectionByDiseaseId,
     rationales,

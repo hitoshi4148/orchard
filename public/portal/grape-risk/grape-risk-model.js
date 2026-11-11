@@ -380,6 +380,7 @@ const GrapeRiskModel = (() => {
         lon,
         variety: settings.variety,
         growthStageId: settings.growthStageId,
+        grapeCultivationId: settings.cultivationId || "open",
       });
       return OrchardRiskClient.applyToCropViewState(
         base,

@@ -337,11 +337,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const errBanner = state.fetchError
       ? `<p class="grape-risk-error" role="alert">${escapeHtml(state.fetchError)}（サンプル表示にフォールバック）</p>`
       : "";
+    const cultNote =
+      state.isLive && state.grapeCultivationInfectionNote
+        ? `<p class="grape-cultivation-note" role="status">${escapeHtml(state.grapeCultivationInfectionNote)}</p>`
+        : "";
     root.innerHTML = `
       <header class="grape-risk-header">
         <h1>ぶどう病害リスク予報</h1>
         <p class="grape-risk-subtitle">気象データから、ぶどうの病害発生リスクを予測</p>
         ${errBanner}
+        ${cultNote}
         <div class="grape-risk-meta">
           <span class="grape-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>

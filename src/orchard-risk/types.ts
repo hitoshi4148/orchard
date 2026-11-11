@@ -1,5 +1,6 @@
 import type { ScabInoculumLevel } from "./parse-ascospore-inoculum";
 import type { PriorYearStatus } from "./parse-prior-year-status";
+import type { GrapeCultivationId } from "./parse-grape-cultivation";
 
 export type OrchardCropId = "apple" | "nashi" | "grape" | "peach";
 
@@ -142,6 +143,10 @@ export interface OrchardRiskForecast {
   priorYearStatus: PriorYearStatus | null;
   /** もも — 昨年係数が効いているときの UI 用短文 */
   priorYearInfectionNote: string | null;
+  /** ぶどう — 栽培方式（感染計算） */
+  grapeCultivationId: GrapeCultivationId | null;
+  /** ぶどう — 雨よけ補正の UI 用短文 */
+  grapeCultivationInfectionNote: string | null;
   weather5d: OrchardDailyWeather[];
   infectionByDiseaseId: Record<string, RiskLevel[]>;
   rationales: Record<string, string>;

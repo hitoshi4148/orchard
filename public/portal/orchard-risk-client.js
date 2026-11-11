@@ -38,6 +38,7 @@ const OrchardRiskClient = (() => {
     variety,
     growthStageId,
     priorYearStatusId,
+    grapeCultivationId,
   }) {
     const params = new URLSearchParams({
       lat: String(lat),
@@ -49,6 +50,9 @@ const OrchardRiskClient = (() => {
     });
     if (priorYearStatusId) {
       params.set("prior_year", priorYearStatusId);
+    }
+    if (crop === "grape" && grapeCultivationId) {
+      params.set("grape_cultivation", grapeCultivationId);
     }
     const res = await fetch(`/portal/api/orchard-risk?${params.toString()}`);
     const text = await res.text();
@@ -191,6 +195,8 @@ const OrchardRiskClient = (() => {
       dataSourceLabel: forecast.dataSourceLabel,
       varietyFactor: forecast.varietyFactor ?? 1,
       priorYearInfectionNote: forecast.priorYearInfectionNote || null,
+      grapeCultivationInfectionNote:
+        forecast.grapeCultivationInfectionNote || null,
       updatedAt: forecast.updatedAt,
       currentRisks,
       infectionMatrix,

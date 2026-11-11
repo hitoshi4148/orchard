@@ -6,6 +6,10 @@ import { calcGrapeDownyMildew } from "./grape-downy-mildew";
 import { calcGrapeGrayMold } from "./grape-gray-mold";
 import { calcGrapeLateRot } from "./grape-late-rot";
 import {
+  adjustWeatherForGrapeCultivation,
+  grapeCultivationRationaleSuffix,
+} from "../grape-cultivation-weather";
+import {
   CropDiseaseContext,
   DEFAULT_CROP_DISEASE_CONTEXT,
 } from "./crop-disease-context";
@@ -32,7 +36,15 @@ export function calcGrapeDisease(
   if (!calc) {
     return { percent: null, rationale: "未定義のぶどう病害 ID です。" };
   }
-  return calc(input, ctx);
+  const cultivationId = ctx.cultivationId ?? "open";
+  const adjusted = adjustWeatherForGrapeCultivation(input, cultivationId);
+  const result = calc(adjusted, ctx);
+  return {
+    ...result,
+    rationale:
+      (result.rationale ?? "") +
+      grapeCultivationRationaleSuffix(cultivationId),
+  };
 }
 
 export function listGrapeDiseaseModelIds(): string[] {
