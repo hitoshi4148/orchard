@@ -5,11 +5,17 @@ import { calcGrapeBlackRot } from "./grape-black-rot";
 import { calcGrapeDownyMildew } from "./grape-downy-mildew";
 import { calcGrapeGrayMold } from "./grape-gray-mold";
 import { calcGrapeLateRot } from "./grape-late-rot";
+import {
+  CropDiseaseContext,
+  DEFAULT_CROP_DISEASE_CONTEXT,
+} from "./crop-disease-context";
 
-const GRAPE_CALCULATORS: Record<
-  string,
-  (input: DiseaseWeatherInput) => InfectionCalcResult
-> = {
+type GrapeCalc = (
+  input: DiseaseWeatherInput,
+  ctx: CropDiseaseContext
+) => InfectionCalcResult;
+
+const GRAPE_CALCULATORS: Record<string, GrapeCalc> = {
   "grape:downy_mildew": calcGrapeDownyMildew,
   "grape:black_rot": calcGrapeBlackRot,
   "grape:late_rot": calcGrapeLateRot,
@@ -19,13 +25,14 @@ const GRAPE_CALCULATORS: Record<
 
 export function calcGrapeDisease(
   diseaseId: string,
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  ctx: CropDiseaseContext = DEFAULT_CROP_DISEASE_CONTEXT
 ): InfectionCalcResult {
   const calc = GRAPE_CALCULATORS[diseaseId];
   if (!calc) {
     return { percent: null, rationale: "未定義のぶどう病害 ID です。" };
   }
-  return calc(input);
+  return calc(input, ctx);
 }
 
 export function listGrapeDiseaseModelIds(): string[] {

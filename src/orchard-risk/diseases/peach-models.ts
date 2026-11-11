@@ -5,11 +5,17 @@ import { calcPeachBacterialShotHole } from "./peach-bacterial-shot-hole";
 import { calcPeachGraySpot } from "./peach-gray-spot";
 import { calcPeachLeafCurl } from "./peach-leaf-curl";
 import { calcPeachScab } from "./peach-scab";
+import {
+  CropDiseaseContext,
+  DEFAULT_CROP_DISEASE_CONTEXT,
+} from "./crop-disease-context";
 
-const PEACH_CALCULATORS: Record<
-  string,
-  (input: DiseaseWeatherInput) => InfectionCalcResult
-> = {
+type PeachCalc = (
+  input: DiseaseWeatherInput,
+  ctx: CropDiseaseContext
+) => InfectionCalcResult;
+
+const PEACH_CALCULATORS: Record<string, PeachCalc> = {
   "peach:bacterial_shot_hole": calcPeachBacterialShotHole,
   "peach:gray_spot": calcPeachGraySpot,
   "peach:scab": calcPeachScab,
@@ -19,13 +25,14 @@ const PEACH_CALCULATORS: Record<
 
 export function calcPeachDisease(
   diseaseId: string,
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  ctx: CropDiseaseContext = DEFAULT_CROP_DISEASE_CONTEXT
 ): InfectionCalcResult {
   const calc = PEACH_CALCULATORS[diseaseId];
   if (!calc) {
     return { percent: null, rationale: "未定義のもも病害 ID です。" };
   }
-  return calc(input);
+  return calc(input, ctx);
 }
 
 export function listPeachDiseaseModelIds(): string[] {

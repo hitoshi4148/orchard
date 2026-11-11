@@ -6,7 +6,7 @@
 
 ## ロジック
 
-4–6月季節係数 × 濡れ閾値。`diseases/peach-bacterial-shot-hole.ts`。
+**飛沫代理**: 15–26℃ で降水 ≥0.3 mm/h、強雨 ≥1.0 mm/h、湿潤時間。風速は未提供のため根拠に明記。`peach-bacterial-shot-hole.ts`。
 
 ## 参照
 

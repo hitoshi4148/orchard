@@ -6,7 +6,7 @@
 
 ## ロジック
 
-開花期前後（4–6月）季節係数 × 濡れ閾値。`diseases/grape-gray-mold.ts`。
+`calcWetTempHeuristic`（15–22℃）＋涼冷濡れボーナス × 季節 × **`growth_stage` 係数**（`bloom` 高）。`diseases/grape-gray-mold.ts`。
 
 ## 参照
 

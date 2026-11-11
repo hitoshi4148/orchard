@@ -4,7 +4,8 @@ import { calcGrapeSeasonalHeuristic } from "./grape-season";
 
 /** docs/orchard-disease-models/grape-late_rot.md */
 export function calcGrapeLateRot(
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  _ctx?: import("./crop-disease-context").CropDiseaseContext
 ): InfectionCalcResult {
   return calcGrapeSeasonalHeuristic("grape:late_rot", input);
 }

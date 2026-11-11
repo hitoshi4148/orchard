@@ -24,6 +24,7 @@ describe("grape downy mildew P2", () => {
     });
     assert.ok((june.percent ?? 0) > (winter.percent ?? 0));
     assert.match(june.rationale, /適温濡れ/);
+    assert.match(june.rationale, /連続最大/);
   });
 
   it("rewards precip on top of seasonal heuristic baseline", () => {

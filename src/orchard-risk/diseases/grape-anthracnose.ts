@@ -4,7 +4,8 @@ import { calcGrapeSeasonalHeuristic } from "./grape-season";
 
 /** docs/orchard-disease-models/grape-anthracnose.md */
 export function calcGrapeAnthracnose(
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  _ctx?: import("./crop-disease-context").CropDiseaseContext
 ): InfectionCalcResult {
   return calcGrapeSeasonalHeuristic("grape:anthracnose", input);
 }

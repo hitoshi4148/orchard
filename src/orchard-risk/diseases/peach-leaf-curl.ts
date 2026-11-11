@@ -15,7 +15,8 @@ const COOL_MAX = 18;
  * ももいさか病 — 早春の低温濡れを強調（Taphrina 簡易 P2）
  */
 export function calcPeachLeafCurl(
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  _ctx?: import("./crop-disease-context").CropDiseaseContext
 ): InfectionCalcResult {
   const targetMs = new Date(input.targetDateTime).getTime();
   const window = filterHourlyInWindow(input.hourly, targetMs, 48);
