@@ -487,6 +487,31 @@ const OrchardRiskModel = (() => {
     }
   }
 
+  function getDocumentCookie(name) {
+    const match = document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${name}=`));
+    if (!match) return "";
+    try {
+      return decodeURIComponent(match.split("=").slice(1).join("=")).trim();
+    } catch {
+      return "";
+    }
+  }
+
+  /** 果樹園しごとの満開日 Cookie → 開花始期（未入力時のみ） */
+  function syncBloomStartFromPortalIfEmpty() {
+    if (loadBloomStartApple()) return;
+    const variety = loadVariety("apple");
+    const isFuji = /ふじ/.test(variety);
+    const key = isFuji ? "agromap_warm_seeding_date" : "agromap_greenfield_date";
+    const fromPortal = getDocumentCookie(key);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fromPortal)) {
+      saveBloomStartApple(fromPortal);
+    }
+  }
+
   function loadBloomStartApple() {
     const raw = localStorage.getItem(STORAGE_BLOOM_START_APPLE);
     if (!raw) return "";
@@ -527,7 +552,8 @@ const OrchardRiskModel = (() => {
       gddSinceInfectionDayC: null,
       predictedOnsetWindow: "—",
       confidence: "低",
-      note: `開花始期 ${bloom} を受け取りました。一次感染・発病予測（猫塚 2023）は次フェーズで接続予定です。`,
+      note:
+        "気象 API 未接続のデモ表示です。ネットワーク接続時はサーバーが一次感染・GDD（褐斑）を計算します。",
       marssoninaStatus: "onset_pending_model",
       bloomStart: bloom,
       isDemo: true,
@@ -701,11 +727,13 @@ const OrchardRiskModel = (() => {
 
     const onset = (forecast.onset || MOCK_ONSET[baseDashboard.cropId]).map((row) => {
       const disease = DISEASES[row.diseaseId];
+      const serverDemo = row.isDemo === true;
       return {
         ...row,
         diseaseName: disease?.name || row.diseaseId,
         disease,
-        isDemo: row.isDemo === true,
+        isDemo: serverDemo,
+        liveData: !serverDemo || row.modelStatus === "mills" || row.modelStatus === "gdd",
       };
     });
 
@@ -756,6 +784,9 @@ const OrchardRiskModel = (() => {
   }
 
   async function fetchServerForecast(cropId = loadCropId()) {
+    if (cropId === "apple") {
+      syncBloomStartFromPortalIfEmpty();
+    }
     const loc = loadLocation();
     const lat = parseFloat(String(loc.lat));
     const lon = parseFloat(String(loc.lon));
@@ -904,6 +935,7 @@ const OrchardRiskModel = (() => {
     saveGrowthStageId,
     loadBloomStartApple,
     saveBloomStartApple,
+    syncBloomStartFromPortalIfEmpty,
     tryLoadPortalLocation,
     buildDashboard,
     buildDashboardLive,

@@ -25,6 +25,10 @@ import {
   calcNashiScabPlaceholder,
   calcWetTempHeuristic,
 } from "./infection-calculators";
+import {
+  calcMarssoninaForecastInfection,
+  MarssoninaForecastContext,
+} from "./marssonina-forecast-risk";
 import { computeMarssoninaGddEstimate } from "./marssonina-gdd";
 import {
   fetchMarssoninaExplorationHourly,
@@ -45,9 +49,15 @@ import {
 import { OrchardCropId, OrchardRiskForecast, RiskLevel } from "./types";
 import { getVarietyFactor } from "./variety";
 
+export interface OrchardRiskFetchOptions {
+  /** false で NASA 長窓（褐斑 onset）を省略し 6 日表・黒星などを高速化 */
+  includeMarssoninaOnset?: boolean;
+}
+
 function calculateForDisease(
   diseaseId: string,
-  input: DiseaseWeatherInput
+  input: DiseaseWeatherInput,
+  marssoninaCtx: MarssoninaForecastContext | null
 ): { percent: number | null; rationale: string } {
   switch (diseaseId) {
     case "apple:scab":
@@ -55,13 +65,7 @@ function calculateForDisease(
     case "nashi:scab":
       return calcNashiScabPlaceholder(input);
     case "apple:marssonina":
-      return calcWetTempHeuristic(input, {
-        tempMin: 22,
-        tempMax: 30,
-        diseaseLabel: "りんご褐斑病",
-        wetHoursHigh: 10,
-        wetHoursCaution: 5,
-      });
+      return calcMarssoninaForecastInfection(input, marssoninaCtx);
     case "apple:alternaria":
       return calcWetTempHeuristic(input, {
         tempMin: 24,
@@ -172,8 +176,10 @@ export async function fetchOrchardRiskForecast(
   cropId: OrchardCropId,
   variety: string,
   growthStageId: string,
-  bloomStart: string | null = null
+  bloomStart: string | null = null,
+  options: OrchardRiskFetchOptions = {}
 ): Promise<OrchardRiskForecast> {
+  const includeMarssoninaOnset = options.includeMarssoninaOnset !== false;
   const today = jstTodayString();
   const endDate = addDaysToDateString(today, -1);
   const startDate = addDaysToDateString(today, -14);
@@ -185,7 +191,7 @@ export async function fetchOrchardRiskForecast(
   let marssoninaGddDailyPromise: Promise<DailyWeatherRecord[] | null> =
     Promise.resolve(null);
 
-  if (cropId === "apple" && bloomStart) {
+  if (cropId === "apple" && bloomStart && includeMarssoninaOnset) {
     marssoninaWindow = resolveMarssoninaNasaWindow(bloomStart, endDate);
     marssoninaGddDailyPromise = fetchNasaPowerDaily(
       lat,
@@ -205,7 +211,7 @@ export async function fetchOrchardRiskForecast(
     fetchNasaPowerDaily(lat, lon, startDate, endDate),
     fetchNasaPowerHourly(lat, lon, startDate, endDate),
     fetchMetNorwayFromToday(lat, lon, 168),
-    cropId === "apple" && marssoninaWindow
+    cropId === "apple" && marssoninaWindow && includeMarssoninaOnset
       ? fetchMarssoninaExplorationHourly(lat, lon, marssoninaWindow).catch(
           () => {
             marssoninaFetchFailed = true;
@@ -217,7 +223,7 @@ export async function fetchOrchardRiskForecast(
   ]);
 
   const marssoninaSearch =
-    cropId === "apple" && bloomStart && marssoninaWindow
+    cropId === "apple" && bloomStart && marssoninaWindow && includeMarssoninaOnset
       ? searchPrimaryMarssoninaInfection(
           marssoninaHourlyRaw ?? [],
           marssoninaWindow,
@@ -266,6 +272,14 @@ export async function fetchOrchardRiskForecast(
   const varietyFactor = getVarietyFactor(cropId, variety);
   const diseaseIds = DISEASE_IDS_BY_CROP[cropId];
 
+  const marssoninaCtx: MarssoninaForecastContext | null =
+    marssoninaSearch?.primary?.infectionDate
+      ? {
+          primaryInfectionDate: marssoninaSearch.primary.infectionDate,
+          totalGddDayC: marssoninaGdd?.totalGddThroughForecastDayC ?? null,
+        }
+      : null;
+
   const infectionByDiseaseId: Record<string, RiskLevel[]> = {};
   const rationales: Record<string, string> = {};
   const modelStatusByDisease: OrchardRiskForecast["modelStatusByDisease"] = {};
@@ -275,7 +289,12 @@ export async function fetchOrchardRiskForecast(
     const levels: RiskLevel[] = [];
     let lastRationale = "";
 
-    modelStatusByDisease[diseaseId] = MODEL_STATUS[diseaseId] ?? "demo";
+    const marssoninaLive =
+      diseaseId === "apple:marssonina" &&
+      marssoninaCtx?.primaryInfectionDate != null;
+    modelStatusByDisease[diseaseId] = marssoninaLive
+      ? "gdd"
+      : MODEL_STATUS[diseaseId] ?? "demo";
 
     for (let offset = 0; offset <= 5; offset += 1) {
       const target = buildTargetDateTimeJst(offset, 18);
@@ -285,7 +304,7 @@ export async function fetchOrchardRiskForecast(
         forecastHourly,
         target
       );
-      const raw = calculateForDisease(diseaseId, input);
+      const raw = calculateForDisease(diseaseId, input, marssoninaCtx);
       const adjusted = applyVarietyFactor(raw.percent, varietyFactor);
       const level = percentToInfectionLevel(adjusted) ?? "low";
       levels.push(level);
@@ -301,7 +320,7 @@ export async function fetchOrchardRiskForecast(
       }
     }
 
-    if (MODEL_STATUS[diseaseId] === "heuristic") {
+    if (MODEL_STATUS[diseaseId] === "heuristic" && !marssoninaLive) {
       demoDiseaseIds.push(diseaseId);
     }
     if (diseaseId === "nashi:scab") {

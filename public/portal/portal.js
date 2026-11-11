@@ -2,6 +2,8 @@ const COOKIE_NAME = "portalSettings";
 const SPRAY_CACHE_KEY = "portalSprayForecastCache";
 const SPRAY_CACHE_TTL_MS = 60 * 60 * 1000;
 const DASHBOARD_API = "/portal/api/dashboard";
+const WEATHER_API = "/portal/api/weather";
+const SPRAY_FORECAST_API = "/portal/spray/api/forecast";
 const GDD_API = "/portal/api/gdd";
 const CHAT_API = "/portal/api/chat";
 const GEOCODE_API = "/portal/api/geocode";
@@ -79,6 +81,11 @@ function shouldRetryInfraResponse(status, text) {
 }
 
 function buildApiJsonError(status, text) {
+  if (text.includes("error code: 1102")) {
+    return new Error(
+      "サーバー処理が上限に達しました（一時的）。数十秒待って再読み込みするか、本番URL（turf-tools.jp）から開き直してください。"
+    );
+  }
   if (isHtmlApiBody(text)) {
     const isLocalDevHost =
       location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -642,6 +649,35 @@ function portalNeedsDashboardData() {
   return SHOW_WEATHER || SHOW_PORTAL_INSIGHTS || SHOW_GROWTH_POTENTIAL;
 }
 
+function portalUsesLightWeatherApis() {
+  return SHOW_WEATHER && !SHOW_PORTAL_INSIGHTS && !SHOW_GROWTH_POTENTIAL;
+}
+
+async function fetchLightPortalWeatherBundle(lat, lon) {
+  const q = new URLSearchParams({ lat, lon });
+  const fetchOpts = {
+    maxRetries: DASHBOARD_API_MAX_RETRIES,
+    timeoutMs: DASHBOARD_API_TIMEOUT_MS,
+  };
+  const sprayPromise = SHOW_WEATHER
+    ? fetchApiJson(`${SPRAY_FORECAST_API}?${q}`, fetchOpts)
+    : Promise.resolve(null);
+  const weather = await fetchApiJson(`${WEATHER_API}?${q}`, fetchOpts);
+  if (!weather.success) {
+    throw new Error(weather.error || "気象データの取得に失敗しました");
+  }
+  let sprayForecast = null;
+  const spray = await sprayPromise;
+  if (spray?.success && Array.isArray(spray.results)) {
+    sprayForecast = spray.results;
+  }
+  return {
+    success: true,
+    weather: { hourly: weather.hourly, days: weather.days },
+    sprayForecast,
+  };
+}
+
 function buildDashboardNeedParam() {
   const parts = [];
   if (SHOW_WEATHER) {
@@ -731,10 +767,12 @@ async function loadPortalData() {
   const gddPromise = SHOW_PORTAL_INSIGHTS ? refreshAllGdd(settings) : Promise.resolve();
 
   try {
-    const data = await fetchApiJson(`${DASHBOARD_API}?${params.toString()}`, {
-      maxRetries: DASHBOARD_API_MAX_RETRIES,
-      timeoutMs: DASHBOARD_API_TIMEOUT_MS,
-    });
+    const data = portalUsesLightWeatherApis()
+      ? await fetchLightPortalWeatherBundle(location.lat, location.lon)
+      : await fetchApiJson(`${DASHBOARD_API}?${params.toString()}`, {
+          maxRetries: DASHBOARD_API_MAX_RETRIES,
+          timeoutMs: DASHBOARD_API_TIMEOUT_MS,
+        });
 
     if (loadSeq !== portalDataLoadSeq) {
       return;

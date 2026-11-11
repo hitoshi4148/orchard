@@ -44,13 +44,17 @@ export const onRequestGet: PagesFunction = async (context) => {
       );
     }
 
+    const includeMarssoninaOnset =
+      url.searchParams.get("marssonina_onset") !== "0";
+
     const forecast = await fetchOrchardRiskForecast(
       lat,
       lon,
       crop,
       variety || (crop === "nashi" ? "幸水" : "ふじ"),
       growthStage,
-      crop === "apple" ? bloomStart : null
+      crop === "apple" ? bloomStart : null,
+      { includeMarssoninaOnset }
     );
 
     return Response.json({

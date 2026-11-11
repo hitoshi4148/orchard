@@ -411,6 +411,34 @@ fork 元の [tool-portal](https://github.com/hitoshi4148/tool-portal) は別 Pag
   └─ /portal/spray/ 遷移時 ........ sessionStorage キャッシュ → MET 再取得省略（条件付き）
 ```
 
+## りんご・なし病害リスク予報の開発
+
+UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-risk` · コア: `src/orchard-risk/`
+
+| 病害 | 6日間感染表 | 発病予測（onset） | 備考 |
+|------|-------------|-------------------|------|
+| りんご黒星 | Mills（接続済） | 簡易 | `src/disease/models/apple-scab` |
+| りんご褐斑 | **予報二次（降水濡れ+P2閾値・GDD加算）** ※一次未推定時は簡易 | **P2 一次感染 + P3 GDD 159日℃**（開花始期必須） | `marssonina_onset=0` で onset のみ省略し高速化 |
+| りんご他3病 | ヒューリスティック | デモ | |
+| なし黒星 | Duthie 未完了 | デモ | 次の接続候補 |
+| なし他4病 | ヒューリスティック | デモ | |
+
+### よく使うコマンド
+
+```bash
+npm run dev                    # Pages dev（ポート 8790）
+npm run test:orchard-risk      # 褐斑ユニット + NASA 統合テスト
+npm run orchard-risk:fetch -- --lat 40.82 --lon 140.74 --crop apple --bloom 2026-04-25
+npm run report:marssonina-phase2   # 弘前・標準地点の Phase2 比較レポート
+npm run report:orchard-risk-validation   # ゴールデン + ライブ API 検証レポート（reports/…/output/）
+```
+
+なし黒星 Duthie 調査: [`docs/nashi-scab-duthie-research.md`](docs/nashi-scab-duthie-research.md)
+
+`orchard-risk:fetch` は API と同じ `fetchOrchardRiskForecast` を Node から呼びます。`--out file.json` で UI 確認用のスナップショットを保存できます。
+
+開花始期はリスク画面の日付入力、または果樹園しごと設定の満開日 Cookie（`agromap_greenfield_date` / `agromap_warm_seeding_date`）から未入力時のみ自動取り込みします。
+
 ## プロジェクト構成
 
 ```
@@ -445,6 +473,7 @@ orchard/
 │   ├── portal/fetch-dashboard.ts
 │   ├── advisor/                  # AI質問箱（Gemini）
 │   ├── weather/
+│   ├── orchard-risk/             # りんご・なし予報 API（褐斑 P2/P3 含む）
 │   ├── disease/models/           # 果樹病害リスクモデル（5種）
 │   ├── growth-potential/
 │   ├── gdd/
