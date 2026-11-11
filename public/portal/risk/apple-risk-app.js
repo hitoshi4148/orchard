@@ -112,6 +112,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ${cols.map((c) => `<div class="apple-risk-weather-cell">${getter(c)}</div>`).join("")}
       </div>`;
 
+    const marssoninaGddRow =
+      dashboard.cropId === "apple" &&
+      cols.some((c) => typeof c.marssoninaGddDayC === "number")
+        ? row("褐斑GDD", (c) =>
+            typeof c.marssoninaGddDayC === "number"
+              ? `${Math.round(c.marssoninaGddDayC)}日℃`
+              : "—"
+          )
+        : "";
+
     return `<div class="apple-risk-weather-grid">
       <div class="apple-risk-weather-row">${'<div class="label"></div>'}${headers}</div>
       ${row("平均気温", (c) => `${c.avgTemp.toFixed(1)}℃`)}
@@ -120,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${row("降水量", (c) => `${c.precipMm.toFixed(1)}mm`)}
       ${row("湿度", (c) => `${Math.round(c.humidityPct)}%`)}
       ${row("葉面濡れ", (c) => `${c.leafWetHours.toFixed(1)}h`)}
+      ${marssoninaGddRow}
     </div>
     <p class="apple-risk-wet-est" style="margin-top:8px">※ 葉面濡れ時間は MET Norway 予報と履歴からの<strong>推定値</strong>です（実測ではありません）。</p>`;
   }
@@ -229,9 +240,15 @@ document.addEventListener("DOMContentLoaded", () => {
             ? ""
             : `<dt>表示上の確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
         const pool = dashboard.ascosporePool;
+        const poolCarryNote =
+          pool?.dailyCarryInApplied && pool.hourlyWindowStart
+            ? `<span class="apple-risk-wet-est">（${escapeHtml(pool.hourlyWindowStart)}〜の時別＋それ以前は日次近似で繰越）</span>`
+            : pool?.offSeasonDepletedShortcut
+              ? `<span class="apple-risk-wet-est">（期外・枯渇済み近似）</span>`
+              : "";
         const ascosporePoolRow =
           item.diseaseId === "apple:scab" && pool
-            ? `<dt>升孢子枯渇プール</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）</dd>`
+            ? `<dt>升孢子枯渇プール</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）${poolCarryNote}</dd>`
             : "";
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""

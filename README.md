@@ -371,6 +371,15 @@ Wrangler CLI から Git 連携はできないため、Cloudflare ダッシュボ
 
 fork 元の [tool-portal](https://github.com/hitoshi4148/tool-portal) は別 Pages プロジェクト（`tool-portal-9y2.pages.dev`）および `turf-tools.jp/portal/` で稼働しています。本リポジトリ `orchard` とは別管理です。
 
+**パス衝突（重要）**
+
+| ホスト | `/portal/risk/` | 果樹 API |
+|--------|-----------------|----------|
+| `turf-tools.jp` | **芝しごと**（地図・`risk-map`）— tool-portal へプロキシ | `GET /portal/api/orchard-risk` のみ orchard へ（`workers/turf-tools-router`） |
+| `orchard-aa7.pages.dev` | **果樹園**（りんご・なし UI） | 同一オリジン |
+
+`turf-tools.jp/portal/risk/` を orchard に向けないこと（過去に誤ルーティングで芝 UI が果樹ページに差し替わった事例あり）。果樹の病害画面は Lab から `https://orchard-aa7.pages.dev/portal/risk/` を開く。
+
 ## 外部 API の利用方針
 
 ポータル TOP は **1 回の `/portal/api/dashboard` 呼び出し** で天気・病害リスク・GP をまとめて取得します。

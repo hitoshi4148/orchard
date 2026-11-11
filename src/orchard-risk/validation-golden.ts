@@ -65,21 +65,21 @@ export interface AppleScabPoolGoldenCheckpoint {
 const GUNMA_APPLE_SCAB_POOL_GOLDEN: AppleScabPoolGoldenCheckpoint[] = [
   {
     queryDate: "2026-05-15",
-    remainingPercent: 44.2,
-    cumulativeReleasedPercent: 55.8,
+    remainingPercent: 43.3,
+    cumulativeReleasedPercent: 56.7,
     rainEventsProcessed: 12,
   },
   {
     queryDate: "2026-06-15",
     snapDate: "2026-06-13",
-    remainingPercent: 16.4,
-    cumulativeReleasedPercent: 83.6,
+    remainingPercent: 14.6,
+    cumulativeReleasedPercent: 85.4,
     rainEventsProcessed: 22,
   },
   {
     queryDate: "2026-06-30",
-    remainingPercent: 8.2,
-    cumulativeReleasedPercent: 91.8,
+    remainingPercent: 6.7,
+    cumulativeReleasedPercent: 93.3,
     rainEventsProcessed: 29,
   },
 ];

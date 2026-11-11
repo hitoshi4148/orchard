@@ -45,6 +45,8 @@ export interface OrchardDailyWeather {
   humidityPct: number;
   leafWetHours: number;
   leafWetIsEstimated: true;
+  /** りんご褐斑 — 一次感染後の積算 GDD（日℃）。未接続時は undefined */
+  marssoninaGddDayC?: number | null;
 }
 
 export interface OrchardOnsetRow {
@@ -107,6 +109,12 @@ export interface OrchardAscosporePoolStatus {
   cumulativeReleasedPercent: number;
   rainEventsProcessed: number;
   initialPoolPercent: number;
+  /** 時別枯渇プール再生の開始日（JST） */
+  hourlyWindowStart?: string | null;
+  /** 75日窓より前を日降水で繰り越した */
+  dailyCarryInApplied?: boolean;
+  /** 一次季節外の枯渇済み近似（Worker CPU 対策） */
+  offSeasonDepletedShortcut?: boolean;
 }
 
 export interface OrchardRiskForecast {

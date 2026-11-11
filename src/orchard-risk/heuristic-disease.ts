@@ -69,6 +69,27 @@ export const ORCHARD_HEURISTIC_BY_ID: Record<string, HeuristicDiseaseParams> = {
   },
 };
 
+export interface HeuristicThresholdRow {
+  id: string;
+  diseaseLabel: string;
+  tempMin: number;
+  tempMax: number;
+  wetHoursCaution: number;
+  wetHoursHigh: number;
+}
+
+/** docs/heuristic-orchard-diseases.md とテストの単一ソース */
+export function listHeuristicThresholdRows(): HeuristicThresholdRow[] {
+  return Object.entries(ORCHARD_HEURISTIC_BY_ID).map(([id, p]) => ({
+    id,
+    diseaseLabel: p.diseaseLabel,
+    tempMin: p.tempMin,
+    tempMax: p.tempMax,
+    wetHoursCaution: p.wetHoursCaution,
+    wetHoursHigh: p.wetHoursHigh,
+  }));
+}
+
 export function calcOrchardHeuristicDisease(
   diseaseId: string,
   input: DiseaseWeatherInput

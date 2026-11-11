@@ -4,6 +4,7 @@ import {
 } from "../disease/nasa-power";
 import { addDaysToDateString } from "../disease/met-norway-forecast";
 import {
+  MARSSONINA_HOURLY_FETCH_CHUNK_DAYS,
   NASA_HOURLY_API_BUFFER_DAYS,
 } from "./marssonina-constants";
 import {
@@ -84,17 +85,96 @@ export function resolveMarssoninaNasaWindow(
   };
 }
 
+function mergeSortedHourly(
+  chunks: HourlyWeatherRecord[][]
+): HourlyWeatherRecord[] {
+  const byKey = new Map<string, HourlyWeatherRecord>();
+  for (const chunk of chunks) {
+    for (const row of chunk) {
+      byKey.set(row.datetime, row);
+    }
+  }
+  return [...byKey.values()].sort(
+    (a, b) =>
+      new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+  );
+}
+
+function chunkFetchRange(
+  nasaStart: string,
+  nasaEnd: string,
+  chunkDays: number
+): { apiStart: string; apiEnd: string }[] {
+  const ranges: { apiStart: string; apiEnd: string }[] = [];
+  let cursor = nasaStart;
+  while (cursor <= nasaEnd) {
+    const chunkEnd = addDaysToDateString(cursor, chunkDays - 1);
+    const apiEnd = chunkEnd > nasaEnd ? nasaEnd : chunkEnd;
+    ranges.push({ apiStart: cursor, apiEnd });
+    cursor = addDaysToDateString(apiEnd, 1);
+  }
+  return ranges;
+}
+
+/**
+ * 開花〜昨日をチャンク取得。一次感染候補が見つかったチャンク以降は省略（CPU 対策）。
+ */
 export async function fetchMarssoninaExplorationHourly(
   latitude: number,
   longitude: number,
-  window: MarssoninaNasaWindow
+  window: MarssoninaNasaWindow,
+  mode: MarssoninaPrecipDayMode = "phase2"
 ): Promise<HourlyWeatherRecord[]> {
-  return fetchNasaPowerHourly(
-    latitude,
-    longitude,
+  const chunks: HourlyWeatherRecord[][] = [];
+
+  for (const { apiStart, apiEnd } of chunkFetchRange(
     window.nasaApiStart,
     window.nasaApiEnd,
-    { timeStandard: "UTC" }
+    MARSSONINA_HOURLY_FETCH_CHUNK_DAYS
+  )) {
+    const part = await fetchNasaPowerHourly(
+      latitude,
+      longitude,
+      apiStart,
+      apiEnd,
+      { timeStandard: "UTC" }
+    );
+    chunks.push(part);
+    const merged = mergeSortedHourly(chunks);
+    const lastRow = merged[merged.length - 1];
+    if (!lastRow) {
+      continue;
+    }
+    const dataThrough = datePartFromIso(lastRow.datetime);
+    const scanEnd =
+      dataThrough < window.fetchEnd ? dataThrough : window.fetchEnd;
+    const filtered = filterHourlyForExploration(
+      merged,
+      window.bloomStart,
+      scanEnd
+    );
+    if (
+      filtered.length >= 12 &&
+      listMarssoninaQualifyingPeriods(
+        filtered,
+        window.bloomStart,
+        scanEnd,
+        mode
+      ).length > 0
+    ) {
+      return filterHourlyForExploration(
+        merged,
+        window.bloomStart,
+        window.fetchEnd
+      );
+    }
+  }
+
+  const merged = mergeSortedHourly(chunks);
+  return filterHourlyForExploration(
+    merged,
+    window.bloomStart,
+    window.fetchEnd
   );
 }
 

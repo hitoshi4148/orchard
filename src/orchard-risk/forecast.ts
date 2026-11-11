@@ -57,6 +57,7 @@ import { resolveAppleScabBiofix } from "./apple-scab-ascospore-gdd";
 import {
   ascosporePoolAtDate,
   buildAscosporePoolSnapshots,
+  computeAscosporePoolCarryInFromDaily,
   depletedAscosporePoolMap,
 } from "./apple-scab-ascospore-season-pool";
 import { evaluateAppleScabPrimarySeason } from "./apple-scab-season";
@@ -244,6 +245,7 @@ export async function fetchOrchardRiskForecast(
   let appleScabBiofixForPool: ReturnType<typeof resolveAppleScabBiofix> | null =
     null;
   let appleScabUseDepletedPool = false;
+  let appleScabPoolHourlyFrom: string | null = null;
   if (cropId === "apple") {
     appleScabBiofixForPool = resolveAppleScabBiofix(
       lat,
@@ -275,6 +277,7 @@ export async function fetchOrchardRiskForecast(
         );
         const hourlyFrom =
           poolHourlyStart > biofix ? poolHourlyStart : biofix;
+        appleScabPoolHourlyFrom = hourlyFrom;
         appleScabSeasonHourlyPromise = fetchNasaPowerHourly(
           lat,
           lon,
@@ -313,6 +316,24 @@ export async function fetchOrchardRiskForecast(
   const poolInitialPercent = scabInoculumInitialPoolPercent(
     scabInoculumLevel ?? "normal"
   );
+  const appleScabPoolCarryIn =
+    cropId === "apple" &&
+    appleScabBiofixForPool &&
+    !appleScabUseDepletedPool &&
+    appleScabGddDaily?.length &&
+    appleScabPoolHourlyFrom &&
+    appleScabPoolHourlyFrom > appleScabBiofixForPool.date
+      ? {
+          windowStartDate: appleScabPoolHourlyFrom,
+          ...computeAscosporePoolCarryInFromDaily(
+            appleScabBiofixForPool.date,
+            appleScabBiofixForPool.source,
+            appleScabGddDaily,
+            addDaysToDateString(appleScabPoolHourlyFrom, -1),
+            poolInitialPercent
+          ),
+        }
+      : undefined;
   const appleScabPoolSnapshots =
     cropId === "apple" && appleScabBiofixForPool
       ? appleScabUseDepletedPool
@@ -324,7 +345,8 @@ export async function fetchOrchardRiskForecast(
               appleScabBiofixForPool.source,
               appleScabGddDaily,
               [...(appleScabSeasonHourly ?? []), ...forecastHourly],
-              poolInitialPercent
+              poolInitialPercent,
+              appleScabPoolCarryIn
             )
           : null
       : null;
@@ -395,6 +417,12 @@ export async function fetchOrchardRiskForecast(
           ),
       }
     : null;
+
+  if (marssoninaCtx?.gddThroughTargetYmd) {
+    for (const day of weather5d) {
+      day.marssoninaGddDayC = marssoninaCtx.gddThroughTargetYmd(day.date);
+    }
+  }
 
   const ascosporePoolInitialPercent =
     cropId === "apple"
@@ -506,6 +534,13 @@ export async function fetchOrchardRiskForecast(
               ascosporePoolToday.cumulativeReleasedPercent,
             rainEventsProcessed: ascosporePoolToday.rainEventsProcessed,
             initialPoolPercent: ascosporePoolInitialPercent,
+            hourlyWindowStart: appleScabUseDepletedPool
+              ? ascosporePoolToday.date
+              : (appleScabPoolHourlyFrom ??
+                appleScabBiofixForPool?.date ??
+                null),
+            dailyCarryInApplied: Boolean(appleScabPoolCarryIn),
+            offSeasonDepletedShortcut: appleScabUseDepletedPool,
           }
         : cropId === "apple"
           ? null

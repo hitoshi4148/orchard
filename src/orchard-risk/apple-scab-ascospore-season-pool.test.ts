@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   ascosporePoolAtDate,
   buildAscosporePoolSnapshots,
+  computeAscosporePoolCarryInFromDaily,
   ASCOSPORE_SEASON_INITIAL_POOL,
 } from "./apple-scab-ascospore-season-pool";
 
@@ -89,5 +90,69 @@ describe("apple-scab-ascospore-season-pool", () => {
     assert.ok(a && b);
     assert.ok(b.remainingPercent < a.remainingPercent);
     assert.equal(b.rainEventsProcessed, a.rainEventsProcessed);
+  });
+
+  it("carry-in from daily rain lowers pool before truncated hourly window", () => {
+    const daily = Array.from({ length: 30 }, (_, i) => {
+      const date = `2026-04-${String(i + 1).padStart(2, "0")}`;
+      return {
+        date,
+        temperature_avg: 18,
+        humidity_avg: null,
+        temperature_max: null,
+        temperature_min: null,
+        precipitation_mm: i % 5 === 0 ? 2 : 0.05,
+      };
+    });
+    const windowStart = "2026-05-01";
+    const carry = computeAscosporePoolCarryInFromDaily(
+      "2026-04-01",
+      "green_tip",
+      daily,
+      "2026-04-30",
+      100
+    );
+    assert.ok(carry.remainingPercent < 100);
+    assert.ok(carry.rainEventsProcessed > 0);
+
+  const hourly = [
+      {
+        datetime: "2026-05-05T11:00:00+09:00",
+        temperature: 18,
+        humidity: 99,
+        precipitation_mm: 1.2,
+      },
+      {
+        datetime: "2026-05-05T12:00:00+09:00",
+        temperature: 18,
+        humidity: 98,
+        precipitation_mm: 0.8,
+      },
+    ];
+    const withCarry = buildAscosporePoolSnapshots(
+      "2026-04-01",
+      "green_tip",
+      daily,
+      hourly,
+      100,
+      { windowStartDate: windowStart, ...carry }
+    );
+    const naive = buildAscosporePoolSnapshots(
+      "2026-05-01",
+      "green_tip",
+      daily,
+      hourly,
+      100
+    );
+    const snapCarry = ascosporePoolAtDate(
+      withCarry,
+      "2026-05-05T18:00:00+09:00"
+    );
+    const snapNaive = ascosporePoolAtDate(
+      naive,
+      "2026-05-05T18:00:00+09:00"
+    );
+    assert.ok(snapCarry && snapNaive);
+    assert.ok(snapCarry.remainingPercent < snapNaive.remainingPercent);
   });
 });

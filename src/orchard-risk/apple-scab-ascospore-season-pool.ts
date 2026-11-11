@@ -5,6 +5,7 @@
  * 直近降雨係数（放出効率）と併用 — 本モジュールはシーズン上限側。
  */
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
+import { addDaysToDateString } from "../disease/met-norway-forecast";
 import { findWetPeriods } from "../disease/wetness";
 import {
   AppleScabBiofixSource,
@@ -21,11 +22,23 @@ export const ASCOSPORE_SEASON_INITIAL_POOL = 100;
 /** MacHardy/RIMpro 系 — 1 降雨イベントあたりの基準放出割合（群馬ゴールデン調整用） */
 export const ASCOSPORE_RELEASE_FRACTION_BASE = 0.14;
 
+/** イベント降水量（mm）で放出を補正 — 中央 3mm で係数 1.0 */
+export const ASCOSPORE_RELEASE_PRECIP_MM_MID = 3;
+export const ASCOSPORE_RELEASE_PRECIP_FACTOR_MAX = 1.35;
+
 /** 成熟升孢子がこれ未満なら降雨放出なし */
 export const ASCOSPORE_MATURITY_MIN_FOR_RELEASE = 8;
 
 export interface AscosporePoolSnapshot {
   date: string;
+  remainingPercent: number;
+  cumulativeReleasedPercent: number;
+  rainEventsProcessed: number;
+}
+
+/** 75日 hourly 窓より前の日次降雨でプールを繰り越す */
+export interface AscosporePoolCarryIn {
+  windowStartDate: string;
   remainingPercent: number;
   cumulativeReleasedPercent: number;
   rainEventsProcessed: number;
@@ -48,17 +61,103 @@ function periodHasRain(period: {
   );
 }
 
+export function ascosporeReleasePrecipFactor(precipMm: number): number {
+  if (precipMm <= 0) {
+    return 0.85;
+  }
+  const scaled =
+    0.85 + Math.min(precipMm, 14) / (ASCOSPORE_RELEASE_PRECIP_MM_MID * 8);
+  return Math.min(ASCOSPORE_RELEASE_PRECIP_FACTOR_MAX, scaled);
+}
+
 function releaseFractionForRainPeriod(
   durationHours: number,
   maturityPercent: number,
-  diurnal: number
+  diurnal: number,
+  eventPrecipMm = 0
 ): number {
   if (maturityPercent < ASCOSPORE_MATURITY_MIN_FOR_RELEASE) {
     return 0;
   }
   const wetness = Math.min(1.6, durationHours / 6);
   const maturity = Math.min(1, maturityPercent / 100);
-  return ASCOSPORE_RELEASE_FRACTION_BASE * wetness * maturity * diurnal;
+  const precip = ascosporeReleasePrecipFactor(eventPrecipMm);
+  return (
+    ASCOSPORE_RELEASE_FRACTION_BASE * wetness * maturity * diurnal * precip
+  );
+}
+
+function periodPrecipMm(period: { wetHours: HourlyWeatherRecord[] }): number {
+  return period.wetHours.reduce(
+    (sum, h) => sum + (h.precipitation_mm ?? 0),
+    0
+  );
+}
+
+/**
+ * hourly 窓開始日より前 — 日降水量で 1 日 1 降雨イベント相当として枯渇を進める。
+ */
+export function computeAscosporePoolCarryInFromDaily(
+  biofixDate: string,
+  biofixSource: AppleScabBiofixSource,
+  measuredDaily: DailyWeatherRecord[],
+  throughDate: string,
+  initialPoolPercent: number
+): Omit<AscosporePoolCarryIn, "windowStartDate"> {
+  const dailyMap = new Map(measuredDaily.map((r) => [r.date, r]));
+  const poolCap = Math.max(0, initialPoolPercent);
+  let remaining = poolCap;
+  let cumulativeReleased = 0;
+  let eventCount = 0;
+
+  if (throughDate < biofixDate) {
+    return {
+      remainingPercent: poolCap,
+      cumulativeReleasedPercent: 0,
+      rainEventsProcessed: 0,
+    };
+  }
+
+  let d = biofixDate;
+  for (;;) {
+    const row = dailyMap.get(d);
+    const precip = row?.precipitation_mm ?? 0;
+    if (precip >= ASCOSPORE_RELEASE_RAIN_MM && remaining > 0) {
+      const rainStart = `${d}T14:00:00+09:00`;
+      const rainEnd = `${d}T18:00:00+09:00`;
+      const maturity = computeAppleScabAscosporeMaturity(
+        biofixDate,
+        rainEnd,
+        measuredDaily,
+        [],
+        biofixSource
+      );
+      const diurnal = ascosporeDiurnalDischargeFactor(rainStart, rainEnd);
+      const durationHours = Math.min(12, Math.max(4, precip * 3));
+      const frac = releaseFractionForRainPeriod(
+        durationHours,
+        maturity.maturityPercent,
+        diurnal,
+        precip
+      );
+      if (frac > 0) {
+        const released = remaining * frac;
+        remaining = Math.max(0, remaining - released);
+        cumulativeReleased = Math.min(poolCap, cumulativeReleased + released);
+        eventCount += 1;
+      }
+    }
+    if (d === throughDate) {
+      break;
+    }
+    d = addDaysToDateString(d, 1);
+  }
+
+  return {
+    remainingPercent: Math.round(remaining * 10) / 10,
+    cumulativeReleasedPercent: Math.round(cumulativeReleased * 10) / 10,
+    rainEventsProcessed: eventCount,
+  };
 }
 
 /**
@@ -69,22 +168,36 @@ export function buildAscosporePoolSnapshots(
   biofixSource: AppleScabBiofixSource,
   measuredDaily: DailyWeatherRecord[],
   hourly: HourlyWeatherRecord[],
-  initialPoolPercent: number = ASCOSPORE_SEASON_INITIAL_POOL
+  initialPoolPercent: number = ASCOSPORE_SEASON_INITIAL_POOL,
+  carryIn?: AscosporePoolCarryIn
 ): Map<string, AscosporePoolSnapshot> {
+  const windowStart = carryIn?.windowStartDate ?? biofixDate;
+  const poolCap = Math.max(0, initialPoolPercent);
+  let remaining = carryIn?.remainingPercent ?? poolCap;
+  let cumulativeReleased = carryIn?.cumulativeReleasedPercent ?? 0;
+  let eventCount = carryIn?.rainEventsProcessed ?? 0;
+
   const sorted = [...hourly].sort(
     (a, b) =>
       new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
   );
-  const inSeason = sorted.filter((h) => jstYmd(h.datetime) >= biofixDate);
+  const inSeason = sorted.filter((h) => jstYmd(h.datetime) >= windowStart);
   if (inSeason.length === 0) {
-    return new Map();
+    if (!carryIn) {
+      return new Map();
+    }
+    const snapshots = new Map<string, AscosporePoolSnapshot>();
+    snapshots.set(windowStart, {
+      date: windowStart,
+      remainingPercent: Math.round(remaining * 10) / 10,
+      cumulativeReleasedPercent:
+        Math.round(cumulativeReleased * 10) / 10,
+      rainEventsProcessed: eventCount,
+    });
+    return snapshots;
   }
 
   const periods = findWetPeriods(inSeason).filter(periodHasRain);
-  const poolCap = Math.max(0, initialPoolPercent);
-  let remaining = poolCap;
-  let cumulativeReleased = 0;
-  let eventCount = 0;
 
   const snapshots = new Map<string, AscosporePoolSnapshot>();
 
@@ -98,8 +211,8 @@ export function buildAscosporePoolSnapshots(
     });
   };
 
-  let lastSnapYmd = biofixDate;
-  recordSnapshot(biofixDate);
+  let lastSnapYmd = windowStart;
+  recordSnapshot(windowStart);
 
   for (const period of periods) {
     const endIso = period.endDateTime;
@@ -122,7 +235,8 @@ export function buildAscosporePoolSnapshots(
     const frac = releaseFractionForRainPeriod(
       period.durationHours,
       maturity.maturityPercent,
-      diurnal
+      diurnal,
+      periodPrecipMm(period)
     );
     if (frac > 0 && remaining > 0) {
       const released = remaining * frac;

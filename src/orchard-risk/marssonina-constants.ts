@@ -24,3 +24,6 @@ export const MARSSONINA_GDD_THRESHOLD_DAYC = 159;
  * 探索範囲そのものの切り捨てには使わない。
  */
 export const NASA_HOURLY_API_BUFFER_DAYS = 1;
+
+/** NASA hourly 1 リクエストあたりの最大暦日（Worker CPU・タイムアウト対策） */
+export const MARSSONINA_HOURLY_FETCH_CHUNK_DAYS = 50;

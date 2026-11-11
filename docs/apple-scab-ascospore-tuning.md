@@ -19,6 +19,7 @@
 | 定数 | 既定 | ファイル |
 |------|------|----------|
 | `ASCOSPORE_RELEASE_FRACTION_BASE` | 0.14 | `apple-scab-ascospore-season-pool.ts` |
+| `ASCOSPORE_RELEASE_PRECIP_MM_MID` | 3（mm） | 同上・放出降水量補正の目安 |
 | `ASCOSPORE_MATURITY_MIN_FOR_RELEASE` | 8（%） | 同上 |
 | 残病葉初期プール | 60 / 100 / 130 | `parse-ascospore-inoculum.ts` |
 
@@ -28,6 +29,11 @@
 
 - `scab_inoculum=low|normal|high`
 - 応答 `ascosporePool`: 評価日（本日 18:00 JST）時点の枯渇プール
+
+## Worker 向け hourly 窓
+
+- 一次季節内でも枯渇プール用 hourly は最大 **75 日**遡及（CPU 1102 対策）
+- 窓より前は `computeAscosporePoolCarryInFromDaily` で日降水量から繰り越し
 
 ## 未実装（RIMpro 級）
 
