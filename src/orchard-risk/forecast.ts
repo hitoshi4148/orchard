@@ -84,7 +84,6 @@ function calculateForDisease(
     case "apple:alternaria":
     case "apple:anthracnose":
     case "apple:blotch":
-    case "nashi:red_spot":
     case "nashi:blotch":
     case "nashi:black_spot":
     case "nashi:anthracnose":
