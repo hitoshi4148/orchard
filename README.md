@@ -242,6 +242,10 @@ spray ページは `portalSettings` Cookie の緯度経度を優先して読み�
 
 > v1.0 以前の履歴は fork 元 [tool-portal](https://github.com/hitoshi4148/tool-portal)（芝しごとポータル）のものです。
 
+### v0.1.1（2026-11）
+
+- **簡易認証**: `/portal/lab/`（果樹園しごと）に user name ゲートを再追加（`apple`）。卸値ナビ（`/portal/`）は認証なしのまま
+
 ### v0.1.0（2026-11）
 
 - **構成**: `/portal/` を卸値ナビ、`/portal/lab/` を果樹園しごと（実験）に分離
