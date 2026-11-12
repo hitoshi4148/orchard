@@ -439,7 +439,10 @@ const PeachRiskModel = (() => {
     };
   }
 
-  async function buildViewStateLive(selectedDiseaseId = DISEASE_ORDER[0]) {
+  async function buildViewStateLive(
+    selectedDiseaseId = DISEASE_ORDER[0],
+    options = {}
+  ) {
     const base = buildViewState(selectedDiseaseId);
     const loc =
       typeof OrchardLocationCookie !== "undefined"
@@ -465,6 +468,7 @@ const PeachRiskModel = (() => {
         variety: settings.variety,
         growthStageId: settings.growthStageId,
         priorYearStatusId: settings.priorYearStatusId || "",
+        signal: options.signal,
       });
       return OrchardRiskClient.applyToCropViewState(
         base,
@@ -474,6 +478,9 @@ const PeachRiskModel = (() => {
         RISK
       );
     } catch (err) {
+      if (err?.name === "AbortError") {
+        throw err;
+      }
       return {
         ...base,
         fetchError: err instanceof Error ? err.message : String(err),

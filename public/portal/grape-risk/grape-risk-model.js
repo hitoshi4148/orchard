@@ -355,7 +355,10 @@ const GrapeRiskModel = (() => {
     };
   }
 
-  async function buildViewStateLive(selectedDiseaseId = DISEASE_ORDER[0]) {
+  async function buildViewStateLive(
+    selectedDiseaseId = DISEASE_ORDER[0],
+    options = {}
+  ) {
     const base = buildViewState(selectedDiseaseId);
     const loc =
       typeof OrchardLocationCookie !== "undefined"
@@ -381,6 +384,7 @@ const GrapeRiskModel = (() => {
         variety: settings.variety,
         growthStageId: settings.growthStageId,
         grapeCultivationId: settings.cultivationId || "open",
+        signal: options.signal,
       });
       return OrchardRiskClient.applyToCropViewState(
         base,
@@ -390,6 +394,9 @@ const GrapeRiskModel = (() => {
         RISK
       );
     } catch (err) {
+      if (err?.name === "AbortError") {
+        throw err;
+      }
       return {
         ...base,
         fetchError: err instanceof Error ? err.message : String(err),

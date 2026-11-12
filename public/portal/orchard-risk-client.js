@@ -70,6 +70,7 @@ const OrchardRiskClient = (() => {
     growthStageId,
     priorYearStatusId,
     grapeCultivationId,
+    signal,
   }) {
     const params = new URLSearchParams({
       lat: String(lat),
@@ -91,7 +92,10 @@ const OrchardRiskClient = (() => {
     const retryable = new Set([502, 503, 504, 520, 524, 525]);
     let lastError = null;
     for (let attempt = 0; attempt <= 4; attempt += 1) {
-      const res = await fetch(url);
+      if (signal?.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+      const res = await fetch(url, { signal });
       const text = await res.text();
       const json = parseJson(text);
       if (json && typeof json === "object" && "success" in json) {
@@ -104,6 +108,9 @@ const OrchardRiskClient = (() => {
         if (retryable.has(res.status) && attempt < 4) {
           lastError = apiError;
           await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
+          if (signal?.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
           continue;
         }
         throw apiError;
@@ -112,6 +119,9 @@ const OrchardRiskClient = (() => {
         if (attempt < 4) {
           lastError = new Error(httpErrorMessage(text, res.status));
           await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
+          if (signal?.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
           continue;
         }
         throw new Error(httpErrorMessage(text, res.status));
@@ -119,6 +129,9 @@ const OrchardRiskClient = (() => {
       if (retryable.has(res.status) && attempt < 4) {
         lastError = new Error(httpErrorMessage(text, res.status));
         await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
+        if (signal?.aborted) {
+          throw new DOMException("Aborted", "AbortError");
+        }
         continue;
       }
       throw new Error(httpErrorMessage(text, res.status));

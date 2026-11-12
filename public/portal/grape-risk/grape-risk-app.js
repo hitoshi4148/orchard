@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function bindInteractions(state) {
     function pickDisease(id) {
       selectedDiseaseId = id;
-      render();
+      queueMicrotask(() => render());
     }
 
     root.querySelectorAll(".grape-risk-stage").forEach((btn) => {
@@ -315,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const id = btn.getAttribute("data-stage-id");
         if (!id) return;
         GrapeRiskModel.saveGrowthStageId(id);
-        render();
+        queueMicrotask(() => render());
       });
     });
 
@@ -336,13 +336,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  async function render() {
-    root.innerHTML =
-      '<p class="grape-risk-lead">気象データを取得中...</p>';
-    const state = await GrapeRiskModel.buildViewStateLive(selectedDiseaseId);
+  let renderSeq = 0;
+  let renderAbort = null;
+  let lastPaintedState = null;
+
+  function paintState(state) {
+    lastPaintedState = state;
     const errBanner = state.fetchError
       ? `<p class="grape-risk-error" role="alert">${displayText(state.fetchError)}（サンプル表示にフォールバック）</p>`
-      : "";
+      : state.liveFetchInProgress
+        ? `<p class="grape-risk-error" role="status" style="color:#92400e;background:#fffbeb;border-color:#fcd34d">気象データを更新しています…（下記は直前の表示または参考例です）</p>`
+        : "";
     const cultNote =
       state.isLive && state.grapeCultivationInfectionNote
         ? `<p class="grape-cultivation-note" role="status">${displayText(state.grapeCultivationInfectionNote)}</p>`
@@ -386,6 +390,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     bindInteractions(state);
+  }
+
+  async function render() {
+    const seq = ++renderSeq;
+    if (renderAbort) {
+      renderAbort.abort();
+    }
+    renderAbort = new AbortController();
+    const { signal } = renderAbort;
+
+    const placeholder =
+      lastPaintedState
+        ? { ...lastPaintedState, liveFetchInProgress: true }
+        : {
+            ...GrapeRiskModel.buildViewState(selectedDiseaseId),
+            liveFetchInProgress: true,
+          };
+    if (seq === renderSeq) {
+      try {
+        paintState(placeholder);
+      } catch {
+        root.innerHTML =
+          '<p class="grape-risk-lead">気象データを取得中...</p>';
+      }
+    }
+
+    try {
+      const state = await GrapeRiskModel.buildViewStateLive(
+        selectedDiseaseId,
+        { signal }
+      );
+      if (seq !== renderSeq) return;
+      paintState(state);
+    } catch (err) {
+      if (seq !== renderSeq || err?.name === "AbortError") return;
+      try {
+        paintState({
+          ...GrapeRiskModel.buildViewState(selectedDiseaseId),
+          fetchError: err instanceof Error ? err.message : String(err),
+        });
+      } catch (paintErr) {
+        root.innerHTML = `<p class="grape-risk-error" role="alert">${escapeHtml(
+          paintErr instanceof Error ? paintErr.message : String(paintErr)
+        )}</p>`;
+      }
+    }
   }
 
   const settingsModal = document.getElementById("grape-risk-settings-modal");

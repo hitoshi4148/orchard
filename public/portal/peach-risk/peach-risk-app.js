@@ -358,12 +358,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const id = btn.getAttribute("data-stage-id");
         if (!id) return;
         PeachRiskModel.saveGrowthStageId(id);
-        render();
+        queueMicrotask(() => render());
       });
     });
     function pickDisease(id) {
       selectedDiseaseId = id;
-      render();
+      queueMicrotask(() => render());
     }
 
     root.querySelectorAll("[data-disease-id]").forEach((el) => {
@@ -384,16 +384,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const key = e.target.getAttribute("data-chart-toggle");
       if (!key) return;
       chartToggles[key] = e.target.checked;
-      render();
+      if (lastPaintedState) {
+        paintState(lastPaintedState);
+      }
     });
   }
 
-  async function render() {
-    root.innerHTML = '<p class="peach-risk-lead">気象データを取得中...</p>';
-    const state = await PeachRiskModel.buildViewStateLive(selectedDiseaseId);
+  let renderSeq = 0;
+  let renderAbort = null;
+  let lastPaintedState = null;
+
+  function paintState(state) {
+    lastPaintedState = state;
     const errBanner = state.fetchError
       ? `<p class="peach-risk-error" role="alert">${displayText(state.fetchError)}（サンプル表示にフォールバック）</p>`
-      : "";
+      : state.liveFetchInProgress
+        ? `<p class="peach-risk-error" role="status" style="color:#92400e;background:#fffbeb;border-color:#fcd34d">気象データを更新しています…（下記は直前の表示または参考例です）</p>`
+        : "";
     const priorYearNote =
       state.isLive && state.priorYearInfectionNote
         ? `<p class="peach-prior-year-note" role="status">${displayText(state.priorYearInfectionNote)}</p>`
@@ -439,6 +446,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     bindInteractions();
+  }
+
+  async function render() {
+    const seq = ++renderSeq;
+    if (renderAbort) {
+      renderAbort.abort();
+    }
+    renderAbort = new AbortController();
+    const { signal } = renderAbort;
+
+    const placeholder =
+      lastPaintedState
+        ? { ...lastPaintedState, liveFetchInProgress: true }
+        : {
+            ...PeachRiskModel.buildViewState(selectedDiseaseId),
+            liveFetchInProgress: true,
+          };
+    if (seq === renderSeq) {
+      try {
+        paintState(placeholder);
+      } catch {
+        root.innerHTML =
+          '<p class="peach-risk-lead">気象データを取得中...</p>';
+      }
+    }
+
+    try {
+      const state = await PeachRiskModel.buildViewStateLive(
+        selectedDiseaseId,
+        { signal }
+      );
+      if (seq !== renderSeq) return;
+      paintState(state);
+    } catch (err) {
+      if (seq !== renderSeq || err?.name === "AbortError") return;
+      try {
+        paintState({
+          ...PeachRiskModel.buildViewState(selectedDiseaseId),
+          fetchError: err instanceof Error ? err.message : String(err),
+        });
+      } catch (paintErr) {
+        root.innerHTML = `<p class="peach-risk-error" role="alert">${escapeHtml(
+          paintErr instanceof Error ? paintErr.message : String(paintErr)
+        )}</p>`;
+      }
+    }
   }
 
   const settingsModal = document.getElementById("peach-risk-settings-modal");
