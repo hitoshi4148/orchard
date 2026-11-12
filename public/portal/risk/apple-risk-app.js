@@ -136,8 +136,17 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   }
 
+  function formatWeatherNum(value, digits = 1) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "—";
+    return n.toFixed(digits);
+  }
+
   function renderWeather(dashboard) {
-    const cols = dashboard.weather5d;
+    const cols = Array.isArray(dashboard.weather5d) ? dashboard.weather5d : [];
+    if (!cols.length) {
+      return `<p class="apple-risk-fetch-warn" role="status">気象表を表示できるデータがありません。</p>`;
+    }
     const headers = cols
       .map((c) => `<div class="apple-risk-weather-head">${displayText(c.label)}</div>`)
       .join("");
@@ -160,12 +169,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `<div class="apple-risk-weather-grid">
       <div class="apple-risk-weather-row">${'<div class="label"></div>'}${headers}</div>
-      ${row("平均気温", (c) => `${c.avgTemp.toFixed(1)}℃`)}
-      ${row("最高", (c) => `${c.maxTemp.toFixed(1)}℃`)}
-      ${row("最低", (c) => `${c.minTemp.toFixed(1)}℃`)}
-      ${row("降水量", (c) => `${c.precipMm.toFixed(1)}mm`)}
-      ${row("湿度", (c) => `${Math.round(c.humidityPct)}%`)}
-      ${row("葉面濡れ", (c) => `${c.leafWetHours.toFixed(1)}h`)}
+      ${row("平均気温", (c) => `${formatWeatherNum(c.avgTemp)}℃`)}
+      ${row("最高", (c) => `${formatWeatherNum(c.maxTemp)}℃`)}
+      ${row("最低", (c) => `${formatWeatherNum(c.minTemp)}℃`)}
+      ${row("降水量", (c) => `${formatWeatherNum(c.precipMm)}mm`)}
+      ${row("湿度", (c) => {
+        const n = Number(c.humidityPct);
+        return Number.isFinite(n) ? `${Math.round(n)}%` : "—";
+      })}
+      ${row("葉面濡れ", (c) => `${formatWeatherNum(c.leafWetHours)}h`)}
       ${marssoninaGddRow}
     </div>
     <p class="apple-risk-wet-est" style="margin-top:8px">${displayText("※ 葉面濡れ時間は MET Norway 予報と履歴からの推定値です（実測ではありません）。")}</p>`;
@@ -491,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
     detailsHost.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  function render(dashboard) {
+  function paintDashboard(dashboard) {
     lastRenderedDashboard = dashboard;
     const loc = dashboard.location;
     const stage =
@@ -569,6 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const varietySelect = document.getElementById("apple-risk-variety-select");
     varietySelect?.addEventListener("change", () => {
+      if (isRefreshInFlight()) return;
       Model.saveVariety(dashboard.cropId, varietySelect.value);
       refreshDashboard(dashboard.cropId);
     });
@@ -581,6 +594,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     root.querySelectorAll(".apple-risk-stage").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (isRefreshInFlight()) return;
         const id = btn.getAttribute("data-stage-id");
         Model.saveGrowthStageId(dashboard.cropId, id);
         refreshDashboard(dashboard.cropId);
@@ -589,6 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const bloomInput = document.getElementById("apple-risk-bloom-start");
     bindNativeDateInputCommit(bloomInput, (value) => {
+      if (isRefreshInFlight()) return;
       Model.saveBloomStartApple(value);
       schedulePhenologyRefresh(dashboard.cropId);
     });
@@ -601,6 +616,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const greenTipInput = document.getElementById("apple-risk-green-tip");
     bindNativeDateInputCommit(greenTipInput, (value) => {
+      if (isRefreshInFlight()) return;
       Model.saveGreenTipApple(value);
       schedulePhenologyRefresh(dashboard.cropId);
     });
@@ -613,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     root.querySelectorAll('input[name="apple-risk-gymno-host"]').forEach((input) => {
       input.addEventListener("change", () => {
-        if (!input.checked) return;
+        if (!input.checked || isRefreshInFlight()) return;
         const v = input.value;
         if (v === "1") Model.saveGymnosporangiumHostNashi(true);
         else if (v === "0") Model.saveGymnosporangiumHostNashi(false);
@@ -623,17 +639,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     root.querySelectorAll('input[name="apple-risk-scab-inoculum"]').forEach((input) => {
       input.addEventListener("change", () => {
-        if (!input.checked) return;
+        if (!input.checked || isRefreshInFlight()) return;
         Model.saveScabInoculumApple(input.value);
         refreshDashboard(dashboard.cropId);
       });
     });
   }
 
+  function render(dashboard) {
+    const safeDashboard = {
+      ...dashboard,
+      liveFetchInProgress: Boolean(dashboard.liveFetchInProgress),
+    };
+    try {
+      paintDashboard(safeDashboard);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      try {
+        paintDashboard({
+          ...Model.buildDashboard(dashboard.cropId || Model.loadCropId()),
+          liveFetchInProgress: false,
+          fetchError: `画面描画エラー: ${message}`,
+        });
+      } catch {
+        root.innerHTML =
+          '<p class="apple-risk-fetch-error" role="alert">画面を更新できませんでした。再読み込みしてください。</p>';
+      }
+    }
+  }
+
   let refreshSeq = 0;
   let refreshAbort = null;
   let phenologyRefreshTimer = null;
   let lastRenderedDashboard = null;
+  const LIVE_FETCH_TIMEOUT_MS = 45000;
+
+  function isRefreshInFlight() {
+    return root.getAttribute("aria-busy") === "true";
+  }
 
   function schedulePhenologyRefresh(cropId) {
     window.clearTimeout(phenologyRefreshTimer);
@@ -650,13 +693,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     refreshAbort = new AbortController();
     const { signal } = refreshAbort;
+    const timeoutId = window.setTimeout(() => {
+      refreshAbort?.abort();
+    }, LIVE_FETCH_TIMEOUT_MS);
 
     root.setAttribute("aria-busy", "true");
 
     const refreshPlaceholder =
       lastRenderedDashboard && lastRenderedDashboard.cropId === cropId
-        ? { ...lastRenderedDashboard, liveFetchInProgress: true }
-        : { ...Model.buildDashboard(cropId), liveFetchInProgress: true };
+        ? { ...lastRenderedDashboard, liveFetchInProgress: true, fetchError: null }
+        : { ...Model.buildDashboard(cropId), liveFetchInProgress: true, fetchError: null };
     if (seq === refreshSeq) {
       render(refreshPlaceholder);
     }
@@ -666,21 +712,34 @@ document.addEventListener("DOMContentLoaded", () => {
         cropId,
         (partial) => {
           if (seq !== refreshSeq) return;
-          render(partial);
+          render({ ...partial, liveFetchInProgress: false });
         },
         { signal }
       );
       if (seq !== refreshSeq) return;
-      render(dashboard);
+      render({ ...dashboard, liveFetchInProgress: false });
     } catch (err) {
-      if (seq !== refreshSeq || err?.name === "AbortError") {
+      if (seq !== refreshSeq) {
+        return;
+      }
+      if (err?.name === "AbortError") {
+        render({
+          ...(lastRenderedDashboard && lastRenderedDashboard.cropId === cropId
+            ? lastRenderedDashboard
+            : Model.buildDashboard(cropId)),
+          liveFetchInProgress: false,
+          fetchError:
+            "気象データの取得がタイムアウトしました。再読み込みしてください。",
+        });
         return;
       }
       render({
         ...Model.buildDashboard(cropId),
+        liveFetchInProgress: false,
         fetchError: err instanceof Error ? err.message : String(err),
       });
     } finally {
+      window.clearTimeout(timeoutId);
       if (seq === refreshSeq) {
         root.removeAttribute("aria-busy");
       }
