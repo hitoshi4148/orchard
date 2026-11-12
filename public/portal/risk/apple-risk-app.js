@@ -154,6 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderStatusBanner(dashboard) {
+    if (dashboard.liveFetchInProgress && !dashboard.fetchError) {
+      return `<p class="apple-risk-fetch-warn" role="status">気象データを更新しています…（下記は直前の表示または参考例です）</p>`;
+    }
     if (dashboard.fetchError) {
       return `<p class="apple-risk-fetch-error" role="alert">気象データを取得できませんでした: ${escapeHtml(dashboard.fetchError)}（下記はデモ表示にフォールバック）</p>`;
     }
@@ -460,6 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function render(dashboard) {
+    lastRenderedDashboard = dashboard;
     const loc = dashboard.location;
     const stage =
       dashboard.growthStages.find((s) => s.id === dashboard.growthStageId)?.label ||
@@ -557,10 +561,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const bloomInput = document.getElementById("apple-risk-bloom-start");
     const persistBloomFromInput = () => {
       Model.saveBloomStartApple(bloomInput?.value ?? "");
-      refreshDashboard(dashboard.cropId);
+      schedulePhenologyRefresh(dashboard.cropId);
     };
     bloomInput?.addEventListener("change", persistBloomFromInput);
-    bloomInput?.addEventListener("input", persistBloomFromInput);
     document.getElementById("apple-risk-bloom-clear")?.addEventListener("click", () => {
       if (bloomInput) {
         bloomInput.value = "";
@@ -571,10 +574,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const greenTipInput = document.getElementById("apple-risk-green-tip");
     const persistGreenTipFromInput = () => {
       Model.saveGreenTipApple(greenTipInput?.value ?? "");
-      refreshDashboard(dashboard.cropId);
+      schedulePhenologyRefresh(dashboard.cropId);
     };
     greenTipInput?.addEventListener("change", persistGreenTipFromInput);
-    greenTipInput?.addEventListener("input", persistGreenTipFromInput);
     document.getElementById("apple-risk-green-tip-clear")?.addEventListener("click", () => {
       if (greenTipInput) {
         greenTipInput.value = "";
@@ -602,19 +604,60 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let refreshSeq = 0;
+  let refreshAbort = null;
+  let phenologyRefreshTimer = null;
+  let lastRenderedDashboard = null;
+
+  function schedulePhenologyRefresh(cropId) {
+    window.clearTimeout(phenologyRefreshTimer);
+    phenologyRefreshTimer = window.setTimeout(() => {
+      refreshDashboard(cropId);
+    }, 400);
+  }
 
   async function refreshDashboard(cropId = Model.loadCropId()) {
     const seq = ++refreshSeq;
+    window.clearTimeout(phenologyRefreshTimer);
+    if (refreshAbort) {
+      refreshAbort.abort();
+    }
+    refreshAbort = new AbortController();
+    const { signal } = refreshAbort;
+
     root.setAttribute("aria-busy", "true");
-    root.innerHTML =
-      '<p class="apple-risk-loading">気象データを読み込み中…（MET Norway / NASA POWER）</p>';
-    const dashboard = await Model.buildDashboardLive(cropId, (partial) => {
+
+    const refreshPlaceholder =
+      lastRenderedDashboard && lastRenderedDashboard.cropId === cropId
+        ? { ...lastRenderedDashboard, liveFetchInProgress: true }
+        : { ...Model.buildDashboard(cropId), liveFetchInProgress: true };
+    if (seq === refreshSeq) {
+      render(refreshPlaceholder);
+    }
+
+    try {
+      const dashboard = await Model.buildDashboardLive(
+        cropId,
+        (partial) => {
+          if (seq !== refreshSeq) return;
+          render(partial);
+        },
+        { signal }
+      );
       if (seq !== refreshSeq) return;
-      render(partial);
-    });
-    if (seq !== refreshSeq) return;
-    root.removeAttribute("aria-busy");
-    render(dashboard);
+      render(dashboard);
+    } catch (err) {
+      if (seq !== refreshSeq || err?.name === "AbortError") {
+        return;
+      }
+      render({
+        ...Model.buildDashboard(cropId),
+        fetchError: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      if (seq === refreshSeq) {
+        root.removeAttribute("aria-busy");
+      }
+    }
   }
 
   root.addEventListener("click", (e) => {

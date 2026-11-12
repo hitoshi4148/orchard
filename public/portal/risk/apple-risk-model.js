@@ -1100,7 +1100,10 @@ const OrchardRiskModel = (() => {
     const retryable = new Set([502, 503, 504, 520, 524, 525]);
     let lastError = null;
     for (let attempt = 0; attempt <= 4; attempt += 1) {
-      const res = await fetch(url);
+      if (options.signal?.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+      const res = await fetch(url, { signal: options.signal });
       const text = await res.text();
       const json = parseOrchardRiskJson(text);
       if (json && typeof json === "object" && "success" in json) {
@@ -1113,6 +1116,9 @@ const OrchardRiskModel = (() => {
         if (retryable.has(res.status) && attempt < 4) {
           lastError = apiError;
           await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
+          if (options.signal?.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
           continue;
         }
         throw apiError;
@@ -1121,6 +1127,9 @@ const OrchardRiskModel = (() => {
         if (attempt < 4) {
           lastError = new Error(orchardRiskHttpErrorMessage(text, res.status));
           await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
+          if (options.signal?.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
           continue;
         }
         throw new Error(orchardRiskHttpErrorMessage(text, res.status));
@@ -1129,6 +1138,9 @@ const OrchardRiskModel = (() => {
         lastError = new Error(orchardRiskHttpErrorMessage(text, res.status));
         if (attempt < 4) {
           await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
+          if (options.signal?.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
           continue;
         }
         throw lastError;
@@ -1141,11 +1153,16 @@ const OrchardRiskModel = (() => {
     throw lastError ?? new Error("気象 API の取得に失敗しました");
   }
 
-  async function buildDashboardLive(cropId = loadCropId(), onPartial = null) {
+  async function buildDashboardLive(
+    cropId = loadCropId(),
+    onPartial = null,
+    options = {}
+  ) {
     const base = buildDashboard(cropId);
     try {
       const forecast = await fetchServerForecast(cropId, {
         marssoninaOnset: false,
+        signal: options.signal,
       });
       let merged = applyServerForecast(base, forecast);
       if (typeof onPartial === "function") {
@@ -1157,6 +1174,7 @@ const OrchardRiskModel = (() => {
         try {
           const fullForecast = await fetchServerForecast(cropId, {
             marssoninaOnset: true,
+            signal: options.signal,
           });
           merged = applyServerForecast(base, fullForecast);
         } catch (detailErr) {
@@ -1170,6 +1188,9 @@ const OrchardRiskModel = (() => {
       }
       return merged;
     } catch (err) {
+      if (err?.name === "AbortError") {
+        throw err;
+      }
       return {
         ...base,
         fetchError: err instanceof Error ? err.message : String(err),
