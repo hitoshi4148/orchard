@@ -15,6 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return div.innerHTML;
   }
 
+  function displayText(text) {
+    return typeof OrchardTermGlossary !== "undefined"
+      ? OrchardTermGlossary.enrich(text ?? "")
+      : escapeHtml(text);
+  }
+
   function riskPill(level) {
     const meta = PeachRiskModel.RISK[level];
     if (!meta) return "";
@@ -25,11 +31,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const rows = state.currentRisks
       .map(
         (d) => `<tr class="peach-risk-disease-row${d.id === state.selectedDiseaseId ? " is-selected" : ""}" data-disease-id="${d.id}" tabindex="0" role="button">
-        <th scope="row"><span class="peach-disease-link">${escapeHtml(d.name)}</span></th>
+        <th scope="row"><span class="peach-disease-link">${displayText(d.name)}</span></th>
         <td>${riskPill(d.level)}</td>
-        <td>${escapeHtml(d.reason)}</td>
-        <td class="peach-muted">${escapeHtml(d.watchConditions)}</td>
-        <td class="peach-muted">${escapeHtml(d.stageNote)}</td>
+        <td>${displayText(d.reason)}</td>
+        <td class="peach-muted">${displayText(d.watchConditions)}</td>
+        <td class="peach-muted">${displayText(d.stageNote)}</td>
       </tr>`
       )
       .join("");
@@ -54,31 +60,31 @@ document.addEventListener("DOMContentLoaded", () => {
         ? OrchardDiseaseSamplePhotos.renderHtml(d.id)
         : "";
     return `<article class="peach-risk-detail">
-      <h3>${escapeHtml(d.name)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">サンプル</span>'}</h3>
-      <p>${escapeHtml(d.summary)}</p>
+      <h3>${displayText(d.name)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">サンプル</span>'}</h3>
+      <p>${displayText(d.summary)}</p>
       ${samplePhoto}
       <dl class="peach-risk-dl">
-        <dt>病原</dt><dd>${escapeHtml(d.pathogen)}</dd>
-        <dt>感染に関係する気象</dt><dd>${escapeHtml(d.watchConditions)}</dd>
-        <dt>注意すべき生育ステージ</dt><dd>${escapeHtml(d.stageRelation)}</dd>
+        <dt>病原</dt><dd>${displayText(d.pathogen)}</dd>
+        <dt>感染に関係する気象</dt><dd>${displayText(d.watchConditions)}</dd>
+        <dt>注意すべき生育ステージ</dt><dd>${displayText(d.stageRelation)}</dd>
       </dl>
     </article>`;
   }
 
   function renderHeatmap(state) {
     const days = PeachRiskModel.getDayLabels();
-    const header = days.map((l) => `<th>${escapeHtml(l)}</th>`).join("");
+    const header = days.map((l) => `<th>${displayText(l)}</th>`).join("");
     const rows = state.infectionMatrix
       .map((row) => {
         const cells = row.days
           .map(
             (d) =>
-              `<td class="peach-heat-cell ${PeachRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${PeachRiskModel.RISK[d.level].label}"><span class="peach-heat-level-label">${escapeHtml(PeachRiskModel.RISK[d.level].label)}</span></td>`
+              `<td class="peach-heat-cell ${PeachRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${PeachRiskModel.RISK[d.level].label}"><span class="peach-heat-level-label">${displayText(PeachRiskModel.RISK[d.level].label)}</span></td>`
           )
           .join("");
         const sel = row.diseaseId === state.selectedDiseaseId ? " is-selected" : "";
         return `<tr class="peach-heat-row${sel}" data-disease-id="${row.diseaseId}">
-          <th scope="row"><button type="button" class="peach-heat-disease-btn" data-disease-id="${row.diseaseId}">${escapeHtml(row.name)}</button></th>
+          <th scope="row"><button type="button" class="peach-heat-disease-btn" data-disease-id="${row.diseaseId}">${displayText(row.name)}</button></th>
           ${cells}
         </tr>`;
       })
@@ -88,12 +94,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const selName = state.selectedDisease.name;
     const windBlock =
       state.selectedDiseaseId === "peach:bacterial_shot_hole"
-        ? `<li class="peach-wind-emphasis"><strong>風速・風向:</strong> ${escapeHtml(det.windNote || "—")}</li>`
-        : `<li><strong>風速・風向:</strong> ${escapeHtml(det.windNote || "—")}</li>`;
+        ? `<li class="peach-wind-emphasis"><strong>風速・風向:</strong> ${displayText(det.windNote || "—")}</li>`
+        : `<li><strong>風速・風向:</strong> ${displayText(det.windNote || "—")}</li>`;
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="infection-heading">
       <h2 id="infection-heading" class="peach-risk-panel-title">感染危険予報（今後5日間${state.isLive ? "" : "・サンプル"}）</h2>
-      <p class="peach-risk-lead">感染が新たに成立しうる危険度（発病予測とは別指標）。</p>
+      <p class="peach-risk-lead">${displayText("感染が新たに成立しうる危険度（発病予測とは別指標）。")}</p>
       <div class="peach-heat-legend" aria-hidden="true">
         <span><i class="dot risk-low"></i>低</span>
         <span><i class="dot risk-medium"></i>中</span>
@@ -106,16 +112,16 @@ document.addEventListener("DOMContentLoaded", () => {
         </table>
       </div>
       <div class="peach-infection-focus">
-        <h3>選択中: ${escapeHtml(selName)}</h3>
-        <p><strong>感染リスクが高まる日（仮）:</strong> ${escapeHtml(det.highDays || "—")}</p>
+        <h3>選択中: ${displayText(selName)}</h3>
+        <p><strong>感染リスクが高まる日（仮）:</strong> ${displayText(det.highDays || "—")}</p>
         <ul class="peach-focus-list">
-          <li><strong>気温:</strong> ${escapeHtml(det.tempNote || "—")}</li>
-          <li><strong>降水量:</strong> ${escapeHtml(det.precipNote || "—")}</li>
-          <li><strong>相対湿度:</strong> ${escapeHtml(det.humidityNote || "—")}</li>
-          <li><strong>推定葉面濡れ:</strong> ${escapeHtml(det.wetNote || "—")}</li>
+          <li><strong>気温:</strong> ${displayText(det.tempNote || "—")}</li>
+          <li><strong>降水量:</strong> ${displayText(det.precipNote || "—")}</li>
+          <li><strong>相対湿度:</strong> ${displayText(det.humidityNote || "—")}</li>
+          <li><strong>${displayText("推定葉面濡れ")}:</strong> ${displayText(det.wetNote || "—")}</li>
           ${windBlock}
         </ul>
-        <p class="peach-rationale">${escapeHtml(det.rationale || "")}</p>
+        <p class="peach-rationale">${displayText(det.rationale || "")}</p>
       </div>
     </section>`;
   }
@@ -150,9 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((item) => {
         if (item.insufficient) {
           return `<article class="peach-onset-card peach-onset-card--na">
-            <h3>${escapeHtml(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
+            <h3>${displayText(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
             <p class="peach-onset-insufficient">予測データ不足</p>
-            <p class="peach-muted">${escapeHtml(item.basis)}</p>
+            <p class="peach-muted">${displayText(item.basis)}</p>
           </article>`;
         }
         const confLevel =
@@ -160,18 +166,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const infectionLabel =
           state.isLive && item.liveData ? "感染危険ピーク（目安）" : infectionDt;
         return `<article class="peach-onset-card">
-          <h3>${escapeHtml(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
+          <h3>${displayText(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
           <dl class="peach-risk-dl peach-onset-dl">
-            <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
-            <dt>発病予測時期</dt><dd>${escapeHtml(item.onsetWindow)}</dd>
+            <dt>${displayText(infectionLabel)}</dt><dd>${displayText(item.infectionWindow)}</dd>
+            <dt>発病予測時期</dt><dd>${displayText(item.onsetWindow)}</dd>
             <dt>確度</dt><dd>${riskPill(confLevel)} <span class="peach-muted">（感染危険度とは別）</span></dd>
             ${
               item.gddSinceInfectionDayC != null
-                ? `<dt>簡易積算（感染日以降）</dt><dd>${escapeHtml(String(item.gddSinceInfectionDayC))} 日℃</dd>`
+                ? `<dt>簡易積算（感染日以降）</dt><dd>${displayText(String(item.gddSinceInfectionDayC))} 日℃</dd>`
                 : ""
             }
           </dl>
-          <p class="peach-rationale">${escapeHtml(item.basis)}</p>
+          <p class="peach-rationale">${displayText(item.basis)}</p>
         </article>`;
       })
       .join("");
@@ -198,9 +204,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const guideRows = state.stageDiseaseGuide
       .map(
         (g) => `<tr>
-        <th scope="row">${escapeHtml(g.stage)}</th>
-        <td>${escapeHtml(g.diseases.join("、"))}</td>
-        <td class="peach-muted">${escapeHtml(g.note)}</td>
+        <th scope="row">${displayText(g.stage)}</th>
+        <td>${displayText(g.diseases.join("、"))}</td>
+        <td class="peach-muted">${displayText(g.note)}</td>
       </tr>`
       )
       .join("");
@@ -208,8 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const calCells = state.annualCalendar
       .map(
         (m) => `<div class="peach-annual-cell">
-        <strong>${escapeHtml(m.label)}</strong>
-        <span>${escapeHtml(m.focus)}</span>
+        <strong>${displayText(m.label)}</strong>
+        <span>${displayText(m.focus)}</span>
       </div>`
       )
       .join("");
@@ -288,12 +294,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((i) => data[i])
       .map(
         (i) =>
-          `<text x="${x(i)}" y="${h - 6}" text-anchor="middle" class="peach-chart-tick">${escapeHtml(data[i].label)}</text>`
+          `<text x="${x(i)}" y="${h - 6}" text-anchor="middle" class="peach-chart-tick">${displayText(data[i].label)}</text>`
       )
       .join("");
 
     const toggleChk = (key, label) =>
-      `<label class="peach-chart-toggle"><input type="checkbox" data-chart-toggle="${key}"${chartToggles[key] ? " checked" : ""}> ${escapeHtml(label)}</label>`;
+      `<label class="peach-chart-toggle"><input type="checkbox" data-chart-toggle="${key}"${chartToggles[key] ? " checked" : ""}> ${displayText(label)}</label>`;
 
     return `<section class="peach-risk-panel" aria-labelledby="weather-heading">
       <h2 id="weather-heading" class="peach-risk-panel-title">気象データの推移（時間別・サンプル）</h2>
@@ -316,12 +322,12 @@ document.addEventListener("DOMContentLoaded", () => {
           ${ticks}
         </svg>
       </div>
-      <p class="peach-risk-hint">※ 風向は表ではなく選択病害の感染フォーカス欄で確認（せん孔細菌病は強調表示）。葉面濡れは推定値です。</p>
+      <p class="peach-risk-hint">${displayText("※ 風向は表ではなく選択病害の感染フォーカス欄で確認（せん孔細菌病は強調表示）。葉面濡れは推定値です。")}</p>
     </section>`;
   }
 
   function renderTips(state) {
-    const items = state.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join("");
+    const items = state.tips.map((t) => `<li>${displayText(t)}</li>`).join("");
     return `<section class="peach-risk-panel" aria-labelledby="tips-heading">
       <h2 id="tips-heading" class="peach-risk-panel-title">今日の管理ポイント（サンプル）</h2>
       <ul class="peach-tips-list">${items}</ul>
@@ -337,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
         current ? " is-current" : ""
       }" data-stage-id="${escapeHtml(stage.id)}"${
         current ? ' aria-current="step"' : ""
-      }>${escapeHtml(stage.label)}</button>`;
+      }>${displayText(stage.label)}</button>`;
     }).join("");
     return `<div class="peach-risk-header-stages" aria-labelledby="peach-stage-heading">
       <h2 id="peach-stage-heading" class="peach-risk-header-stages-title">生育ステージ</h2>
@@ -386,11 +392,11 @@ document.addEventListener("DOMContentLoaded", () => {
     root.innerHTML = '<p class="peach-risk-lead">気象データを取得中...</p>';
     const state = await PeachRiskModel.buildViewStateLive(selectedDiseaseId);
     const errBanner = state.fetchError
-      ? `<p class="peach-risk-error" role="alert">${escapeHtml(state.fetchError)}（サンプル表示にフォールバック）</p>`
+      ? `<p class="peach-risk-error" role="alert">${displayText(state.fetchError)}（サンプル表示にフォールバック）</p>`
       : "";
     const priorYearNote =
       state.isLive && state.priorYearInfectionNote
-        ? `<p class="peach-prior-year-note" role="status">${escapeHtml(state.priorYearInfectionNote)}</p>`
+        ? `<p class="peach-prior-year-note" role="status">${displayText(state.priorYearInfectionNote)}</p>`
         : "";
     root.innerHTML = `
       <header class="peach-risk-header">
@@ -404,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${errBanner}
         ${priorYearNote}
         <div class="peach-risk-meta">
-          <span class="peach-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
+          <span class="peach-risk-demo-badge">${displayText(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>
           <span><strong>品種:</strong> ${escapeHtml(state.settings.variety)}${
             state.isLive && state.varietyFactor != null && state.varietyFactor !== 1
@@ -448,20 +454,20 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("peach-lon").value = loc.lon || "";
     document.getElementById("peach-variety").innerHTML = PeachRiskModel.VARIETIES.map(
       (v) =>
-        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${escapeHtml(v)}</option>`
+        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${displayText(v)}</option>`
     ).join("");
     document.getElementById("peach-cultivation-radios").innerHTML = (
       PeachRiskModel.CULTIVATION || []
     )
       .map(
         (opt) =>
-          `<label class="peach-risk-cultivation-option"><input type="radio" name="peachCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
+          `<label class="peach-risk-cultivation-option"><input type="radio" name="peachCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${displayText(opt.label)}</span></label>`
       )
       .join("");
     document.getElementById("peach-growth-stage").innerHTML =
       PeachRiskModel.GROWTH_STAGES.map(
         (st) =>
-          `<option value="${escapeHtml(st.id)}"${st.id === s.growthStageId ? " selected" : ""}>${escapeHtml(st.label)}</option>`
+          `<option value="${escapeHtml(st.id)}"${st.id === s.growthStageId ? " selected" : ""}>${displayText(st.label)}</option>`
       ).join("");
     document.getElementById("peach-prior-year-radios").innerHTML = (
       PeachRiskModel.PRIOR_YEAR_STATUS || []
@@ -470,7 +476,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const checked =
           opt.id === s.priorYearStatusId ||
           (!s.priorYearStatusId && opt.id === "");
-        return `<label class="peach-risk-cultivation-option"><input type="radio" name="peachPriorYear" value="${escapeHtml(opt.id)}"${checked ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`;
+        return `<label class="peach-risk-cultivation-option"><input type="radio" name="peachPriorYear" value="${escapeHtml(opt.id)}"${checked ? " checked" : ""}><span>${displayText(opt.label)}</span></label>`;
       })
       .join("");
     settingsModal?.classList.remove("hidden");

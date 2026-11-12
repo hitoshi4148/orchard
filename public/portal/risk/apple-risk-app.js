@@ -13,6 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return div.innerHTML;
   }
 
+  function displayText(text) {
+    return typeof OrchardTermGlossary !== "undefined"
+      ? OrchardTermGlossary.enrich(text ?? "")
+      : escapeHtml(text);
+  }
+
   function getDetailsHost() {
     return root?.querySelector("#apple-risk-disease-details");
   }
@@ -26,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const meta = Model.RISK[levelKey];
     const riskClass = levelKey === "caution" ? "caution" : levelKey;
     return `<div class="apple-risk-summary-card risk-${riskClass}">
-      <div class="card-day">${escapeHtml(dayLabel)}</div>
+      <div class="card-day">${displayText(dayLabel)}</div>
       <div class="card-level">${meta.label}</div>
       <div class="card-note">全病害の最高リスク</div>
     </div>`;
@@ -40,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const selected = c.id === dashboard.cropId;
           return `<button type="button" role="tab" class="apple-risk-crop-tab${
             selected ? " is-active" : ""
-          }" data-crop-switch="${c.id}" aria-selected="${selected}">${escapeHtml(c.label)}</button>`;
+          }" data-crop-switch="${c.id}" aria-selected="${selected}">${displayText(c.label)}</button>`;
         })
         .join("")}
     </div>`;
@@ -52,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
         (v) =>
           `<option value="${escapeHtml(v)}"${
             v === dashboard.variety ? " selected" : ""
-          }>${escapeHtml(v)}</option>`
+          }>${displayText(v)}</option>`
       )
       .join("");
     return `<label class="apple-risk-variety">
@@ -70,11 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .map((d) => `<td>${renderRiskPill(d.level)}</td>`)
         .join("");
       rows += `<tr>
-        <td><button type="button" class="disease-link" data-disease-id="${disease.id}">${escapeHtml(disease.name)}</button></td>
+        <td><button type="button" class="disease-link" data-disease-id="${disease.id}">${displayText(disease.name)}</button></td>
         ${cells}
       </tr>`;
     }
-    const headerCells = dayLabels.map((l) => `<th>${escapeHtml(l)}</th>`).join("");
+    const headerCells = dayLabels.map((l) => `<th>${displayText(l)}</th>`).join("");
     return `<div class="apple-risk-table-wrap">
       <table class="apple-risk-table">
         <thead><tr><th>病害名</th>${headerCells}</tr></thead>
@@ -87,16 +93,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return dashboard.infectionByDisease
       .map(
         (d) => `<details class="apple-risk-rationale-block">
-        <summary class="apple-risk-rationale-summary">${escapeHtml(d.name)} — 詳しい説明（開く）</summary>
-        <p class="apple-risk-details-point apple-risk-rationale-lead">${escapeHtml(d.watchPoint || d.summary)}</p>
+        <summary class="apple-risk-rationale-summary">${displayText(d.name)} — 詳しい説明（開く）</summary>
+        <p class="apple-risk-details-point apple-risk-rationale-lead">${displayText(d.watchPoint || d.summary)}</p>
         <dl class="apple-risk-inline-dl apple-risk-fine-print">
-          <dt>病原菌</dt><dd>${escapeHtml(d.pathogen)}</dd>
-          <dt>主な感染時期</dt><dd>${escapeHtml(d.mainSeason || "—")}</dd>
-          <dt>感染適温</dt><dd>${escapeHtml(d.infectionTempC || "—")}</dd>
-          <dt>濡れ時間</dt><dd>${escapeHtml(d.wetHours || "—")}</dd>
+          <dt>病原菌</dt><dd>${displayText(d.pathogen)}</dd>
+          <dt>主な感染時期</dt><dd>${displayText(d.mainSeason || "—")}</dd>
+          <dt>感染適温</dt><dd>${displayText(d.infectionTempC || "—")}</dd>
+          <dt>濡れ時間</dt><dd>${displayText(d.wetHours || "—")}</dd>
         </dl>
-        <p class="apple-risk-fine-print apple-risk-rationale">${escapeHtml(d.rationale)}</p>
-        <p class="apple-risk-fine-print">${escapeHtml(d.summary)}</p>
+        <p class="apple-risk-fine-print apple-risk-rationale">${displayText(d.rationale)}</p>
+        <p class="apple-risk-fine-print">${displayText(d.summary)}</p>
       </details>`
       )
       .join("");
@@ -105,12 +111,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderWeather(dashboard) {
     const cols = dashboard.weather5d;
     const headers = cols
-      .map((c) => `<div class="apple-risk-weather-head">${escapeHtml(c.label)}</div>`)
+      .map((c) => `<div class="apple-risk-weather-head">${displayText(c.label)}</div>`)
       .join("");
 
     const row = (label, getter) =>
       `<div class="apple-risk-weather-row">
-        <div class="label">${escapeHtml(label)}</div>
+        <div class="label">${displayText(label)}</div>
         ${cols.map((c) => `<div class="apple-risk-weather-cell">${getter(c)}</div>`).join("")}
       </div>`;
 
@@ -134,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${row("葉面濡れ", (c) => `${c.leafWetHours.toFixed(1)}h`)}
       ${marssoninaGddRow}
     </div>
-    <p class="apple-risk-wet-est" style="margin-top:8px">※ 葉面濡れ時間は MET Norway 予報と履歴からの<strong>推定値</strong>です（実測ではありません）。</p>`;
+    <p class="apple-risk-wet-est" style="margin-top:8px">${displayText("※ 葉面濡れ時間は MET Norway 予報と履歴からの推定値です（実測ではありません）。")}</p>`;
   }
 
   function onsetLeadText(dashboard) {
@@ -153,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     let banner = "";
     if (dashboard.dataSource === "live") {
-      banner = `<p class="apple-risk-fetch-ok">気象データ連携: ${escapeHtml(dashboard.dataSourceLabel)}</p>`;
+      banner = `<p class="apple-risk-fetch-ok">気象データ連携: ${displayText(dashboard.dataSourceLabel)}</p>`;
     }
     if (dashboard.marssoninaDetailPending && dashboard.marssoninaDetailError) {
       banner += `<p class="apple-risk-fetch-warn" role="status">褐斑の一次感染・GDD 詳細は取得できませんでした（${escapeHtml(dashboard.marssoninaDetailError)}）。6日表とその他病害は気象連携の表示です。</p>`;
@@ -225,26 +231,26 @@ document.addEventListener("DOMContentLoaded", () => {
           item.marssoninaNasaWindow
             ? item.weatherCoverage === "partial"
               ? `<dt>気象探索</dt><dd>一部のみ・未探索期間あり（${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}・${item.marssoninaNasaWindow.hourlyCount} 件）</dd>`
-              : `<dt>気象探索</dt><dd>${escapeHtml(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}（${item.marssoninaNasaWindow.hourlyCount} 件・全期間）</dd>`
+              : `<dt>気象探索</dt><dd>${displayText(item.marssoninaNasaWindow.fetchStart)}〜${escapeHtml(item.marssoninaNasaWindow.fetchEnd)}（${item.marssoninaNasaWindow.hourlyCount} 件・全期間）</dd>`
             : "";
         const gdd = item.marssoninaGdd;
         const gddDetail = gdd
           ? `<dt>基準 / 目安</dt><dd>${gdd.baseTempC}℃ / ${gdd.thresholdDayC} 日℃（猫塚 2023 参考・未検証）</dd>
-            <dt>159日℃ 到達</dt><dd>${escapeHtml(gdd.thresholdStatusLabel)}</dd>
-            <dt>実測積算期間</dt><dd>${escapeHtml(gdd.measuredPeriodStart)}〜${escapeHtml(gdd.measuredPeriodEnd)}（${gdd.measuredGddDayC} 日℃）</dd>
+            <dt>159日℃ 到達</dt><dd>${displayText(gdd.thresholdStatusLabel)}</dd>
+            <dt>実測積算期間</dt><dd>${displayText(gdd.measuredPeriodStart)}〜${escapeHtml(gdd.measuredPeriodEnd)}（${gdd.measuredGddDayC} 日℃）</dd>
             <dt>予報積算期間</dt><dd>${
               gdd.forecastPeriodStart
                 ? `${escapeHtml(gdd.forecastPeriodStart)}〜${escapeHtml(gdd.forecastPeriodEnd)}（+${gdd.forecastGddDayC} 日℃）`
                 : "—"
             }</dd>
             <dt>欠測日数</dt><dd>${gdd.missingDailyCount} 日（0℃ 扱いなし）</dd>
-            <dt>データ品質</dt><dd>${escapeHtml(gdd.dataQuality)}</dd>
-            <dt>モデル信頼度</dt><dd>${escapeHtml(gdd.modelConfidence)}</dd>`
+            <dt>データ品質</dt><dd>${displayText(gdd.dataQuality)}</dd>
+            <dt>モデル信頼度</dt><dd>${displayText(gdd.modelConfidence)}</dd>`
           : "";
         const confidenceRow =
           isMarssoninaUnset || isMarssoninaNoData
             ? ""
-            : `<dt>表示上の確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${escapeHtml(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
+            : `<dt>表示上の確度</dt><dd><span class="apple-risk-pill ${confClass}" style="display:inline">${displayText(item.confidence)}</span> <span class="apple-risk-wet-est">（感染危険度とは別指標）</span></dd>`;
         const pool = dashboard.ascosporePool;
         const poolCarryNote =
           pool?.dailyCarryInApplied && pool.hourlyWindowStart
@@ -254,14 +260,14 @@ document.addEventListener("DOMContentLoaded", () => {
               : "";
         const ascosporePoolRow =
           item.diseaseId === "apple:scab" && pool
-            ? `<dt>升孢子枯渇プール</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）${poolCarryNote}</dd>`
+            ? `<dt>${displayText("升孢子枯渇プール")}</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）${poolCarryNote}</dd>`
             : "";
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
         }">
-          <h3 class="apple-risk-onset-title">${statusBadge}${estimateTag}${escapeHtml(item.diseaseName)}</h3>
+          <h3 class="apple-risk-onset-title">${statusBadge}${estimateTag}${displayText(item.diseaseName)}</h3>
           <dl class="apple-risk-onset-dl">
-            <dt>${escapeHtml(infectionLabel)}</dt><dd class="apple-risk-onset-value">${escapeHtml(item.estimatedInfectionDate)}</dd>
+            <dt>${displayText(infectionLabel)}</dt><dd class="apple-risk-onset-value">${displayText(item.estimatedInfectionDate)}</dd>
             ${wetDetail || ""}
             ${coverageDetail}
             ${ascosporePoolRow}
@@ -273,10 +279,10 @@ document.addEventListener("DOMContentLoaded", () => {
                   : "—"
             }</dd>
             ${gddDetail}
-            <dt>発病時期（推定）</dt><dd class="apple-risk-onset-value">${escapeHtml(item.predictedOnsetWindow)}</dd>
+            <dt>発病時期（推定）</dt><dd class="apple-risk-onset-value">${displayText(item.predictedOnsetWindow)}</dd>
             ${confidenceRow}
           </dl>
-          <p class="apple-risk-fine-print apple-risk-onset-note">${escapeHtml(item.note)}</p>
+          <p class="apple-risk-fine-print apple-risk-onset-note">${displayText(item.note)}</p>
         </article>`;
       })
       .join("");
@@ -333,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dashboard.cropId !== "apple") return "";
     const level = dashboard.scabInoculumApple || Model.loadScabInoculumApple();
     return `<fieldset class="apple-risk-bloom-field apple-risk-host-fieldset">
-        <legend class="apple-risk-bloom-label">黒星病 — 圃場残病葉（升孢子プール初期）</legend>
+        <legend class="apple-risk-bloom-label">${displayText("黒星病 — 圃場残病葉（升孢子プール初期）")}</legend>
         <div class="apple-risk-host-options" role="radiogroup" aria-label="残病葉量">
           <label class="apple-risk-host-option">
             <input type="radio" name="apple-risk-scab-inoculum" value="low" ${level === "low" ? "checked" : ""}>
@@ -359,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboard.greenTipApple || Model.loadGreenTipApple() || "";
     return `<div class="apple-risk-phenology-fields">
       <div class="apple-risk-bloom-field">
-        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">緑期日（黒星・升孢子 GDD 起点）</label>
+        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">${displayText("緑期日（黒星・升孢子 GDD 起点）")}</label>
         <div class="apple-risk-bloom-row">
           <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
           <button type="button" class="apple-risk-bloom-clear-btn" id="apple-risk-green-tip-clear">クリア</button>
@@ -384,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const current = stage.id === dashboard.growthStageId;
         return `<button type="button" class="apple-risk-stage${current ? " is-current" : ""}" data-stage-id="${stage.id}"${
           current ? ' aria-current="step"' : ""
-        }>${escapeHtml(stage.label)}</button>`;
+        }>${displayText(stage.label)}</button>`;
       })
       .join("");
   }
@@ -393,18 +399,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const m = disease.onsetModel;
     if (!m) return "";
     if (m.type === "gdd") {
-      return `<p class="apple-risk-fine-print model-note">【技術メモ】発病モデル（GDD・${m.implemented ? "接続済" : "未接続"}）基準 ${m.baseTempC}℃／閾値 ${m.thresholdGddDayC} 日℃ — ${escapeHtml(m.note)}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】発病モデル（GDD・${m.implemented ? "接続済" : "未接続"}）基準 ${m.baseTempC}℃／閾値 ${m.thresholdGddDayC} 日℃ — ${displayText(m.note)}</p>`;
     }
     if (m.type === "duthie") {
-      return `<p class="apple-risk-fine-print model-note">【技術メモ】Duthie モデル（${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】Duthie モデル（${m.implemented ? "接続済" : "未接続"}）— ${displayText(m.note)}</p>`;
     }
     if (m.type === "gymnosporangium") {
-      return `<p class="apple-risk-fine-print model-note">【技術メモ】赤星・宿主モデル（${m.implemented ? "接続済" : "未接続"}）— ${escapeHtml(m.note)}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】赤星・宿主モデル（${m.implemented ? "接続済" : "未接続"}）— ${displayText(m.note)}</p>`;
     }
     if (m.type === "seasonal") {
-      return `<p class="apple-risk-fine-print model-note">【技術メモ】季節×気象（${m.implemented ? "接続済" : "簡易"}）— ${escapeHtml(m.note || "")}</p>`;
+      return `<p class="apple-risk-fine-print model-note">【技術メモ】季節×気象（${m.implemented ? "接続済" : "簡易"}）— ${displayText(m.note || "")}</p>`;
     }
-    return `<p class="apple-risk-fine-print model-note">【技術メモ】感染モデル（${escapeHtml(m.type)}）— ${escapeHtml(m.note || "")}</p>`;
+    return `<p class="apple-risk-fine-print model-note">【技術メモ】感染モデル（${displayText(m.type)}）— ${displayText(m.note || "")}</p>`;
   }
 
   function showDiseaseDetails(diseaseId, dashboard) {
@@ -414,12 +420,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const watchPoint = disease.watchPoint || disease.summary;
     const factors = disease.infectionFactors
-      .map((f) => `<li>${escapeHtml(f)}</li>`)
+      .map((f) => `<li>${displayText(f)}</li>`)
       .join("");
 
     detailsHost.innerHTML = `<div class="apple-risk-details" role="region" aria-labelledby="disease-detail-title">
-      <h3 id="disease-detail-title" class="apple-risk-details-title">${escapeHtml(disease.name)}</h3>
-      <p class="apple-risk-details-point">${escapeHtml(watchPoint)}</p>
+      <h3 id="disease-detail-title" class="apple-risk-details-title">${displayText(disease.name)}</h3>
+      <p class="apple-risk-details-point">${displayText(watchPoint)}</p>
       ${
         typeof OrchardDiseaseSamplePhotos !== "undefined"
           ? OrchardDiseaseSamplePhotos.renderHtml(diseaseId, {
@@ -430,23 +436,23 @@ document.addEventListener("DOMContentLoaded", () => {
           : ""
       }
       <dl class="apple-risk-details-keys">
-        <div><dt>いちばん気をつける時期</dt><dd>${escapeHtml(disease.mainSeason || "—")}</dd></div>
-        <div><dt>感染しやすい気温の目安</dt><dd>${escapeHtml(disease.infectionTempC || "—")}</dd></div>
-        <div><dt>葉や果が濡れる時間</dt><dd>${escapeHtml(disease.wetHours || "—")}</dd></div>
+        <div><dt>いちばん気をつける時期</dt><dd>${displayText(disease.mainSeason || "—")}</dd></div>
+        <div><dt>感染しやすい気温の目安</dt><dd>${displayText(disease.infectionTempC || "—")}</dd></div>
+        <div><dt>葉や果が濡れる時間</dt><dd>${displayText(disease.wetHours || "—")}</dd></div>
       </dl>
       <p class="apple-risk-details-subhead">そろっていると感染しやすい条件</p>
       <ul class="apple-risk-details-factors">${factors}</ul>
       <div class="apple-risk-details-tech">
-        <p class="apple-risk-fine-print"><strong>病原の名前:</strong> ${escapeHtml(disease.pathogen)}</p>
-        <p class="apple-risk-fine-print">${escapeHtml(disease.summary)}</p>
+        <p class="apple-risk-fine-print"><strong>病原の名前:</strong> ${displayText(disease.pathogen)}</p>
+        <p class="apple-risk-fine-print">${displayText(disease.summary)}</p>
         ${renderOnsetModelNote(disease)}
-        <p class="apple-risk-fine-print"><strong>今回の予測の根拠（短文）:</strong> ${escapeHtml(disease.rationale)}</p>
+        <p class="apple-risk-fine-print"><strong>今回の予測の根拠（短文）:</strong> ${displayText(disease.rationale)}</p>
         <p class="apple-risk-fine-print">品種「${escapeHtml(dashboard.variety)}」— ${
           dashboard.dataSource === "live"
             ? "品種ごとの係数を感染リスクに反映しています。"
             : "気象とつながったときに品種係数を反映します。"
         }</p>
-        <p class="apple-risk-fine-print apple-risk-demo-badge" style="margin-top:8px">${escapeHtml(dashboard.dataSourceLabel)}</p>
+        <p class="apple-risk-fine-print apple-risk-demo-badge" style="margin-top:8px">${displayText(dashboard.dataSourceLabel)}</p>
       </div>
     </div>`;
     OrchardDiseaseSamplePhotos?.bindFallback(detailsHost);
@@ -482,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ? `<span><strong>品種係数（基準）:</strong> ×${Number(dashboard.varietyFactor).toFixed(2)}</span>`
               : ""
           }
-          <span class="apple-risk-demo-badge">${escapeHtml(dashboard.dataSourceLabel)}</span>
+          <span class="apple-risk-demo-badge">${displayText(dashboard.dataSourceLabel)}</span>
         </div>
         <div class="apple-risk-header-stages" aria-labelledby="stage-heading">
           <h2 id="stage-heading" class="apple-risk-header-stages-title">生育ステージ</h2>
@@ -507,7 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <section class="apple-risk-section" aria-labelledby="onset-heading">
         <h2 id="onset-heading">発病の目安</h2>
-        <p class="apple-risk-section-lead">${escapeHtml(onsetLeadText(dashboard))}</p>
+        <p class="apple-risk-section-lead">${displayText(onsetLeadText(dashboard))}</p>
         <div class="apple-risk-onset-list">${renderOnset(dashboard)}</div>
       </section>
 
@@ -624,7 +630,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectEl.innerHTML = options
       .map(
         (v) =>
-          `<option value="${escapeHtml(v)}"${v === selected ? " selected" : ""}>${escapeHtml(v)}</option>`
+          `<option value="${escapeHtml(v)}"${v === selected ? " selected" : ""}>${displayText(v)}</option>`
       )
       .join("");
   }
@@ -634,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!host || !Array.isArray(Model.POME_CULTIVATION)) return;
     host.innerHTML = Model.POME_CULTIVATION.map(
       (opt) =>
-        `<label class="apple-risk-cultivation-option"><input type="radio" name="pomeCultivation" value="${escapeHtml(opt.id)}"${opt.id === selectedId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
+        `<label class="apple-risk-cultivation-option"><input type="radio" name="pomeCultivation" value="${escapeHtml(opt.id)}"${opt.id === selectedId ? " checked" : ""}><span>${displayText(opt.label)}</span></label>`
     ).join("");
   }
 
@@ -643,7 +649,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!host || !Array.isArray(Model.GUNMA_LOCATION_PRESETS)) return;
     host.innerHTML = Model.GUNMA_LOCATION_PRESETS.map(
       (p) =>
-        `<button type="button" class="apple-risk-btn" data-gunma-preset="${escapeHtml(p.id)}" data-lat="${p.lat}" data-lon="${p.lon}">${escapeHtml(p.label)}</button>`
+        `<button type="button" class="apple-risk-btn" data-gunma-preset="${escapeHtml(p.id)}" data-lat="${p.lat}" data-lon="${p.lon}">${displayText(p.label)}</button>`
     ).join("");
     host.querySelectorAll("[data-gunma-preset]").forEach((btn) => {
       btn.addEventListener("click", () => {

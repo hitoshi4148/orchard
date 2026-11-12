@@ -8,6 +8,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return div.innerHTML;
   }
 
+  function displayText(text) {
+    return typeof OrchardTermGlossary !== "undefined"
+      ? OrchardTermGlossary.enrich(text ?? "")
+      : escapeHtml(text);
+  }
+
   function riskPill(level) {
     const meta = GrapeRiskModel.RISK[level];
     if (!meta) return "";
@@ -18,10 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const rows = state.currentRisks
       .map(
         (d) => `<tr class="grape-risk-disease-row${d.id === state.selectedDiseaseId ? " is-selected" : ""}" data-disease-id="${d.id}" tabindex="0" role="button">
-        <th scope="row"><span class="grape-disease-link">${escapeHtml(d.name)}</span></th>
+        <th scope="row"><span class="grape-disease-link">${displayText(d.name)}</span></th>
         <td>${riskPill(d.level)}</td>
-        <td>${escapeHtml(d.reason)}</td>
-        <td class="grape-muted">${escapeHtml(d.watchConditions)}</td>
+        <td>${displayText(d.reason)}</td>
+        <td class="grape-muted">${displayText(d.watchConditions)}</td>
       </tr>`
       )
       .join("");
@@ -46,31 +52,31 @@ document.addEventListener("DOMContentLoaded", () => {
         ? OrchardDiseaseSamplePhotos.renderHtml(d.id)
         : "";
     return `<article class="grape-risk-detail">
-      <h3>${escapeHtml(d.name)}${state.isLive ? "" : ' <span class="grape-risk-demo-badge">サンプル</span>'}</h3>
-      <p>${escapeHtml(d.summary)}</p>
+      <h3>${displayText(d.name)}${state.isLive ? "" : ' <span class="grape-risk-demo-badge">サンプル</span>'}</h3>
+      <p>${displayText(d.summary)}</p>
       ${samplePhoto}
       <dl class="grape-risk-dl">
-        <dt>病原菌</dt><dd>${escapeHtml(d.pathogen)}</dd>
-        <dt>感染に注意すべき気象</dt><dd>${escapeHtml(d.watchConditions)}</dd>
+        <dt>病原菌</dt><dd>${displayText(d.pathogen)}</dd>
+        <dt>感染に注意すべき気象</dt><dd>${displayText(d.watchConditions)}</dd>
       </dl>
     </article>`;
   }
 
   function renderHeatmap(state) {
     const days = GrapeRiskModel.getDayLabels();
-    const header = days.map((l) => `<th>${escapeHtml(l)}</th>`).join("");
+    const header = days.map((l) => `<th>${displayText(l)}</th>`).join("");
     const rows = state.infectionMatrix
       .map((row) => {
         const cells = row.days
           .map(
             (d) =>
-              `<td class="grape-heat-cell ${GrapeRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${GrapeRiskModel.RISK[d.level].label}"><span class="grape-heat-level-label">${escapeHtml(GrapeRiskModel.RISK[d.level].label)}</span></td>`
+              `<td class="grape-heat-cell ${GrapeRiskModel.RISK[d.level].className}" title="${escapeHtml(row.name)} ${escapeHtml(d.label)}: ${GrapeRiskModel.RISK[d.level].label}"><span class="grape-heat-level-label">${displayText(GrapeRiskModel.RISK[d.level].label)}</span></td>`
           )
           .join("");
         const sel =
           row.diseaseId === state.selectedDiseaseId ? " is-selected" : "";
         return `<tr class="grape-heat-row${sel}" data-disease-id="${row.diseaseId}">
-          <th scope="row"><button type="button" class="grape-heat-disease-btn" data-disease-id="${row.diseaseId}">${escapeHtml(row.name)}</button></th>
+          <th scope="row"><button type="button" class="grape-heat-disease-btn" data-disease-id="${row.diseaseId}">${displayText(row.name)}</button></th>
           ${cells}
         </tr>`;
       })
@@ -95,15 +101,15 @@ document.addEventListener("DOMContentLoaded", () => {
         </table>
       </div>
       <div class="grape-infection-focus">
-        <h3>選択中: ${escapeHtml(selName)}</h3>
+        <h3>選択中: ${displayText(selName)}</h3>
         <ul class="grape-focus-list">
-          <li><strong>感染危険が高まる日（仮）:</strong> ${escapeHtml(det.highDays || "—")}</li>
-          <li><strong>気温:</strong> ${escapeHtml(det.tempNote || "—")}</li>
-          <li><strong>降水量:</strong> ${escapeHtml(det.precipNote || "—")}</li>
-          <li><strong>推定葉面濡れ:</strong> ${escapeHtml(det.wetNote || "—")}</li>
-          <li><strong>湿度:</strong> ${escapeHtml(det.humidityNote || "—")}</li>
+          <li><strong>${displayText("感染危険")}が高まる日（仮）:</strong> ${displayText(det.highDays || "—")}</li>
+          <li><strong>気温:</strong> ${displayText(det.tempNote || "—")}</li>
+          <li><strong>降水量:</strong> ${displayText(det.precipNote || "—")}</li>
+          <li><strong>${displayText("推定葉面濡れ")}:</strong> ${displayText(det.wetNote || "—")}</li>
+          <li><strong>湿度:</strong> ${displayText(det.humidityNote || "—")}</li>
         </ul>
-        <p class="grape-rationale">${escapeHtml(det.rationale || "")}</p>
+        <p class="grape-rationale">${displayText(det.rationale || "")}</p>
       </div>
     </section>`;
   }
@@ -138,9 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((item) => {
         if (item.insufficient) {
           return `<article class="grape-onset-card grape-onset-card--na">
-            <h3>${escapeHtml(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
+            <h3>${displayText(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
             <p class="grape-onset-insufficient">予測データ不足</p>
-            <p class="grape-muted">${escapeHtml(item.basis)}</p>
+            <p class="grape-muted">${displayText(item.basis)}</p>
           </article>`;
         }
         const confLevel =
@@ -152,18 +158,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const infectionLabel =
           state.isLive && item.liveData ? "感染危険ピーク（目安）" : infectionDt;
         return `<article class="grape-onset-card">
-          <h3>${escapeHtml(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
+          <h3>${displayText(item.diseaseName)}${onsetCardBadge(state, item)}</h3>
           <dl class="grape-risk-dl grape-onset-dl">
-            <dt>${escapeHtml(infectionLabel)}</dt><dd>${escapeHtml(item.infectionWindow)}</dd>
-            <dt>発病予測時期</dt><dd>${escapeHtml(item.onsetWindow)}</dd>
-            <dt>確度</dt><dd>${riskPill(confLevel)} <span class="grape-muted">（感染危険度とは別）</span></dd>
+            <dt>${displayText(infectionLabel)}</dt><dd>${displayText(item.infectionWindow)}</dd>
+            <dt>${displayText("発病予測")}時期</dt><dd>${displayText(item.onsetWindow)}</dd>
+            <dt>確度</dt><dd>${riskPill(confLevel)} <span class="grape-muted">${displayText("（感染危険度とは別）")}</span></dd>
             ${
               item.gddSinceInfectionDayC != null
-                ? `<dt>簡易積算（感染日以降）</dt><dd>${escapeHtml(String(item.gddSinceInfectionDayC))} 日℃</dd>`
+                ? `<dt>簡易積算（感染日以降）</dt><dd>${displayText(String(item.gddSinceInfectionDayC))} 日℃</dd>`
                 : ""
             }
           </dl>
-          <p class="grape-rationale">${escapeHtml(item.basis)}</p>
+          <p class="grape-rationale">${displayText(item.basis)}</p>
         </article>`;
       })
       .join("");
@@ -244,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((i) => data[i])
       .map(
         (i) =>
-          `<text x="${x(i)}" y="${h - 6}" text-anchor="middle" class="grape-chart-tick">${escapeHtml(data[i].label)}</text>`
+          `<text x="${x(i)}" y="${h - 6}" text-anchor="middle" class="grape-chart-tick">${displayText(data[i].label)}</text>`
       )
       .join("");
 
@@ -255,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="lg-temp">気温</span>
         <span class="lg-hum">湿度</span>
         <span class="lg-pre">降水量</span>
-        <span class="lg-wet">推定葉面濡れ</span>
+        <span class="lg-wet">${displayText("推定葉面濡れ")}</span>
       </div>
       <div class="grape-chart-wrap">
         <svg class="grape-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="気温・湿度・降水・葉面濡れのサンプルグラフ">
@@ -267,12 +273,12 @@ document.addEventListener("DOMContentLoaded", () => {
           ${ticks}
         </svg>
       </div>
-      <p class="grape-risk-hint">※ 葉面濡れ時間は推定値です（実測ではありません）。</p>
+      <p class="grape-risk-hint">${displayText("※ 葉面濡れ時間は推定値です（実測ではありません）。")}</p>
     </section>`;
   }
 
   function renderTips(state) {
-    const items = state.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join("");
+    const items = state.tips.map((t) => `<li>${displayText(t)}</li>`).join("");
     return `<section class="grape-risk-panel" aria-labelledby="tips-heading">
       <h2 id="tips-heading" class="grape-risk-panel-title">今日の管理ポイント${state.isLive ? "" : "（サンプル）"}</h2>
       <p class="grape-risk-lead">防除指示・農薬使用は表示しません。気象と生育ステージ向けの注意例です。</p>
@@ -289,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
         current ? " is-current" : ""
       }" data-stage-id="${escapeHtml(stage.id)}"${
         current ? ' aria-current="step"' : ""
-      }>${escapeHtml(stage.label)}</button>`;
+      }>${displayText(stage.label)}</button>`;
     }).join("");
     return `<div class="grape-risk-header-stages" aria-labelledby="grape-stage-heading">
       <h2 id="grape-stage-heading" class="grape-risk-header-stages-title">生育ステージ</h2>
@@ -335,11 +341,11 @@ document.addEventListener("DOMContentLoaded", () => {
       '<p class="grape-risk-lead">気象データを取得中...</p>';
     const state = await GrapeRiskModel.buildViewStateLive(selectedDiseaseId);
     const errBanner = state.fetchError
-      ? `<p class="grape-risk-error" role="alert">${escapeHtml(state.fetchError)}（サンプル表示にフォールバック）</p>`
+      ? `<p class="grape-risk-error" role="alert">${displayText(state.fetchError)}（サンプル表示にフォールバック）</p>`
       : "";
     const cultNote =
       state.isLive && state.grapeCultivationInfectionNote
-        ? `<p class="grape-cultivation-note" role="status">${escapeHtml(state.grapeCultivationInfectionNote)}</p>`
+        ? `<p class="grape-cultivation-note" role="status">${displayText(state.grapeCultivationInfectionNote)}</p>`
         : "";
     root.innerHTML = `
       <header class="grape-risk-header">
@@ -353,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${errBanner}
         ${cultNote}
         <div class="grape-risk-meta">
-          <span class="grape-risk-demo-badge">${escapeHtml(state.dataSourceLabel)}</span>
+          <span class="grape-risk-demo-badge">${displayText(state.dataSourceLabel)}</span>
           <span><strong>地点:</strong> ${escapeHtml(state.settings.locationLabel)}</span>
           <span><strong>品種:</strong> ${escapeHtml(state.settings.variety)}${
             state.isLive && state.varietyFactor != null && state.varietyFactor !== 1
@@ -396,17 +402,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const varietyEl = document.getElementById("grape-variety");
     varietyEl.innerHTML = GrapeRiskModel.VARIETIES.map(
       (v) =>
-        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${escapeHtml(v)}</option>`
+        `<option value="${escapeHtml(v)}"${v === s.variety ? " selected" : ""}>${displayText(v)}</option>`
     ).join("");
     const cultHost = document.getElementById("grape-cultivation-radios");
     cultHost.innerHTML = (GrapeRiskModel.CULTIVATION || []).map(
       (opt) =>
-        `<label class="grape-risk-cultivation-option"><input type="radio" name="grapeCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${escapeHtml(opt.label)}</span></label>`
+        `<label class="grape-risk-cultivation-option"><input type="radio" name="grapeCultivation" value="${escapeHtml(opt.id)}"${opt.id === s.cultivationId ? " checked" : ""}><span>${displayText(opt.label)}</span></label>`
     ).join("");
     document.getElementById("grape-growth-stage").innerHTML =
       GrapeRiskModel.GROWTH_STAGES.map(
         (st) =>
-          `<option value="${escapeHtml(st.id)}"${st.id === s.growthStageId ? " selected" : ""}>${escapeHtml(st.label)}</option>`
+          `<option value="${escapeHtml(st.id)}"${st.id === s.growthStageId ? " selected" : ""}>${displayText(st.label)}</option>`
       ).join("");
     settingsModal?.classList.remove("hidden");
   }

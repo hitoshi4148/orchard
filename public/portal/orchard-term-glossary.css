@@ -1,0 +1,54 @@
+/* 専門用語 — ホバー／フォーカスで平易な説明 */
+.orchard-term {
+  position: relative;
+  display: inline;
+  cursor: help;
+  border-bottom: 1px dotted #6b7280;
+  text-decoration: none;
+}
+
+.orchard-term-label {
+  display: inline;
+}
+
+.orchard-term-tip {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  z-index: 40;
+  width: max-content;
+  max-width: min(300px, 85vw);
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #1f2937;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.orchard-term-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #d1d5db;
+}
+
+.orchard-term:hover .orchard-term-tip,
+.orchard-term:focus-visible .orchard-term-tip {
+  display: block;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .orchard-term:focus .orchard-term-tip {
+    display: block;
+  }
+}

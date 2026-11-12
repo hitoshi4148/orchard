@@ -29,6 +29,9 @@ const AGROMAP_COOKIE_DAYS = 365;
 const LOCATION_NOT_SET_MESSAGE =
   "果樹園の場所が未設定です。右上の「⚙ 設定」から緯度・経度を入力してください";
 
+/** 果樹 API の正（turf-tools 上の /portal/lab/ は別サイト） */
+const ORCHARD_PAGES_ORIGIN = "https://orchard-aa7.pages.dev";
+
 /** `/portal/lab/` では `portal-flags-lab.js` が各フラグを true にする */
 const PORTAL_PAGE = window.PORTAL_PAGE ?? {};
 const PORTAL_FEATURES = PORTAL_PAGE.features ?? {};
@@ -82,9 +85,28 @@ function shouldRetryInfraResponse(status, text) {
 
 function orchardPortalBaseUrl() {
   if (location.hostname.endsWith("turf-tools.jp")) {
-    return "https://orchard-aa7.pages.dev/portal/";
+    return `${ORCHARD_PAGES_ORIGIN}/portal/`;
   }
   return `${location.origin}/portal/`;
+}
+
+function isOrchardHost() {
+  return (
+    location.hostname.endsWith("orchard-aa7.pages.dev") ||
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1"
+  );
+}
+
+/** turf-tools 等では API を orchard Pages へ直接向ける */
+function resolvePortalApiUrl(url) {
+  if (!url.startsWith("/portal/")) {
+    return url;
+  }
+  if (location.hostname.endsWith("turf-tools.jp")) {
+    return `${ORCHARD_PAGES_ORIGIN}${url}`;
+  }
+  return url;
 }
 
 function buildApiJsonError(status, text) {
@@ -96,9 +118,18 @@ function buildApiJsonError(status, text) {
   if (isHtmlApiBody(text)) {
     const isLocalDevHost =
       location.hostname === "localhost" || location.hostname === "127.0.0.1";
-    const hint = isLocalDevHost
-      ? "開発時は orchard で npm run dev を実行し、http://127.0.0.1:8790/portal/ から開いてください（Live Server 等の静的サーバーでは API が動きません）。"
-      : `サーバーが HTML を返しました。病害リスクは ${orchardPortalBaseUrl()}risk/ 、実験ラボは ${orchardPortalBaseUrl()}lab/ を利用してください（turf-tools.jp 経由では一部 API が利用できません）。`;
+    let hint;
+    if (isLocalDevHost) {
+      hint =
+        "開発時は orchard で npm run dev を実行し、http://127.0.0.1:8790/portal/lab/ から開いてください（Live Server 等の静的サーバーでは API が動きません）。";
+    } else if (location.hostname.endsWith("turf-tools.jp")) {
+      hint = `果樹園しごとは ${ORCHARD_PAGES_ORIGIN}/portal/lab/ で開いてください（turf-tools.jp には果樹用ラボがありません）。病害リスクは ${ORCHARD_PAGES_ORIGIN}/portal/risk/ です。`;
+    } else if (isOrchardHost()) {
+      hint =
+        "サーバーが HTML を返しました。地点未設定なら右上の設定で緯度・経度を保存し、数十秒後に再読み込みしてください。";
+    } else {
+      hint = `サーバーが HTML を返しました。実験ラボは ${ORCHARD_PAGES_ORIGIN}/portal/lab/ 、病害リスクは ${ORCHARD_PAGES_ORIGIN}/portal/risk/ を利用してください。`;
+    }
     return new Error(`API 応答が JSON ではありません。${hint}`);
   }
 
@@ -128,7 +159,7 @@ async function fetchApiJson(url, init = {}) {
     let response;
     let text;
     try {
-      response = await fetch(url, {
+      response = await fetch(resolvePortalApiUrl(url), {
         ...fetchInit,
         signal: controller?.signal,
       });

@@ -2,6 +2,7 @@ import {
   fetchPortalDashboard,
   parsePortalDashboardNeed,
 } from "../../../src/portal/fetch-dashboard";
+import { PORTAL_CORS_HEADERS } from "../../../src/portal/cors-json";
 
 const DASHBOARD_CACHE_TTL_SECONDS = 30 * 60;
 const DASHBOARD_LOCK_TTL_SECONDS = 120;
@@ -36,6 +37,7 @@ function jsonResponse(
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
+      ...PORTAL_CORS_HEADERS,
       ...extraHeaders,
     },
   });
