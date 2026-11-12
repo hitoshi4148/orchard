@@ -117,19 +117,39 @@ const OrchardTermGlossary = (() => {
     return div.innerHTML;
   }
 
+  const ORCHARD_TERM_BLOCK_RE =
+    /<span class="orchard-term"[^>]*>[\s\S]*?<\/span>/g;
+
+  /** 既に包んだ用語の内部（説明文）には二度とマッチさせない */
+  function shieldWrappedTerms(html) {
+    const slots = [];
+    const shielded = html.replace(ORCHARD_TERM_BLOCK_RE, (block) => {
+      const id = slots.length;
+      slots.push(block);
+      return `\uE000${id}\uE001`;
+    });
+    return { shielded, slots };
+  }
+
+  function restoreWrappedTerms(html, slots) {
+    return html.replace(/\uE000(\d+)\uE001/g, (_, index) => slots[Number(index)] ?? "");
+  }
+
+  function wrapTerm(match, tip) {
+    return `<span class="orchard-term" tabindex="0"><span class="orchard-term-label">${match}</span><span class="orchard-term-tip" role="tooltip">${escapeHtml(tip)}</span></span>`;
+  }
+
   function enrich(plainText) {
     let out = escapeHtml(plainText);
     for (const [term, tip] of ENTRIES) {
       const escapedTerm = escapeHtml(term);
-      if (!out.includes(escapedTerm)) {
+      const { shielded, slots } = shieldWrappedTerms(out);
+      if (!shielded.includes(escapedTerm)) {
         continue;
       }
       const re = new RegExp(escapedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
-      out = out.replace(
-        re,
-        (match) =>
-          `<span class="orchard-term" tabindex="0"><span class="orchard-term-label">${match}</span><span class="orchard-term-tip" role="tooltip">${escapeHtml(tip)}</span></span>`
-      );
+      const next = shielded.replace(re, (match) => wrapTerm(match, tip));
+      out = restoreWrappedTerms(next, slots);
     }
     return out;
   }

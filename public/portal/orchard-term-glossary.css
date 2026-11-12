@@ -42,13 +42,13 @@
   border-top-color: #d1d5db;
 }
 
-.orchard-term:hover .orchard-term-tip,
-.orchard-term:focus-visible .orchard-term-tip {
+.orchard-term:hover > .orchard-term-tip,
+.orchard-term:focus-visible > .orchard-term-tip {
   display: block;
 }
 
 @media (hover: none) and (pointer: coarse) {
-  .orchard-term:focus .orchard-term-tip {
+  .orchard-term:focus > .orchard-term-tip {
     display: block;
   }
 }
