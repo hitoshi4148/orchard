@@ -2,7 +2,20 @@
  * ぶどう・もも病害 UI 向け — /portal/api/orchard-risk クライアント
  */
 const OrchardRiskClient = (() => {
+  const ORCHARD_PAGES_ORIGIN = "https://orchard-aa7.pages.dev";
   const DAY_LABELS = ["本日", "1日先", "2日先", "3日先", "4日先", "5日先"];
+
+  function resolveOrchardRiskApiUrl(pathAndQuery) {
+    const url =
+      pathAndQuery.startsWith("/") ? pathAndQuery : `/portal/api/${pathAndQuery}`;
+    if (typeof location === "undefined") {
+      return url;
+    }
+    if (location.hostname.endsWith("turf-tools.jp")) {
+      return `${ORCHARD_PAGES_ORIGIN}${url}`;
+    }
+    return url;
+  }
 
   function formatWindNoteFromDay(day) {
     if (!day || day.maxWindMs == null) {
@@ -72,10 +85,12 @@ const OrchardRiskClient = (() => {
     if (crop === "grape" && grapeCultivationId) {
       params.set("grape_cultivation", grapeCultivationId);
     }
-    const url = `/portal/api/orchard-risk?${params.toString()}`;
+    const url = resolveOrchardRiskApiUrl(
+      `/portal/api/orchard-risk?${params.toString()}`
+    );
     const retryable = new Set([502, 503, 504, 520, 524, 525]);
     let lastError = null;
-    for (let attempt = 0; attempt <= 3; attempt += 1) {
+    for (let attempt = 0; attempt <= 4; attempt += 1) {
       const res = await fetch(url);
       const text = await res.text();
       const json = parseJson(text);
@@ -83,14 +98,27 @@ const OrchardRiskClient = (() => {
         if (json.success && json.forecast) {
           return json.forecast;
         }
-        throw new Error(json.error || "気象 API の取得に失敗しました");
+        const apiError = new Error(
+          json.error || "気象 API の取得に失敗しました"
+        );
+        if (retryable.has(res.status) && attempt < 4) {
+          lastError = apiError;
+          await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
+          continue;
+        }
+        throw apiError;
       }
       if (text.includes("error code: 1102")) {
+        if (attempt < 4) {
+          lastError = new Error(httpErrorMessage(text, res.status));
+          await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
+          continue;
+        }
         throw new Error(httpErrorMessage(text, res.status));
       }
-      if (retryable.has(res.status) && attempt < 3) {
+      if (retryable.has(res.status) && attempt < 4) {
         lastError = new Error(httpErrorMessage(text, res.status));
-        await new Promise((r) => setTimeout(r, 1500 * 2 ** attempt));
+        await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
         continue;
       }
       throw new Error(httpErrorMessage(text, res.status));

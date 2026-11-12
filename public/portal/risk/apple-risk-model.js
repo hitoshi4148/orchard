@@ -3,6 +3,20 @@
  * 気象は共通、病害パラメータは cropId:diseaseKey で独立管理
  */
 const OrchardRiskModel = (() => {
+  const ORCHARD_PAGES_ORIGIN = "https://orchard-aa7.pages.dev";
+
+  function resolveOrchardRiskApiUrl(pathAndQuery) {
+    const url =
+      pathAndQuery.startsWith("/") ? pathAndQuery : `/portal/api/${pathAndQuery}`;
+    if (typeof location === "undefined") {
+      return url;
+    }
+    if (location.hostname.endsWith("turf-tools.jp")) {
+      return `${ORCHARD_PAGES_ORIGIN}${url}`;
+    }
+    return url;
+  }
+
   const STORAGE_LOCATION = "orchardRiskLocation";
   const STORAGE_CROP = "orchardRiskCrop";
   const STORAGE_VARIETY_PREFIX = "orchardRiskVariety:";
@@ -1017,7 +1031,15 @@ const OrchardRiskModel = (() => {
       if (typeof location !== "undefined" && /turf-tools\.jp$/i.test(location.hostname)) {
         return "この URL では病害リスク API が利用できません。https://orchard-aa7.pages.dev/portal/risk/ から開いてください。";
       }
-      return `気象 API が一時的に応答できませんでした（HTTP ${status}）。Cloudflare 側のタイムアウトや障害の可能性があります。数十秒後に再読み込みするか、ローカル確認時は npm run dev（ポート 8790）を使ってください。`;
+      const onOrchardHost =
+        typeof location !== "undefined" &&
+        (location.hostname.endsWith("orchard-aa7.pages.dev") ||
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1");
+      if (onOrchardHost) {
+        return `気象 API が一時的に応答できませんでした（HTTP ${status}）。混雑や処理上限の可能性があります。30秒ほど待って再読み込みしてください。`;
+      }
+      return `気象 API が一時的に応答できませんでした（HTTP ${status}）。${ORCHARD_PAGES_ORIGIN}/portal/risk/ から開き直すか、数十秒後に再読み込みしてください。`;
     }
     if (trimmed) {
       return trimmed.length > 160 ? `${trimmed.slice(0, 160)}…` : trimmed;
@@ -1072,26 +1094,41 @@ const OrchardRiskModel = (() => {
     if (options.marssoninaOnset !== true) {
       params.set("marssonina_onset", "0");
     }
-    const url = `/portal/api/orchard-risk?${params.toString()}`;
+    const url = resolveOrchardRiskApiUrl(
+      `/portal/api/orchard-risk?${params.toString()}`
+    );
     const retryable = new Set([502, 503, 504, 520, 524, 525]);
     let lastError = null;
-    for (let attempt = 0; attempt <= 3; attempt += 1) {
+    for (let attempt = 0; attempt <= 4; attempt += 1) {
       const res = await fetch(url);
       const text = await res.text();
       const json = parseOrchardRiskJson(text);
       if (json && typeof json === "object" && "success" in json) {
-        if (!json.success) {
-          throw new Error(json.error || "気象 API の取得に失敗しました");
+        if (json.success && json.forecast) {
+          return json.forecast;
         }
-        return json.forecast;
+        const apiError = new Error(
+          json.error || "気象 API の取得に失敗しました"
+        );
+        if (retryable.has(res.status) && attempt < 4) {
+          lastError = apiError;
+          await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
+          continue;
+        }
+        throw apiError;
       }
       if (text.includes("error code: 1102")) {
+        if (attempt < 4) {
+          lastError = new Error(orchardRiskHttpErrorMessage(text, res.status));
+          await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
+          continue;
+        }
         throw new Error(orchardRiskHttpErrorMessage(text, res.status));
       }
       if (retryable.has(res.status)) {
         lastError = new Error(orchardRiskHttpErrorMessage(text, res.status));
-        if (attempt < 3) {
-          await new Promise((r) => setTimeout(r, 1500 * 2 ** attempt));
+        if (attempt < 4) {
+          await new Promise((r) => setTimeout(r, 1200 * 2 ** attempt));
           continue;
         }
         throw lastError;
