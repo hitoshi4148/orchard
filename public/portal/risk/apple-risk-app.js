@@ -19,6 +19,34 @@ document.addEventListener("DOMContentLoaded", () => {
       : escapeHtml(text);
   }
 
+  /** `change` は月選択・↑↓でも発火するため、blur / Enter 時だけ保存する */
+  function bindNativeDateInputCommit(input, onCommit) {
+    if (!input) return;
+    let baseline = input.value;
+    input.addEventListener("focus", () => {
+      baseline = input.value;
+    });
+    const tryCommit = () => {
+      const next = input.value ?? "";
+      if (next === baseline) return;
+      baseline = next;
+      onCommit(next);
+    };
+    input.addEventListener("blur", tryCommit);
+    input.addEventListener("change", () => {
+      window.setTimeout(() => {
+        if (document.activeElement !== input) {
+          tryCommit();
+        }
+      }, 0);
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        tryCommit();
+      }
+    });
+  }
+
   function getDetailsHost() {
     return root?.querySelector("#apple-risk-disease-details");
   }
@@ -384,6 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <p class="apple-risk-fine-print apple-risk-bloom-help">花が開き始めた日を入れてください（褐斑の詳しい予測に使います）。群馬では例年4月下旬が目安です。</p>
       </div>
+      <p class="apple-risk-fine-print apple-risk-bloom-help">日付は選び終えてカレンダーを閉じるか Enter で反映されます（月や日の↑↓の途中ではまだ保存しません）。</p>
     </div>`;
   }
 
@@ -559,11 +588,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const bloomInput = document.getElementById("apple-risk-bloom-start");
-    const persistBloomFromInput = () => {
-      Model.saveBloomStartApple(bloomInput?.value ?? "");
+    bindNativeDateInputCommit(bloomInput, (value) => {
+      Model.saveBloomStartApple(value);
       schedulePhenologyRefresh(dashboard.cropId);
-    };
-    bloomInput?.addEventListener("change", persistBloomFromInput);
+    });
     document.getElementById("apple-risk-bloom-clear")?.addEventListener("click", () => {
       if (bloomInput) {
         bloomInput.value = "";
@@ -572,11 +600,10 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshDashboard(dashboard.cropId);
     });
     const greenTipInput = document.getElementById("apple-risk-green-tip");
-    const persistGreenTipFromInput = () => {
-      Model.saveGreenTipApple(greenTipInput?.value ?? "");
+    bindNativeDateInputCommit(greenTipInput, (value) => {
+      Model.saveGreenTipApple(value);
       schedulePhenologyRefresh(dashboard.cropId);
-    };
-    greenTipInput?.addEventListener("change", persistGreenTipFromInput);
+    });
     document.getElementById("apple-risk-green-tip-clear")?.addEventListener("click", () => {
       if (greenTipInput) {
         greenTipInput.value = "";
