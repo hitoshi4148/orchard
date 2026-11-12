@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="current-heading">
-      <h2 id="current-heading" class="peach-risk-panel-title">病害別リスク一覧${state.isLive ? "" : "（サンプル）"}</h2>
+      <h2 id="current-heading" class="peach-risk-panel-title">病害別リスク一覧${state.isLive ? "" : "（参考例）"}</h2>
       <p class="peach-risk-lead">病害名を選択すると詳細・5日感染予報の気象根拠を確認できます。</p>
       <div class="peach-risk-table-wrap">
         <table class="peach-risk-table">
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? OrchardDiseaseSamplePhotos.renderHtml(d.id)
         : "";
     return `<article class="peach-risk-detail">
-      <h3>${displayText(d.name)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">サンプル</span>'}</h3>
+      <h3>${displayText(d.name)}${state.isLive ? "" : ' <span class="peach-risk-demo-badge">参考例</span>'}</h3>
       <p>${displayText(d.summary)}</p>
       ${samplePhoto}
       <dl class="peach-risk-dl">
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<li><strong>風速・風向:</strong> ${displayText(det.windNote || "—")}</li>`;
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="infection-heading">
-      <h2 id="infection-heading" class="peach-risk-panel-title">感染危険予報（今後5日間${state.isLive ? "" : "・サンプル"}）</h2>
+      <h2 id="infection-heading" class="peach-risk-panel-title">感染危険予報（今後5日間${state.isLive ? "" : "・参考例"}）</h2>
       <p class="peach-risk-lead">${displayText("感染が新たに成立しうる危険度（発病予測とは別指標）。")}</p>
       <div class="peach-heat-legend" aria-hidden="true">
         <span><i class="dot risk-low"></i>低</span>
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function onsetCardBadge(state, item) {
     if (!state.isLive) {
-      return ' <span class="peach-risk-demo-badge">サンプル</span>';
+      return ' <span class="peach-risk-demo-badge">参考例</span>';
     }
     if (item.insufficient) {
       return item.isDemo
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `<section class="peach-risk-panel peach-risk-panel--focus" aria-labelledby="onset-heading">
       <h2 id="onset-heading" class="peach-risk-panel-title">発病予測（簡易${state.isLive ? "・気象連動" : "・表示例"}）</h2>
-      <p class="peach-risk-lead">${state.isLive ? "API の発病予測（感染危険ピーク日＋文献ベースの潜伏期／簡易 GDD）。数値は警戒目安です。" : "地点未設定時は発病予測のみ表示例です（感染危険もサンプル）。潜伏期・積算温度などは病害別に独立管理予定。"}</p>
+      <p class="peach-risk-lead">${state.isLive ? "API の発病予測（感染危険ピーク日＋文献ベースの潜伏期／簡易 GDD）。数値は警戒目安です。" : "地点未設定時は発病予測のみ表示例です（感染危険も参考例）。潜伏期・積算温度などは病害別に独立管理予定。"}</p>
       <div class="peach-onset-grid">${cards}</div>
       ${state.isLive ? "" : `<div class="peach-timeline" aria-label="20日間タイムライン（表示例）">
         <div class="peach-timeline-bar">${segs}</div>
@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     return `<section class="peach-risk-panel" aria-labelledby="stage-guide-heading">
-      <h2 id="stage-guide-heading" class="peach-risk-panel-title">生育ステージと病害の関係（目安・サンプル）</h2>
+      <h2 id="stage-guide-heading" class="peach-risk-panel-title">生育ステージと病害の関係（目安・参考例）</h2>
       <p class="peach-risk-lead">地域・品種・栽培方式で調整できる構造を想定した初期ガイドです。</p>
       <div class="peach-risk-table-wrap">
         <table class="peach-risk-table">
@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `<label class="peach-chart-toggle"><input type="checkbox" data-chart-toggle="${key}"${chartToggles[key] ? " checked" : ""}> ${displayText(label)}</label>`;
 
     return `<section class="peach-risk-panel" aria-labelledby="weather-heading">
-      <h2 id="weather-heading" class="peach-risk-panel-title">気象データの推移（時間別・サンプル）</h2>
+      <h2 id="weather-heading" class="peach-risk-panel-title">気象データの推移（時間別・参考例）</h2>
       <p class="peach-risk-lead">表示項目を切り替えて感染危険との関係を確認できます（仮波形）。</p>
       <div class="peach-chart-toggles" id="peach-chart-toggles">
         ${toggleChk("temp", "気温")}
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${toggleChk("wind", "風速")}
       </div>
       <div class="peach-chart-wrap">
-        <svg class="peach-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="気象サンプルグラフ">
+        <svg class="peach-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="気象参考例グラフ">
           <rect x="${pad.l}" y="${pad.t}" width="${innerW}" height="${innerH}" fill="#f9fafb" stroke="#e5e7eb" />
           ${precipBars}
           ${wetBars}
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTips(state) {
     const items = state.tips.map((t) => `<li>${displayText(t)}</li>`).join("");
     return `<section class="peach-risk-panel" aria-labelledby="tips-heading">
-      <h2 id="tips-heading" class="peach-risk-panel-title">今日の管理ポイント（サンプル）</h2>
+      <h2 id="tips-heading" class="peach-risk-panel-title">今日の管理ポイント${state.isLive ? "" : "（参考例）"}</h2>
       <ul class="peach-tips-list">${items}</ul>
       <p class="peach-muted">設定: ${escapeHtml(state.settings.locationLabel)}／${escapeHtml(state.settings.variety)}／${escapeHtml(state.cultivationLabel)}</p>
     </section>`;
@@ -397,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function paintState(state) {
     lastPaintedState = state;
     const errBanner = state.fetchError
-      ? `<p class="peach-risk-error" role="alert">${displayText(state.fetchError)}（サンプル表示にフォールバック）</p>`
+      ? `<p class="peach-risk-error" role="alert">${displayText(state.fetchError)}（参考例表示にフォールバック）</p>`
       : state.liveFetchInProgress
         ? `<p class="peach-risk-error" role="status" style="color:#92400e;background:#fffbeb;border-color:#fcd34d">気象データを更新しています…（下記は直前の表示または参考例です）</p>`
         : "";

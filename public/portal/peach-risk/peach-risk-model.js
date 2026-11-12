@@ -53,7 +53,7 @@ const PeachRiskModel = (() => {
       watchConditions: "降雨・強風・幼果期の気孔侵入",
       stageRelation: "展葉〜幼果・収穫後の潜伏期",
       summary:
-        "葉に褐色の斑点が穿孔する病害。降雨と風雨で吹散・侵入しやすい（サンプル説明）。",
+        "葉に褐色の斑点が穿孔する病害。降雨と風雨で吹散・侵入しやすい（参考例説明）。",
     },
     "peach:gray_spot": {
       id: "peach:gray_spot",
@@ -61,7 +61,7 @@ const PeachRiskModel = (() => {
       pathogen: "Phloeompora persicae",
       watchConditions: "開花期の多湿・落葉残存",
       stageRelation: "開花期・収穫前",
-      summary: "葉表に灰褐色星状斑。開花前後の湿りと越冬葉に注意（サンプル）。",
+      summary: "葉表に灰褐色星状斑。開花前後の湿りと越冬葉に注意（参考例）。",
     },
     "peach:scab": {
       id: "peach:scab",
@@ -69,7 +69,7 @@ const PeachRiskModel = (() => {
       pathogen: "Cladosporium carpophilum",
       watchConditions: "降雨・葉面濡れ・幼果〜肥大期",
       stageRelation: "落花・幼果〜収穫前",
-      summary: "葉・果の黒褐色の星状斑。もも専用の感染条件を将来モデル化（サンプル）。",
+      summary: "葉・果の黒褐色の星状斑。もも専用の感染条件を将来モデル化（参考例）。",
     },
     "peach:leaf_curl": {
       id: "peach:leaf_curl",
@@ -78,7 +78,7 @@ const PeachRiskModel = (() => {
       watchConditions: "萌芽〜展葉期の低温・降雨",
       stageRelation: "萌芽・展葉期が中心",
       summary:
-        "春の低温と湿りで葉が縮れ赤色化（いさか）。展葉前後が重要（サンプル）。",
+        "春の低温と湿りで葉が縮れ赤色化（いさか）。展葉前後が重要（参考例）。",
     },
     "peach:anthracnose": {
       id: "peach:anthracnose",
@@ -86,7 +86,7 @@ const PeachRiskModel = (() => {
       pathogen: "Colletotrichum gloeosporioides など",
       watchConditions: "高温多湿・果実肥大〜成熟期",
       stageRelation: "肥大期〜収穫前",
-      summary: "果実の円形病斑と果柄腐敗。夏雨期に注意（サンプル）。",
+      summary: "果実の円形病斑と果柄腐敗。夏雨期に注意（参考例）。",
     },
   };
 
@@ -103,36 +103,36 @@ const PeachRiskModel = (() => {
     {
       stage: "萌芽・展葉期",
       diseases: ["ももいさか病", "せん孔細菌病"],
-      note: "春の低温・降雨が重なる時期の目安（サンプル）",
+      note: "春の低温・降雨が重なる時期の目安（参考例）",
     },
     {
       stage: "開花期",
       diseases: ["灰星病"],
-      note: "花器・新葉の湿潤（サンプル）",
+      note: "花器・新葉の湿潤（参考例）",
     },
     {
       stage: "落花・幼果期",
       diseases: ["灰星病", "黒星病", "せん孔細菌病"],
-      note: "気孔・果皮の感染窓（サンプル）",
+      note: "気孔・果皮の感染窓（参考例）",
     },
     {
       stage: "果実肥大期",
       diseases: ["せん孔細菌病", "黒星病", "炭疽病"],
-      note: "雨の多い時期の注意（サンプル）",
+      note: "雨の多い時期の注意（参考例）",
     },
     {
       stage: "収穫前",
       diseases: ["灰星病", "黒星病", "炭疽病"],
-      note: "果実・葉の病害（サンプル）",
+      note: "果実・葉の病害（参考例）",
     },
     {
       stage: "収穫後",
       diseases: ["せん孔細菌病（越冬伝染源）"],
-      note: "枯れ梢・病斑枝の管理イメージ（サンプル）",
+      note: "枯れ梢・病斑枝の管理イメージ（参考例）",
     },
   ];
 
-  /** 月別注意病害（簡易年間カレンダー・サンプル） */
+  /** 月別注意病害（簡易年間カレンダー・参考例） */
   const ANNUAL_CALENDAR = [
     { month: 1, label: "1月", focus: "—" },
     { month: 2, label: "2月", focus: "越冬管理" },
@@ -165,27 +165,27 @@ const PeachRiskModel = (() => {
   const MOCK_CURRENT = {
     "peach:bacterial_shot_hole": {
       level: "high",
-      reason: "降雨・強風の予想（サンプル）",
+      reason: "降雨・強風の予想（参考例）",
       stageNote: "幼果期前後に注意（仮）",
     },
     "peach:gray_spot": {
       level: "medium",
-      reason: "開花期の多湿（サンプル）",
+      reason: "開花期の多湿（参考例）",
       stageNote: "開花期と現在ステージが一致（仮）",
     },
     "peach:scab": {
       level: "medium",
-      reason: "葉面濡れの継続（サンプル）",
+      reason: "葉面濡れの継続（参考例）",
       stageNote: "落花〜幼果に注意（仮）",
     },
     "peach:leaf_curl": {
       level: "low",
-      reason: "低温湿潤の緩和（サンプル）",
+      reason: "低温湿潤の緩和（参考例）",
       stageNote: "展葉期前を過ぎた想定（仮）",
     },
     "peach:anthracnose": {
       level: "low",
-      reason: "乾燥寄り（サンプル）",
+      reason: "乾燥寄り（参考例）",
       stageNote: "肥大期に入ると上昇しうる（仮）",
     },
   };
@@ -216,7 +216,7 @@ const PeachRiskModel = (() => {
       humidityNote: "88%",
       wetNote: "濡れ 6 h",
       windNote: "東 3 m/s",
-      rationale: "【仮】開花期湿潤のサンプル表示。",
+      rationale: "【仮】開花期湿潤の参考例表示。",
     },
     "peach:scab": {
       highDays: "2〜3日先",
@@ -243,7 +243,7 @@ const PeachRiskModel = (() => {
       humidityNote: "78%",
       wetNote: "果面濡れ 3 h",
       windNote: "弱風",
-      rationale: "【仮】高温多湿期のサンプル。",
+      rationale: "【仮】高温多湿期の参考例。",
     },
   };
 
@@ -277,7 +277,7 @@ const PeachRiskModel = (() => {
       infectionWindow: "予測データ不足",
       onsetWindow: "—",
       confidence: "—",
-      basis: "春の感染履歴が未入力のため表示しません（サンプル）。",
+      basis: "春の感染履歴が未入力のため表示しません（参考例）。",
       insufficient: true,
     },
     {
@@ -423,7 +423,7 @@ const PeachRiskModel = (() => {
       priorYearLabel: priorYear,
       isLive: false,
       fetchError: null,
-      dataSourceLabel: "表示例（地点未設定・感染危険・発病予測はサンプル）",
+      dataSourceLabel: "表示例（地点未設定・感染危険・発病予測は参考例）",
       updatedAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
       currentRisks,
       infectionMatrix,
