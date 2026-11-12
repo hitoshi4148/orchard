@@ -108,7 +108,7 @@ async function main() {
   if (forecast.ascosporePool) {
     const p = forecast.ascosporePool;
     console.log(
-      `升孢子プール: 残 ${p.remainingPercent}%（初期 ${p.initialPoolPercent}%・基準日 ${p.date}）`
+      `子囊孢子プール: 残 ${p.remainingPercent}%（初期 ${p.initialPoolPercent}%・基準日 ${p.date}）`
     );
   }
   console.log("--- 発病予測（onset）---");

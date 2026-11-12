@@ -47,7 +47,7 @@ export const MARSSONINA_GOLDEN_EXPECTATIONS: Record<
   default: GUNMA_MARSSONINA_GOLDEN,
 };
 
-/** りんご黒星・升孢子枯渇プール（NASA 固定窓・緑期 3/25） */
+/** りんご黒星・子囊孢子枯渇プール（NASA 固定窓・緑期 3/25） */
 /** なし黒星 Duthie — 群馬・5月窓（NASA 固定） */
 export const NASHI_SCAB_DUTHIE_GOLDEN = {
   siteId: "maebashi",

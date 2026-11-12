@@ -54,7 +54,7 @@ describe("apple-scab-season", () => {
       "youngfruit"
     );
     assert.equal(st.inPrimarySeason, false);
-    assert.match(st.reason, /升孢子期外/);
+    assert.match(st.reason, /子囊孢子期外/);
   });
 
   it("blocks harvest stage", () => {

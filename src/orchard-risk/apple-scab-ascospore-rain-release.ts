@@ -1,7 +1,7 @@
 /**
- * りんご黒星 — 升孢子放出（降水連動・MacHardy 1986 / RIMpro 系）
+ * りんご黒星 — 子囊孢子放出（降水連動・MacHardy 1986 / RIMpro 系）
  *
- * - 成熟升孢子は降雨で鞘子嚢が湿り飛散する。直近降水からの経過で供給率を下げる。
+ * - 成熟子囊孢子は降雨で鞘子嚢が湿り飛散する。直近降水からの経過で供給率を下げる。
  * - 夜間開始の降雨は翌朝まで飛散が遅れる（MacHardy & Gadoury 1986）。
  */
 import { filterHourlyInWindow } from "../disease/models/risk-utils";
@@ -125,7 +125,7 @@ export function computeAscosporeRainDischargeFactor(
       hoursSinceRainStart: null,
       diurnalFactor: 1,
       summary:
-        "降水連動放出: 直近7日に有効降雨なし — 升孢子飛散は極めて少ない想定（6%）。",
+        "降水連動放出: 直近7日に有効降雨なし — 子囊孢子飛散は極めて少ない想定（6%）。",
     };
   }
 

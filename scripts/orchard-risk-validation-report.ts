@@ -380,7 +380,7 @@ function renderMarkdown(report: Record<string, unknown>): string {
   const ascosporePool = report.ascosporePoolGolden as Record<string, unknown>[];
   if (ascosporePool?.length) {
     lines.push(
-      "## りんご黒星・升孢子プール（固定窓）",
+      "## りんご黒星・子囊孢子プール（固定窓）",
       "",
       `- 緑期日: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.greenTip}`,
       `- 終了: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.seasonEnd}`,
@@ -398,13 +398,13 @@ function renderMarkdown(report: Record<string, unknown>): string {
       }
       lines.push("");
     }
-    lines.push(`**升孢子プール総合: ${poolPass ? "PASS" : "FAIL"}**`, "");
+    lines.push(`**子囊孢子プール総合: ${poolPass ? "PASS" : "FAIL"}**`, "");
   }
 
   const poolCarry = report.ascosporePoolCarryGolden as Record<string, unknown>[];
   if (poolCarry?.length) {
     lines.push(
-      "## りんご黒星・升孢子プール（75日窓 + 日次繰越）",
+      "## りんご黒星・子囊孢子プール（75日窓 + 日次繰越）",
       "",
       `- 緑期日: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.greenTip}`,
       `- 終了: ${APPLE_SCAB_POOL_GOLDEN_WINDOW.seasonEnd}`,

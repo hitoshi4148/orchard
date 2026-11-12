@@ -1,7 +1,7 @@
 /**
- * りんご黒星 — 升孢子シーズン枯渇プール（降雨別累積放出の簡易トラッキング）
+ * りんご黒星 — 子囊孢子シーズン枯渇プール（降雨別累積放出の簡易トラッキング）
  *
- * RIMpro / MacHardy 系: 成熟升孢子の「残り」を降雨イベントごとに減算。
+ * RIMpro / MacHardy 系: 成熟子囊孢子の「残り」を降雨イベントごとに減算。
  * 直近降雨係数（放出効率）と併用 — 本モジュールはシーズン上限側。
  */
 import { DailyWeatherRecord, HourlyWeatherRecord } from "../disease/nasa-power";
@@ -16,7 +16,7 @@ import {
   ascosporeDiurnalDischargeFactor,
 } from "./apple-scab-ascospore-rain-release";
 
-/** 標準圃場の升孢子枯渇プール初期値（%） */
+/** 標準圃場の子囊孢子枯渇プール初期値（%） */
 export const ASCOSPORE_SEASON_INITIAL_POOL = 100;
 
 /** MacHardy/RIMpro 系 — 1 降雨イベントあたりの基準放出割合（群馬ゴールデン調整用） */
@@ -26,7 +26,7 @@ export const ASCOSPORE_RELEASE_FRACTION_BASE = 0.14;
 export const ASCOSPORE_RELEASE_PRECIP_MM_MID = 3;
 export const ASCOSPORE_RELEASE_PRECIP_FACTOR_MAX = 1.35;
 
-/** 成熟升孢子がこれ未満なら降雨放出なし */
+/** 成熟子囊孢子がこれ未満なら降雨放出なし */
 export const ASCOSPORE_MATURITY_MIN_FOR_RELEASE = 8;
 
 export interface AscosporePoolSnapshot {
@@ -283,7 +283,7 @@ export function ascosporePoolAtDate(
   return best;
 }
 
-/** 升孢子期外など — フル hourly 再生を避けた枯渇済みプール（Worker CPU 対策） */
+/** 子囊孢子期外など — フル hourly 再生を避けた枯渇済みプール（Worker CPU 対策） */
 export function depletedAscosporePoolMap(
   ymd: string,
   initialPoolPercent: number
@@ -316,7 +316,7 @@ export function formatAscosporePoolSummary(
     return "";
   }
   if (snap.remainingPercent <= 12) {
-    return `升孢子枯渇プール: 残 ${snap.remainingPercent}%（累積放出 ${snap.cumulativeReleasedPercent}%・降雨${snap.rainEventsProcessed}回）— 一次季節末期想定。`;
+    return `子囊孢子枯渇プール: 残 ${snap.remainingPercent}%（累積放出 ${snap.cumulativeReleasedPercent}%・降雨${snap.rainEventsProcessed}回）— 一次季節末期想定。`;
   }
-  return `升孢子枯渇プール: 残 ${snap.remainingPercent}%（累積放出 ${snap.cumulativeReleasedPercent}%・降雨${snap.rainEventsProcessed}回）。`;
+  return `子囊孢子枯渇プール: 残 ${snap.remainingPercent}%（累積放出 ${snap.cumulativeReleasedPercent}%・降雨${snap.rainEventsProcessed}回）。`;
 }

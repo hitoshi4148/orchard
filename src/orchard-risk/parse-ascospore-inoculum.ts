@@ -1,4 +1,4 @@
-/** りんご黒星 — 圃場残病葉（升孢子枯渇プール初期量） */
+/** りんご黒星 — 圃場残病葉（子囊孢子枯渇プール初期量） */
 
 export type ScabInoculumLevel = "low" | "normal" | "high";
 
@@ -27,7 +27,7 @@ export function scabInoculumInitialPoolPercent(
   return SCAB_INOCULUM_POOL_PERCENT[level];
 }
 
-/** 枯渇プール残量を升孢子供給係数 0–1 に正規化 */
+/** 枯渇プール残量を子囊孢子供給係数 0–1 に正規化 */
 export function ascosporePoolSupplyFactor(
   remainingPercent: number,
   initialPoolPercent: number

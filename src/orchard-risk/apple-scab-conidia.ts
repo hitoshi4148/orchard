@@ -2,7 +2,7 @@
  * りんご黒星 — 二次感染（分生胞子）簡易チャネル
  *
  * 既存病斑からの分生胞子は生育ステージが進むほど供給が増えるとみなし、
- * Mills 気象素点に × 供給率を適用。升孢子経路と max を取る。
+ * Mills 気象素点に × 供給率を適用。子囊孢子経路と max を取る。
  */
 
 const CONIDIAL_SUPPLY_PERCENT: Record<string, number> = {
@@ -51,7 +51,7 @@ export function computeAppleScabConidialRisk(
   };
 }
 
-/** 升孢子放出末期 — 残存成熟率の減衰（GDD 600 日℃付近） */
+/** 子囊孢子放出末期 — 残存成熟率の減衰（GDD 600 日℃付近） */
 export function ascosporeReleaseFactorAfterDepletion(gddDayC: number): number {
   if (gddDayC < 520) {
     return 1;

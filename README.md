@@ -121,7 +121,7 @@
 | `agromap_greenfield_date` | 晩生・リンゴの満開日（摘果適時 DAFB） |
 | `agromap_warm_seeding_date` | ふじの満開日（収穫適時積算温度） |
 | `agromap_cool_seeding_date` | 幸水の満開日（収穫適時積算温度） |
-| `agromap_apple_green_tip_date` | りんご緑期日（Green tip・黒星升孢子 GDD。TOP GDD とは別） |
+| `agromap_apple_green_tip_date` | りんご緑期日（Green tip・黒星子囊孢子 GDD。TOP GDD とは別） |
 
 **摘果適時（DAFB）**
 
@@ -425,7 +425,7 @@ UI: `/portal/risk/`（`public/portal/risk/`） · API: `GET /portal/api/orchard-
 
 | 病害 | 6日間感染表 | 発病予測（onset） | 備考 |
 |------|-------------|-------------------|------|
-| りんご黒星 | **Mills × 升孢子（GDD + 降水放出 + 枯渇プール + 干期停止）+ 分生胞子** | Mills イベント由来 | `apple-scab-ascospore-season-pool.ts` 他 |
+| りんご黒星 | **Mills × 子囊孢子（GDD + 降水放出 + 枯渇プール + 干期停止）+ 分生胞子** | Mills イベント由来 | `apple-scab-ascospore-season-pool.ts` 他 |
 | りんご褐斑 | **予報二次（鈴木P2日次）** ※一次未推定時も P2、GDD 補正は一次後のみ | **P2 一次感染 + P3 GDD 159日℃**（開花始期必須） | `marssonina_onset=0` で onset のみ省略し高速化 |
 | りんご他3病 | `diseases/apple-secondary.ts`（輪紋=季節モデル、他=季節補正） | 6日ピーク由来 | 品種係数・閾値: [`docs/heuristic-orchard-diseases.md`](docs/heuristic-orchard-diseases.md) |
 | なし黒星 | **Duthie (2007) 動的**（Ishii 2003 発芽＋L(T)） | Duthie イベント由来 | `nashi-scab-duthie.ts` |
@@ -453,9 +453,9 @@ CI（`.github/workflows/orchard-risk.yml`）: PR で `test:orchard-risk`、`main
 
 **主な利用地域は群馬県**（標準地点: 前橋 36.39/139.06）。検証ゴールデンは前橋・高崎・渋川・沼田＋弘前参照。
 
-- **緑期日**（`green_tip` / Cookie `agromap_apple_green_tip_date`）: Green tip＝緑期確認日。黒星・升孢子 GDD の起点。リスク画面・API・Cookie（TOP には入力欄なし）
-- **残病葉量**（`scab_inoculum=low|normal|high`）: 黒星・升孢子枯渇プール初期 60/100/130%。りんごリスク画面の localStorage
-- 升孢子チューニングメモ: [`docs/apple-scab-ascospore-tuning.md`](docs/apple-scab-ascospore-tuning.md)
+- **緑期日**（`green_tip` / Cookie `agromap_apple_green_tip_date`）: Green tip＝緑期確認日。黒星・子囊孢子 GDD の起点。リスク画面・API・Cookie（TOP には入力欄なし）
+- **残病葉量**（`scab_inoculum=low|normal|high`）: 黒星・子囊孢子枯渇プール初期 60/100/130%。りんごリスク画面の localStorage
+- 子囊孢子チューニングメモ: [`docs/apple-scab-ascospore-tuning.md`](docs/apple-scab-ascospore-tuning.md)
 - **開花始期**（`bloom_start`）: 褐斑一次感染の起点。満開 Cookie または群馬目安（4/22）
 - **中間宿主**（`gymnosporangium_host=0|1`）: なし赤星。なしのときリスク 4% に抑制
 

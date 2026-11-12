@@ -324,7 +324,7 @@ export function buildAppleScabOnsetFromHourly(
       diseaseId: "apple:scab",
       estimatedInfectionDate: "—",
       gddSinceInfectionDayC: null,
-      predictedOnsetWindow: "升孢子簡易季節窓の対象外",
+      predictedOnsetWindow: "子囊孢子簡易季節窓の対象外",
       confidence: "低",
       note: `りんご黒星病: ${season.reason}`,
       modelStatus: "mills",

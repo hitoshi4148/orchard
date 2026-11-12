@@ -1,5 +1,5 @@
 /**
- * りんご黒星 — 升孢子成熟（MacHardy / Gadoury 系の簡易 GDD）
+ * りんご黒星 — 子囊孢子成熟（MacHardy / Gadoury 系の簡易 GDD）
  *
  * - 基準温度 0℃、バイオフィックス＝季節窓開始日（緑期日未入力時の代用、群馬は gunma 窓）
  * - 成熟率は logistic（1/50/99% 付近を 130/280/600 日℃で近似、PDIS 2004 の 600 日℃参照）
@@ -162,11 +162,11 @@ export function computeAppleScabAscosporeMaturity(
 
   let summary: string;
   if (roundedGdd < 30) {
-    summary = `升孢子は未熟（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%）。`;
+    summary = `子囊孢子は未熟（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%）。`;
   } else if (roundedGdd >= APPLE_SCAB_ASCOSPORE_DEPLETION_GDD * 0.95) {
-    summary = `升孢子は概ね放出末期（${biofixLabel} 起算・積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%・600日℃目安）。`;
+    summary = `子囊孢子は概ね放出末期（${biofixLabel} 起算・積算 ${roundedGdd} 日℃・成熟率 ${maturityPercent}%・600日℃目安）。`;
   } else {
-    summary = `升孢子成熟率 ${maturityPercent}%（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃）。`;
+    summary = `子囊孢子成熟率 ${maturityPercent}%（${biofixLabel} 起算・基準0℃積算 ${roundedGdd} 日℃）。`;
   }
   if (dryHaltApplied) {
     summary += ` ${APPLE_SCAB_DRY_HALT_CONSECUTIVE_DAYS}日連続無降雨で GDD 累算を一時停止（MacHardy 干期補正）。`;

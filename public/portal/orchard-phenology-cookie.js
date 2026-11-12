@@ -5,7 +5,7 @@
 const OrchardPhenologyCookie = (function () {
   const COOKIE_DAYS = 365;
 
-  /** りんご緑期日（Green tip・黒星升孢子 GDD バイオフィックス） */
+  /** りんご緑期日（Green tip・黒星子囊孢子 GDD バイオフィックス） */
   const APPLE_GREEN_TIP = "agromap_apple_green_tip_date";
 
   function getCookie(name) {

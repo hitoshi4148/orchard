@@ -40,7 +40,7 @@ export interface OrchardAppleScabContext {
   ascosporePoolInitialPercent?: number;
 }
 
-/** りんご黒星病 — Mills 法 + 季節窓 + MacHardy 系升孢子 GDD */
+/** りんご黒星病 — Mills 法 + 季節窓 + MacHardy 系子囊孢子 GDD */
 export function calcAppleScab(
   input: DiseaseWeatherInput,
   ctx?: OrchardAppleScabContext
@@ -144,7 +144,7 @@ export function calcAppleScab(
       ascosporeNote += ` ${poolNote}`;
     }
     if (depletionFactor < 1) {
-      ascosporeNote += ` 升孢子放出末期係数 ${Math.round(depletionFactor * 100)}%。`;
+      ascosporeNote += ` 子囊孢子放出末期係数 ${Math.round(depletionFactor * 100)}%。`;
     }
   }
 
@@ -160,7 +160,7 @@ export function calcAppleScab(
   return {
     percent,
     rationale: [
-      `Mills 法（改訂）: 升孢子経路 ${ascosporePercent}%・分生胞子経路 ${conidial.percent}% → 表示 ${percent}%（Mills素点 ${millsPercent}%）。`,
+      `Mills 法（改訂）: 子囊孢子経路 ${ascosporePercent}%・分生胞子経路 ${conidial.percent}% → 表示 ${percent}%（Mills素点 ${millsPercent}%）。`,
       ascosporeNote,
       conidial.summary,
       seasonNote,

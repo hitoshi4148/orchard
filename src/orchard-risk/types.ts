@@ -131,11 +131,11 @@ export interface OrchardRiskForecast {
   growthStageId: string;
   /** リクエストで受け取った開花始期（りんご・参照用） */
   bloomStart: string | null;
-  /** 緑期日（green tip・りんご黒星升孢子 GDD）。未設定時は季節窓代理 */
+  /** 緑期日（green tip・りんご黒星子囊孢子 GDD）。未設定時は季節窓代理 */
   greenTipDate: string | null;
   /** りんご黒星 — 残病葉量（枯渇プール初期）。なし作物は null */
   scabInoculumLevel: ScabInoculumLevel | null;
-  /** りんご黒星 — 評価日時点の升孢子枯渇プール（りんごのみ） */
+  /** りんご黒星 — 評価日時点の子囊孢子枯渇プール（りんごのみ） */
   ascosporePool: OrchardAscosporePoolStatus | null;
   /** なし赤星 — 中間宿主（ビャクシン類）の圃場近傍。未設定は null */
   gymnosporangiumHostNearby: boolean | null;

@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
               : "";
         const ascosporePoolRow =
           item.diseaseId === "apple:scab" && pool
-            ? `<dt>${displayText("升孢子枯渇プール")}</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）${poolCarryNote}</dd>`
+            ? `<dt>${displayText("子囊孢子枯渇プール")}</dt><dd>残 ${pool.remainingPercent}%（初期 ${pool.initialPoolPercent}%・累積放出 ${pool.cumulativeReleasedPercent}%・降雨 ${pool.rainEventsProcessed} 回・基準日 ${escapeHtml(pool.date)}）${poolCarryNote}</dd>`
             : "";
         return `<article class="apple-risk-onset-card${
           isMarssoninaUnset ? " apple-risk-onset-card--unset" : ""
@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dashboard.cropId !== "apple") return "";
     const level = dashboard.scabInoculumApple || Model.loadScabInoculumApple();
     return `<fieldset class="apple-risk-bloom-field apple-risk-host-fieldset">
-        <legend class="apple-risk-bloom-label">${displayText("黒星病 — 圃場残病葉（升孢子プール初期）")}</legend>
+        <legend class="apple-risk-bloom-label">${displayText("黒星病 — 圃場残病葉（子囊孢子プール初期）")}</legend>
         <div class="apple-risk-host-options" role="radiogroup" aria-label="残病葉量">
           <label class="apple-risk-host-option">
             <input type="radio" name="apple-risk-scab-inoculum" value="low" ${level === "low" ? "checked" : ""}>
@@ -368,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboard.greenTipApple || Model.loadGreenTipApple() || "";
     return `<div class="apple-risk-phenology-fields">
       <div class="apple-risk-bloom-field">
-        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">${displayText("緑期日（黒星・升孢子 GDD 起点）")}</label>
+        <label class="apple-risk-bloom-label" for="apple-risk-green-tip">${displayText("緑期日（黒星・子囊孢子 GDD 起点）")}</label>
         <div class="apple-risk-bloom-row">
           <input type="date" id="apple-risk-green-tip" class="apple-risk-bloom-input" value="${escapeHtml(greenTip)}">
           <button type="button" class="apple-risk-bloom-clear-btn" id="apple-risk-green-tip-clear">クリア</button>

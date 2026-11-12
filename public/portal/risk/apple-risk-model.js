@@ -123,7 +123,7 @@ const OrchardRiskModel = (() => {
       onsetModel: {
         type: "mills",
         implemented: true,
-        note: "Mills × 升孢子（GDD・降水放出・枯渇プール）+ 分生胞子。残病葉量は下の設定で初期プールを変更",
+        note: "Mills × 子囊孢子（GDD・降水放出・枯渇プール）+ 分生胞子。残病葉量は下の設定で初期プールを変更",
       },
     },
     "apple:marssonina": {
