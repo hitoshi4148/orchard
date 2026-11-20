@@ -1653,24 +1653,49 @@ async function refreshAllGdd(settings = loadSettings()) {
   ]);
 }
 
+/** lab フォームの作物ラベル → 楽RAC API（category=fruit） */
+const PORTAL_RAC_CROP_LAUNCH = {
+  りんご: { crop: "ringo" },
+  なし: { crop: "nashi" },
+  桃: { crop: "other_fruit", cropText: "もも" },
+  ぶどう: { crop: "budo" },
+  かき: { crop: "kaki" },
+  みかん: { crop: "mikan" },
+  果樹: { crop: "other_fruit", cropText: "果樹" },
+};
+
 function validatePortalRacSearch(pesticideKeyword, targetKeyword, cropKeyword = "") {
   const pesticide = pesticideKeyword.trim();
   const target = targetKeyword.trim();
-  const crop = cropKeyword.trim();
+  const cropLabel = cropKeyword.trim();
   const hasOneCharKeyword =
     (pesticide.length > 0 && pesticide.length < 2) ||
     (target.length > 0 && target.length < 2);
 
-  if ((!pesticide && !target && !crop) || hasOneCharKeyword) {
+  if (!cropLabel) {
+    return { ok: false, message: "対象果樹を選んでください" };
+  }
+
+  if ((!pesticide && !target) || hasOneCharKeyword) {
     return {
       ok: false,
-      message: crop
-        ? "農薬名・病害虫名は2文字以上で入力してください"
-        : "対象果樹を選ぶか、2文字以上のキーワードを入力してください",
+      message: "農薬名・病害虫名は2文字以上で入力してください",
     };
   }
 
-  return { ok: true, pesticide, target, crop };
+  const mapped = PORTAL_RAC_CROP_LAUNCH[cropLabel];
+  if (!mapped) {
+    return { ok: false, message: "対象果樹の選択が不正です" };
+  }
+
+  return {
+    ok: true,
+    pesticide,
+    target,
+    category: "fruit",
+    crop: mapped.crop,
+    cropText: mapped.cropText || "",
+  };
 }
 
 function initPortalRacSearch() {
@@ -1702,14 +1727,16 @@ function initPortalRacSearch() {
     errorEl.textContent = "";
 
     const params = new URLSearchParams();
+    params.set("category", result.category);
+    params.set("crop", result.crop);
+    if (result.cropText) {
+      params.set("cropText", result.cropText);
+    }
     if (result.pesticide) {
       params.set("pesticide", result.pesticide);
     }
     if (result.target) {
       params.set("target", result.target);
-    }
-    if (result.crop) {
-      params.set("crop", result.crop);
     }
 
     const query = params.toString();

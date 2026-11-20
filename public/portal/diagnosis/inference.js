@@ -114,7 +114,12 @@ export function getTopK(probs, classNames, k = 10) {
 /** @param {string} className */
 export function getRacSearchUrl(className) {
   const target = DISEASE_QUERY_NAME_MAP[className] ?? className;
-  return `/portal/rac/?target=${encodeURIComponent(target)}`;
+  const params = new URLSearchParams({
+    category: "fruit",
+    crop: "ringo",
+    target,
+  });
+  return `/portal/rac/?${params.toString()}`;
 }
 
 /** @param {string} className */

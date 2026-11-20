@@ -32,7 +32,7 @@
 | `/portal/` | 卸値ナビ TOP（卸売・小売価格） |
 | `/portal/lab/` | 果樹園しごと（実験・`noindex`） |
 | `/portal/spray/` | ピンポイント天気で果実園しごと |
-| `/portal/rac/` | 楽RAC農薬ローテ（クライアント完結・FAMIC JSON） |
+| `/portal/rac/` | 楽RAC農薬ローテ（`GET /portal/api/pesticides/*` ・ D1・tool-portal 由来の FAMIC 取込） |
 | `/portal/risk/` | りんご・なし病害リスク予報 |
 | `/portal/grape-risk/` | ぶどう病害リスク予報（画面のみ） |
 | `/portal/peach-risk/` | 桃病害リスク予報（画面のみ） |

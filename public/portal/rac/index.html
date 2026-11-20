@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="芝管理者向けRACコード検索ツール。農薬名・メーカー名・適用対象から検索し、同一グループの確認やローテーション設計を支援します。FAMIC公開情報を基に再構成。">
+  <meta name="description" content="果樹園向け楽RAC農薬検索。FAMIC登録情報からりんご・なし・ぶどうなどの病害虫防除資材とRACローテーション候補を調べられます。">
   <title>果実園しごと・楽RAC農薬ローテ</title>
   <link rel="icon" type="image/png" href="/portal/portal-title-logo.png">
   <link rel="stylesheet" href="../portal.css?v=20250629v102">
@@ -11,7 +11,7 @@
 </head>
 <body>
   <div class="rac-page">
-    <p class="portal-back"><a href="/portal/">← ツールポータルに戻る</a></p>
+    <p class="portal-back"><a href="/portal/lab/">← 果樹園しごと</a></p>
 
     <header class="rac-header">
       <h1>果実園しごと・楽RAC農薬ローテ</h1>
@@ -20,7 +20,7 @@
         <span class="rac-version-tag">v1.1.1</span>
       </p>
       <p class="rac-lead">
-        農薬名や病害虫・雑草名の一部から必要な芝生用農薬を探し、
+        果樹と病害虫名の一部から登録農薬を探し、
         RACコードをもとに耐性を避けたローテーション候補を確認できます。
       </p>
     </header>
@@ -34,13 +34,13 @@
           <span class="rac-field-label">対象果樹</span>
           <select id="cropKeyword" class="rac-input rac-select">
             <option value="">指定なし</option>
-            <option value="りんご">りんご</option>
-            <option value="なし">なし</option>
-            <option value="桃">桃</option>
-            <option value="ぶどう">ぶどう</option>
-            <option value="かき">かき</option>
-            <option value="みかん">みかん</option>
-            <option value="果樹">果樹（広め）</option>
+            <option value="ringo">りんご</option>
+            <option value="nashi">日本なし</option>
+            <option value="other_fruit:もも">もも</option>
+            <option value="budo">ぶどう</option>
+            <option value="kaki">かき</option>
+            <option value="mikan">みかん</option>
+            <option value="other_fruit:果樹">果樹（広め）</option>
           </select>
         </label>
         <label class="rac-field">
@@ -63,7 +63,7 @@
       <h2 class="rac-footer-title">【ご利用にあたっての注意】</h2>
       <p>
         本サービスの農薬情報は、農林水産消費安全技術センター（FAMIC）公開情報を基に、
-        グリーンキーパー向けに再編集した参考情報です。
+        果樹園向けに再編集した参考情報です。
       </p>
       <p>
         実際の施薬にあたっては、必ず各製品の最新ラベル表示・登録内容・使用方法をご確認のうえ、
@@ -83,7 +83,6 @@
     </footer>
   </div>
 
-  <script src="rac-engine.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=20251120racapi"></script>
 </body>
 </html>
