@@ -1,4 +1,4 @@
-import { reverseGeocode } from "../../../src/geocode/reverse";
+import { reverseGeocodeDetail } from "../../../src/geocode/reverse";
 import { corsJson, corsOptions } from "../../../src/portal/cors-json";
 
 export const onRequestOptions: PagesFunction = async () => corsOptions();
@@ -16,11 +16,12 @@ export const onRequestGet: PagesFunction = async (context) => {
       );
     }
 
-    const name = await reverseGeocode(lat, lon);
+    const detail = await reverseGeocodeDetail(lat, lon);
 
     return corsJson({
       success: true,
-      name,
+      name: detail.municipality,
+      prefecture: detail.prefecture,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

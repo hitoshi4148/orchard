@@ -45,6 +45,7 @@ const SHOW_PORTAL_SERIES = PORTAL_FEATURES.series === true;
 const SHOW_PORTAL_SETTINGS = PORTAL_FEATURES.settings === true;
 const SHOW_AI_ADVISOR = PORTAL_FEATURES.aiAdvisor === true;
 const SHOW_WEATHER = PORTAL_FEATURES.weather === true;
+const SHOW_ORCHARD_NEWS = PORTAL_FEATURES.news === true;
 const SHOW_PORTAL_TITLE_PREFIX = PORTAL_FEATURES.titlePrefix === true;
 const SHOW_FOOTER_WEATHER_CREDIT = PORTAL_FEATURES.footerWeatherCredit === true;
 const SHOW_PORTAL_BRAND_INFO = PORTAL_FEATURES.brandInfo === true;
@@ -856,6 +857,10 @@ async function loadPortalData() {
     saveOrchardLocation(location);
   }
   updatePortalTitle(settings);
+
+  if (SHOW_ORCHARD_NEWS) {
+    refreshOrchardNews(location);
+  }
 
   if (!portalNeedsDashboardData()) {
     document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
@@ -1930,6 +1935,18 @@ function initPortalBrandInfo() {
   });
 }
 
+function refreshOrchardNews(location = loadOrchardLocation()) {
+  if (!SHOW_ORCHARD_NEWS || !window.OrchardNewsUI) {
+    return;
+  }
+  const hasCoords = location.lat && location.lon;
+  if (hasCoords) {
+    OrchardNewsUI.load({ lat: location.lat, lon: location.lon });
+  } else {
+    OrchardNewsUI.load({});
+  }
+}
+
 function setPortalBlockVisibility(elementId, show) {
   const el = document.getElementById(elementId);
   if (!el) {
@@ -1946,6 +1963,7 @@ function applyPortalFeatureVisibility() {
   setPortalBlockVisibility("ai-advisor-section", SHOW_AI_ADVISOR);
   setPortalBlockVisibility("weather-section", SHOW_WEATHER);
   setPortalBlockVisibility("weather-more-link", SHOW_WEATHER);
+  setPortalBlockVisibility("orchard-news-section", SHOW_ORCHARD_NEWS);
   setPortalBlockVisibility("disease-risk-section", SHOW_DISEASE_RISK_SECTION);
   setPortalBlockVisibility("portal-insights-row", SHOW_PORTAL_INSIGHTS);
   setPortalBlockVisibility("portal-work-memo-row", SHOW_WORK_MEMO);

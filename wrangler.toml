@@ -8,3 +8,9 @@ binding = "PESTICIDES_DB"
 database_name = "tool-portal-pesticides"
 database_id = "08b172aa-aed5-4b6c-b025-11ad972c77d3"
 preview_database_id = "08b172aa-aed5-4b6c-b025-11ad972c77d3"
+
+# 果樹園ニュース（orchard 専用 D1）
+[[d1_databases]]
+binding = "NEWS_DB"
+database_name = "orchard-news"
+database_id = "b36566cb-be00-45aa-8605-71db72a1d2b9"

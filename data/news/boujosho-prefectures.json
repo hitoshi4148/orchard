@@ -1,0 +1,194 @@
+{
+  "source": "https://www.maff.go.jp/j/syouan/syokubo/gaicyu/yosatu/attach/pdf/boujosho-14.pdf",
+  "updated": "2026-11-27",
+  "prefectures": [
+    {
+      "name": "愛知県",
+      "homePageUrl": "https://www.pref.aichi.jp/site/byogaichu/index.html"
+    },
+    {
+      "name": "愛媛県",
+      "homePageUrl": "https://www.pref.ehime.jp/site/byocyubojo/index.html"
+    },
+    {
+      "name": "茨城県",
+      "homePageUrl": "https://www.pref.ibaraki.jp/nourinsuisan/nosose/byobo/boujosidou2/index.html"
+    },
+    {
+      "name": "岡山県",
+      "homePageUrl": "https://www.pref.okayama.jp/soshiki/239/"
+    },
+    {
+      "name": "沖縄県",
+      "homePageUrl": "https://www.pref.okinawa.jp/site/norin/byogaichubojo/index.html"
+    },
+    {
+      "name": "岩手県",
+      "homePageUrl": "https://www.pref.iwate.jp/sangyoukoyou/nougyou/desaki/gaichuu/index.html"
+    },
+    {
+      "name": "岐阜県",
+      "homePageUrl": "https://www.pref.hiroshima.lg.jp/site/byogaichu/"
+    },
+    {
+      "name": "宮崎県",
+      "homePageUrl": "https://hinatamafin.pref.miyazaki.lg.jp/soshiki/noshi_byogai/index.html"
+    },
+    {
+      "name": "宮城県",
+      "homePageUrl": "https://www.pref.miyagi.jp/soshiki/byogai/"
+    },
+    {
+      "name": "京都府",
+      "homePageUrl": "https://www.pref.kyoto.jp/byogai/"
+    },
+    {
+      "name": "熊本県",
+      "homePageUrl": "https://www.pref.kumamoto.jp/soshiki/75/125504.html"
+    },
+    {
+      "name": "群馬県",
+      "homePageUrl": "https://www.pref.gunma.jp/07/p14210015.html"
+    },
+    {
+      "name": "広島県",
+      "homePageUrl": "https://www.pref.hiroshima.lg.jp/site/byogaichu/"
+    },
+    {
+      "name": "香川県",
+      "homePageUrl": "https://www.pref.kagawa.lg.jp/byogaichubojo/index.html"
+    },
+    {
+      "name": "高知県",
+      "homePageUrl": "https://www.nogyo.tosa.pref.kochi.lg.jp/?sid=2016"
+    },
+    {
+      "name": "佐賀県",
+      "homePageUrl": "https://www.pref.saga.lg.jp/kiji00321899/index.html"
+    },
+    {
+      "name": "埼玉県",
+      "homePageUrl": "https://www.pref.saitama.lg.jp/soshiki/b0916/"
+    },
+    {
+      "name": "三重県",
+      "homePageUrl": "https://www.pref.mie.lg.jp/byogai/hp/index.htm"
+    },
+    {
+      "name": "山形県",
+      "homePageUrl": "https://agrin.jp/ac/index.html"
+    },
+    {
+      "name": "山口県",
+      "homePageUrl": "https://www.pref.yamaguchi.lg.jp/cms/a17201/nougyou/shigen/index00.htmlhttps://www.pref.gifu.lg.jp/sangyo/nogyo/gifu-clean/24321/"
+    },
+    {
+      "name": "山梨県",
+      "homePageUrl": "https://www.pref.yamanashi.jp/byogaichu/"
+    },
+    {
+      "name": "滋賀県",
+      "homePageUrl": "https://www.pref.shiga.lg.jp/boujyo/"
+    },
+    {
+      "name": "鹿児島県",
+      "homePageUrl": "https://www.pref.kagoshima.jp/ag13/kiad/boujosho/index.html"
+    },
+    {
+      "name": "秋田県",
+      "homePageUrl": "https://www.pref.akita.lg.jp/pages/genre/bojo"
+    },
+    {
+      "name": "新潟県",
+      "homePageUrl": "https://www.pref.niigata.lg.jp/sec/bojo/"
+    },
+    {
+      "name": "神奈川県",
+      "homePageUrl": "https://www.pref.kanagawa.jp/docs/cf7/cnt/f450002/"
+    },
+    {
+      "name": "青森県",
+      "homePageUrl": "https://www.pref.aomori.lg.jp/soshiki/nourin/byogaichu/index.html"
+    },
+    {
+      "name": "静岡県",
+      "homePageUrl": "https://www.pref.shizuoka.jp/sangyoshigoto/norinjimusho/1058658/boujo/index.html"
+    },
+    {
+      "name": "石川県",
+      "homePageUrl": "https://www.pref.ishikawa.lg.jp/noken/index.html"
+    },
+    {
+      "name": "千葉県",
+      "homePageUrl": "https://www.pref.chiba.lg.jp/lab-nourin/nourin/boujo/index.html"
+    },
+    {
+      "name": "大阪府",
+      "homePageUrl": "https://www.pref.osaka.lg.jp/o120090/nosei/byogaicyu/index.html"
+    },
+    {
+      "name": "大分県",
+      "homePageUrl": "https://www.pref.oita.jp/site/oita-boujosho/"
+    },
+    {
+      "name": "長崎県",
+      "homePageUrl": "https://www.pref.nagasaki.jp/e-nourin/nougi/JPP/index.html"
+    },
+    {
+      "name": "長野県",
+      "homePageUrl": "https://www.pref.nagano.lg.jp/bojo/"
+    },
+    {
+      "name": "鳥取県",
+      "homePageUrl": "https://www.pref.tottori.lg.jp/boujosyo/"
+    },
+    {
+      "name": "島根県",
+      "homePageUrl": "https://www.pref.shimane.lg.jp/industry/norin/gijutsu/nougyo_tech/byougaityuu/"
+    },
+    {
+      "name": "東京都",
+      "homePageUrl": "https://www.sangyo-rodo.metro.tokyo.lg.jp/nourin/shoku/boujyo"
+    },
+    {
+      "name": "徳島県",
+      "homePageUrl": "https://www.pref.tokushima.lg.jp/tafftsc/t-boujosho"
+    },
+    {
+      "name": "栃木県",
+      "homePageUrl": "https://www.pref.tochigi.lg.jp/g59/"
+    },
+    {
+      "name": "奈良県",
+      "homePageUrl": "https://www.pref.nara.jp/1557.htm"
+    },
+    {
+      "name": "富山県",
+      "homePageUrl": "https://taffrc.pref.toyama.jp/nsgc/nougyou/"
+    },
+    {
+      "name": "福井県",
+      "homePageUrl": "https://www.pref.fukui.lg.jp/doc/noushi/kankyo/boujyo.html"
+    },
+    {
+      "name": "福岡県",
+      "homePageUrl": "https://www.pref.fukuoka.lg.jp/contents/fukuoka-bouzyosyo.html"
+    },
+    {
+      "name": "福島県",
+      "homePageUrl": "https://www.pref.fukushima.lg.jp/sec/37200b/"
+    },
+    {
+      "name": "兵庫県",
+      "homePageUrl": "https://bojo.hyogo-nourinsuisangc.jp/"
+    },
+    {
+      "name": "北海道",
+      "homePageUrl": "http://www.agri.hro.or.jp/boujosho/"
+    },
+    {
+      "name": "和歌山県",
+      "homePageUrl": "https://www.pref.wakayama.lg.jp/prefg/072000/d00216368.html"
+    }
+  ]
+}

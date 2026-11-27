@@ -41,10 +41,20 @@ export function extractMunicipality(address: NominatimAddress): string {
   return "";
 }
 
-export async function reverseGeocode(
+export function extractPrefecture(address: NominatimAddress): string {
+  for (const key of ["state", "province"] as const) {
+    const value = address[key];
+    if (value && isPrefectureName(value)) {
+      return value;
+    }
+  }
+  return "";
+}
+
+export async function reverseGeocodeDetail(
   lat: number,
   lon: number
-): Promise<string> {
+): Promise<{ municipality: string; prefecture: string }> {
   const url = new URL("https://nominatim.openstreetmap.org/reverse");
   url.searchParams.set("lat", String(lat));
   url.searchParams.set("lon", String(lon));
@@ -64,8 +74,19 @@ export async function reverseGeocode(
 
   const data = (await response.json()) as NominatimResponse;
   if (!data.address) {
-    return "";
+    return { municipality: "", prefecture: "" };
   }
 
-  return extractMunicipality(data.address);
+  return {
+    municipality: extractMunicipality(data.address),
+    prefecture: extractPrefecture(data.address),
+  };
+}
+
+export async function reverseGeocode(
+  lat: number,
+  lon: number
+): Promise<string> {
+  const detail = await reverseGeocodeDetail(lat, lon);
+  return detail.municipality;
 }

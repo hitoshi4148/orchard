@@ -9,6 +9,7 @@ window.PORTAL_PAGE = {
     settings: true,
     aiAdvisor: true,
     weather: true,
+    news: true,
     titlePrefix: true,
     footerWeatherCredit: true,
     brandInfo: true,
