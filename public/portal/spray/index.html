@@ -47,15 +47,15 @@
             <h3>凡例</h3>
             <div class="legend-items">
                 <div class="legend-item">
-                    <span class="status-badge green">GREEN</span>
+                    <img class="spray-status-icon spray-status-icon--legend" src="/portal/spray-status/green.png?v=20251127sprayicons" alt="散布推奨" width="40" height="40">
                     <span>散布推奨 - 条件良好</span>
                 </div>
                 <div class="legend-item">
-                    <span class="status-badge yellow">YELLOW</span>
+                    <img class="spray-status-icon spray-status-icon--legend" src="/portal/spray-status/yellow.png?v=20251127sprayicons" alt="注意" width="40" height="40">
                     <span>注意 - 条件に注意が必要</span>
                 </div>
                 <div class="legend-item">
-                    <span class="status-badge red">RED</span>
+                    <img class="spray-status-icon spray-status-icon--legend" src="/portal/spray-status/red.png?v=20251127sprayicons" alt="非推奨" width="40" height="40">
                     <span>非推奨 - 散布を避ける</span>
                 </div>
             </div>
@@ -328,12 +328,23 @@
                         };
                         const weatherIcon = weatherIcons[result.condition] || "☁️";
 
+                        const sprayStatusLabels = {
+                            green: "散布推奨",
+                            yellow: "注意",
+                            red: "非推奨",
+                        };
+                        const sprayStatusLabel = sprayStatusLabels[statusClass] || result.status;
+
                         let cellContent = `
                             <div class="cell-content status-${statusClass} ${!isSprayTime ? 'not-spray-time-content' : ''}">
                                 ${!isSprayTime ? '<div class="spray-time-label">散布時間帯外</div>' : ''}
                                 <div class="cell-weather-icon">
                                     <span class="weather-icon">${weatherIcon}</span>
-                                    <span class="weather-condition">${result.condition}</span>
+                                    <img class="spray-status-icon" src="/portal/spray-status/${statusClass}.png?v=20251127sprayicons" alt="${sprayStatusLabel}" title="${sprayStatusLabel}" width="81" height="81" loading="lazy">
+                                    <div class="cell-weather-text">
+                                        <span class="weather-condition">${result.condition}</span>
+                                        <span class="cell-spray-label cell-spray-label--${statusClass}">${sprayStatusLabel}</span>
+                                    </div>
                                 </div>
                                 <div class="cell-weather">
                                     <div class="weather-item">風: ${result.wind.toFixed(1)}m/s</div>

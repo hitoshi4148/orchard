@@ -150,6 +150,7 @@ async function buildDashboardResponse(request: Request): Promise<Response> {
       diseaseRisk: dashboard.diseaseRisk,
       growthPotential: dashboard.growthPotential,
       sprayForecast: dashboard.sprayForecast,
+      sprayDayStatus: dashboard.sprayDayStatus,
     };
 
     const response = jsonResponse(payload, 200, {

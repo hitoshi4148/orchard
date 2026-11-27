@@ -375,15 +375,55 @@ button.secondary:hover {
     border-radius: 4px;
 }
 
+.spray-status-icon {
+    width: 81px;
+    height: 81px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.spray-status-icon--legend {
+    width: 40px;
+    height: 40px;
+}
+
 .weather-icon {
     font-size: 3em;
     line-height: 1;
+}
+
+.cell-weather-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    line-height: 1.15;
 }
 
 .weather-condition {
     font-size: calc(0.85em + 4pt);
     font-weight: 600;
     color: #2c3e50;
+    line-height: 1.15;
+}
+
+.cell-spray-label {
+    font-size: calc(0.85em + 4pt);
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.cell-spray-label--green {
+    color: #15803d;
+}
+
+.cell-spray-label--yellow {
+    color: #a16207;
+}
+
+.cell-spray-label--red {
+    color: #b91c1c;
 }
 
 .cell-weather {

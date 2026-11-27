@@ -673,8 +673,38 @@ section h2 {
 }
 
 .weather-day-icon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 2.2em;
     line-height: 1;
+}
+
+.weather-day-condition-icon {
+    line-height: 1;
+}
+
+.spray-day-status-icon {
+    width: 81px;
+    height: 81px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.weather-day-spray-label {
+    font-weight: 700;
+}
+
+.weather-day-spray-label--green {
+    color: #86efac;
+}
+
+.weather-day-spray-label--yellow {
+    color: #fde047;
+}
+
+.weather-day-spray-label--red {
+    color: #fca5a5;
 }
 
 .weather-day-stats {

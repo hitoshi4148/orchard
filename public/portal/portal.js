@@ -594,7 +594,104 @@ function renderDiseaseRiskPanels(forecast) {
   DiseaseRiskUI.renderDiseaseRiskPanels(document.getElementById("disease-risk-area"), forecast);
 }
 
-function renderWeatherWidget(hourly, days) {
+const SPRAY_STATUS_ASSET_VERSION = "20251127sprayicons";
+
+const SPRAY_STATUS_LABELS = {
+  GREEN: "散布推奨",
+  YELLOW: "注意",
+  RED: "非推奨",
+};
+
+const SPRAY_DAY_STATUS_LABELS = {
+  GREEN: "散布推奨",
+  YELLOW: "注意",
+  RED: "非推奨",
+};
+
+function sprayStatusIconHtml(status, className, labels = SPRAY_STATUS_LABELS) {
+  if (!status || !labels[status]) {
+    return "";
+  }
+  const file = status.toLowerCase();
+  const label = labels[status];
+  return `<img class="${className}" src="/portal/spray-status/${file}.png?v=${SPRAY_STATUS_ASSET_VERSION}" alt="${label}" title="${label}" width="81" height="81" loading="lazy">`;
+}
+
+const SPRAY_DAY_START_HOUR = 6;
+const SPRAY_DAY_END_HOUR = 18;
+
+function aggregateDaytimeSprayStatus(statuses) {
+  if (!statuses || statuses.length === 0) {
+    return null;
+  }
+  let green = 0;
+  let yellow = 0;
+  let red = 0;
+  for (const status of statuses) {
+    if (status === "GREEN") green += 1;
+    else if (status === "YELLOW") yellow += 1;
+    else red += 1;
+  }
+  const total = green + yellow + red;
+  if (red >= Math.ceil(total / 2)) {
+    return "RED";
+  }
+  if (green >= 3) {
+    return "GREEN";
+  }
+  if (green >= 1 || yellow >= 1) {
+    return "YELLOW";
+  }
+  return "RED";
+}
+
+function jstDateKeyAndHourFromIso(iso) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const get = (type) => parts.find((p) => p.type === type)?.value ?? "0";
+  let hour = Number.parseInt(get("hour"), 10);
+  if (hour === 24) hour = 0;
+  const y = get("year");
+  const m = get("month").padStart(2, "0");
+  const d = get("day").padStart(2, "0");
+  return { dateKey: `${y}-${m}-${d}`, hour };
+}
+
+function buildSprayDayStatusesFromResults(results) {
+  if (!Array.isArray(results)) {
+    return {};
+  }
+  const byDay = new Map();
+  for (const row of results) {
+    if (!row?.time || !row?.status) continue;
+    const { dateKey, hour } = jstDateKeyAndHourFromIso(row.time);
+    if (hour < SPRAY_DAY_START_HOUR || hour >= SPRAY_DAY_END_HOUR) {
+      continue;
+    }
+    const list = byDay.get(dateKey);
+    if (list) {
+      list.push(row.status);
+    } else {
+      byDay.set(dateKey, [row.status]);
+    }
+  }
+  const out = {};
+  for (const [dateKey, statuses] of byDay) {
+    const aggregated = aggregateDaytimeSprayStatus(statuses);
+    if (aggregated) {
+      out[dateKey] = aggregated;
+    }
+  }
+  return out;
+}
+
+function renderWeatherWidget(hourly, days, sprayDayStatus = {}) {
   const area = document.getElementById("weather-area");
 
   if (hourly.length === 0) {
@@ -621,18 +718,32 @@ function renderWeatherWidget(hourly, days) {
     }
 
     const icon = WEATHER_ICONS[day.condition] || "☁️";
+    const daySprayStatus = sprayDayStatus[dateKey];
+    const sprayIcon = sprayStatusIconHtml(
+      daySprayStatus,
+      "spray-day-status-icon",
+      SPRAY_DAY_STATUS_LABELS
+    );
+    const sprayLabel = SPRAY_DAY_STATUS_LABELS[daySprayStatus] || "";
+    const sprayLabelHtml = sprayLabel
+      ? `<span class="weather-day-stat weather-day-spray-label weather-day-spray-label--${String(
+          daySprayStatus
+        ).toLowerCase()}">${sprayLabel}</span>`
+      : "";
 
     html += `<div class="weather-day-block">
       <div class="weather-day-summary">
         <div class="weather-day-main">
           <div class="weather-day-date">${formatDayTitle(dateKey, day.index)}</div>
-          <div class="weather-day-icon">${icon}</div>
+          <div class="weather-day-icon"><span class="weather-day-condition-icon">${icon}</span></div>
         </div>
         <div class="weather-day-stats">
           <span class="weather-day-stat">平均気温 ${day.avgTemp.toFixed(1)}°C</span>
           <span class="weather-day-stat">平均湿度 ${Math.round(day.avgHumidity)}%</span>
           <span class="weather-day-stat">平均風速 ${day.avgWind.toFixed(1)}m/s</span>
+          ${sprayLabelHtml}
         </div>
+        ${sprayIcon}
       </div>
       <div class="weather-hour-row">`;
 
@@ -709,10 +820,12 @@ async function fetchLightPortalWeatherBundle(lat, lon) {
   if (spray?.success && Array.isArray(spray.results)) {
     sprayForecast = spray.results;
   }
+  const sprayDayStatus = buildSprayDayStatusesFromResults(sprayForecast);
   return {
     success: true,
     weather: { hourly: weather.hourly, days: weather.days },
     sprayForecast,
+    sprayDayStatus,
   };
 }
 
@@ -826,7 +939,11 @@ async function loadPortalData() {
     }
 
     if (SHOW_WEATHER) {
-      renderWeatherWidget(data.weather.hourly, data.weather.days);
+      renderWeatherWidget(
+        data.weather.hourly,
+        data.weather.days,
+        data.sprayDayStatus || buildSprayDayStatusesFromResults(data.sprayForecast)
+      );
     }
     if (SHOW_PORTAL_INSIGHTS) {
       renderDiseaseRiskPanels({

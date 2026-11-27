@@ -15,6 +15,7 @@ import {
   buildMonthlyAverageTemperatures,
   getLastCalendarYearJst,
 } from "../growth-potential/monthly-temperature";
+import { buildSprayDayStatuses } from "../spray/day-status";
 import { fetchMet } from "../spray/met";
 import { judge } from "../spray/judge";
 import { extractHourlyWeather } from "../weather/hourly";
@@ -28,6 +29,7 @@ export interface PortalDashboardData {
     series: ReturnType<typeof buildGpSeriesList>;
   };
   sprayForecast: ReturnType<typeof judge>;
+  sprayDayStatus: ReturnType<typeof buildSprayDayStatuses>;
 }
 
 /** ページ機能に合わせて取得するモジュール（未指定時は従来どおり全部） */
@@ -132,10 +134,21 @@ export async function fetchPortalDashboard(
     };
   }
 
+  const sprayForecast = need.spray ? judge(metData.properties.timeseries) : [];
+  const sprayDayStatus = need.spray
+    ? buildSprayDayStatuses(
+        sprayForecast.map((row) => ({
+          time: row.time,
+          status: row.status,
+        }))
+      )
+    : {};
+
   return {
     weather,
     diseaseRisk,
     growthPotential,
-    sprayForecast: need.spray ? judge(metData.properties.timeseries) : [],
+    sprayForecast,
+    sprayDayStatus,
   };
 }
