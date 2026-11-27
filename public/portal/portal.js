@@ -1974,9 +1974,9 @@ function applyPortalFeatureVisibility() {
     "portal-gp-row",
     SHOW_GROWTH_POTENTIAL || SHOW_RAC_SEARCH
   );
-  setPortalBlockVisibility("portal-title-prefix", SHOW_PORTAL_TITLE_PREFIX);
   setPortalBlockVisibility("footer-weather-credit", SHOW_FOOTER_WEATHER_CREDIT);
   setPortalBlockVisibility("portal-brand-info-anchor", SHOW_PORTAL_BRAND_INFO);
+  updatePortalTitle(loadSettings());
 }
 
 function initPortalApp() {
