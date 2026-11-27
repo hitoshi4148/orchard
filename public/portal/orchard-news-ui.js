@@ -6,7 +6,7 @@ const OrchardNewsUI = (() => {
     momo: "もも",
     kiwi: "キウイ",
     fruit: "果樹",
-    general: "一般ニュース",
+    general: "農業ニュース",
     yosoku: "予察",
   };
 

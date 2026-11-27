@@ -24,6 +24,14 @@ const GOOGLE_NEWS =
   encodeURIComponent(GOOGLE_QUERY) +
   "&hl=ja&gl=JP&ceid=JP:ja";
 
+/** 一般タブ用。果樹クエリとは別フィード（タイトルに作物語が無ければ general に分類）。 */
+const GOOGLE_AG_QUERY =
+  "農業 OR 農林水産 OR 農政 OR 農村 OR 食料 OR スマート農業 OR 産地 OR 農協 OR 食農";
+const GOOGLE_AG_NEWS =
+  "https://news.google.com/rss/search?q=" +
+  encodeURIComponent(GOOGLE_AG_QUERY) +
+  "&hl=ja&gl=JP&ceid=JP:ja";
+
 const PRTIMES_SEARCH = "https://prtimes.jp/api/keyword_search.php/search";
 const PRTIMES_LOOKBACK_DAYS = 30;
 const PRTIMES_MAX_PAGES = 12;
@@ -37,6 +45,8 @@ const KEYWORDS: Array<{ word: string; hint: OrchardNewsCategory }> = [
   { word: "キウイ", hint: "kiwi" },
   { word: "果樹農業", hint: "fruit" },
   { word: "スマート農業 果樹", hint: "fruit" },
+  { word: "農業", hint: "general" },
+  { word: "農林水産", hint: "general" },
 ];
 
 export function jstDateString(date: Date): string {
@@ -174,7 +184,7 @@ export function parsePrtimesReleasedAt(text: string, now: Date): string | null {
   return new Date(now.getTime() - deltaMs).toISOString();
 }
 
-export function parseGoogleNews(xml: string, now: Date): NewsDraft[] {
+function parseGoogleNewsRss(xml: string, now: Date, maxItems: number): NewsDraft[] {
   const drafts: NewsDraft[] = [];
   for (const block of xml.split(/<item\b/i).slice(1)) {
     const sourceName = tagText(block, "source") || "Googleニュース";
@@ -207,7 +217,15 @@ export function parseGoogleNews(xml: string, now: Date): NewsDraft[] {
       seen.add(draft.title);
       return true;
     })
-    .slice(0, 40);
+    .slice(0, maxItems);
+}
+
+export function parseGoogleNews(xml: string, now: Date): NewsDraft[] {
+  return parseGoogleNewsRss(xml, now, 40);
+}
+
+export function parseGoogleAgNews(xml: string, now: Date): NewsDraft[] {
+  return parseGoogleNewsRss(xml, now, 35);
 }
 
 interface PrRelease {
@@ -330,7 +348,9 @@ async function runSource(
     return { sourceKey, drafts: await load() };
   } catch (error) {
     console.error(sourceKey, error);
-    if (sourceKey === "google-news") return { sourceKey, drafts: [] };
+    if (sourceKey === "google-news" || sourceKey === "google-news:ag") {
+      return { sourceKey, drafts: [] };
+    }
     return null;
   }
 }
@@ -356,6 +376,13 @@ export async function collectDueSources(
   }
   if (await due("google-news")) {
     jobs.push(runSource("google-news", async () => parseGoogleNews(await fetchText(GOOGLE_NEWS), now)));
+  }
+  if (await due("google-news:ag")) {
+    jobs.push(
+      runSource("google-news:ag", async () =>
+        parseGoogleAgNews(await fetchText(GOOGLE_AG_NEWS), now)
+      )
+    );
   }
 
   const prefecture = options.prefecture?.trim();
