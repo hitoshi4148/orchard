@@ -2111,6 +2111,30 @@ section h2 {
 
 .portal-header--lab .portal-header-text {
     overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.portal-header--lab .portal-title.portal-title--lab {
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.portal-header--lab .portal-brand-line {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 0 8px 4px;
+    max-width: min(100%, 720px);
+    text-align: center;
+    pointer-events: none;
+}
+
+.portal-header--lab .portal-brand-line .portal-brand-info-anchor {
+    pointer-events: auto;
 }
 
 .portal-lab-title-row {
@@ -2141,6 +2165,7 @@ section h2 {
     max-height: none;
     margin: 0;
     animation: none;
+    background: transparent;
 }
 
 .portal-title-logo-track--lab::after {

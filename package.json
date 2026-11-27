@@ -13,6 +13,7 @@
     "test:orchard-risk": "npm run test:marssonina && npm run test:marssonina:integration",
     "test:news": "tsx --test src/news/classify.test.ts",
     "data:boujosho": "node scripts/parse-boujosho-pdf.mjs",
+    "assets:shigoto-logo-alpha": "npm exec --package=sharp -- node scripts/make-shigoto-logo-transparent.mjs",
     "orchard-risk:fetch": "tsx scripts/orchard-risk-cli.ts",
     "verify:growth-stage": "node scripts/compare-growth-stage.mjs",
     "report:orchard-risk-validation": "tsx scripts/orchard-risk-validation-report.ts",
