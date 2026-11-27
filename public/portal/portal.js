@@ -332,9 +332,9 @@ function formatPortalTitle(facilityName, locationName = "") {
   return prefix ? `${prefix}果実園しごとポータル` : "果実園しごとポータル";
 }
 
-function updatePortalTitle(settings = loadSettings()) {
+function updatePortalTitle() {
   const prefixEl = document.getElementById("portal-title-prefix");
-  const name = (settings.facilityName ?? "").trim();
+  const name = (loadSettings().facilityName ?? "").trim();
   const place = (loadOrchardLocation().locationName ?? "").trim();
   const placePart = place ? `(${place})` : "";
   const prefix = name ? `${name}${placePart}` : placePart;
@@ -859,7 +859,7 @@ async function loadPortalData() {
     location = { ...location, lat, lon };
     saveOrchardLocation(location);
   }
-  updatePortalTitle(settings);
+  updatePortalTitle();
 
   if (!portalNeedsDashboardData()) {
     if (SHOW_ORCHARD_NEWS) {
@@ -953,7 +953,7 @@ async function loadPortalData() {
 
     const namedSettings = await locationNamePromise;
     if (loadSeq === portalDataLoadSeq) {
-      updatePortalTitle(namedSettings);
+      updatePortalTitle();
     }
 
     if (SHOW_WEATHER) {
@@ -1065,7 +1065,7 @@ async function handleSaveSettings() {
 
   saveSettings(settings);
   saveOrchardLocation(location);
-  updatePortalTitle(settings);
+  updatePortalTitle();
   if (SHOW_WORK_MEMO) {
     WorkMemoUI.updateFacilityName(settings.facilityName);
   }
@@ -1989,7 +1989,7 @@ function applyPortalFeatureVisibility() {
   );
   setPortalBlockVisibility("footer-weather-credit", SHOW_FOOTER_WEATHER_CREDIT);
   setPortalBlockVisibility("portal-brand-info-anchor", SHOW_PORTAL_BRAND_INFO);
-  updatePortalTitle(loadSettings());
+  updatePortalTitle();
 }
 
 function initPortalApp() {
@@ -2022,7 +2022,7 @@ function initPortalApp() {
   });
 
   loadPortalData();
-  updatePortalTitle(loadSettings());
+  updatePortalTitle();
   if (SHOW_RAC_SEARCH) {
     initPortalRacSearch();
   }
