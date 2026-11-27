@@ -1,4 +1,5 @@
 import { fetchMet } from "../../../src/spray/met";
+import { judge } from "../../../src/spray/judge";
 import { extractHourlyWeather } from "../../../src/weather/hourly";
 import { corsJson, corsOptions } from "../../../src/portal/cors-json";
 
@@ -19,11 +20,13 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     const data = await fetchMet(lat, lon);
     const forecast = extractHourlyWeather(data.properties.timeseries, 48);
+    const sprayForecast = judge(data.properties.timeseries);
 
     return corsJson({
       success: true,
       hourly: forecast.hourly,
       days: forecast.days,
+      sprayForecast,
       location: { lat, lon },
     });
   } catch (error) {

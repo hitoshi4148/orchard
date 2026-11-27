@@ -115,16 +115,31 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const now = new Date();
     const asOf = jstDateString(now);
     await ensureSchema(db);
-    const { drafts, completed } = await collectDueSources(
-      (sourceKey) => isDue(db, sourceKey, asOf),
-      {
-        prefecture: prefecture || undefined,
-        loadYosoku: fetchYosokuDrafts,
-      },
-      now
+
+    context.waitUntil(
+      (async () => {
+        try {
+          let collectPrefecture = prefecture;
+          if (!collectPrefecture && Number.isFinite(lat) && Number.isFinite(lon)) {
+            const detail = await reverseGeocodeDetail(lat, lon);
+            collectPrefecture = detail.prefecture;
+          }
+          const { drafts, completed } = await collectDueSources(
+            (sourceKey) => isDue(db, sourceKey, asOf),
+            {
+              prefecture: collectPrefecture || undefined,
+              loadYosoku: fetchYosokuDrafts,
+            },
+            now
+          );
+          await saveDrafts(db, drafts);
+          await markFetched(db, completed, asOf);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("news collect", message);
+        }
+      })()
     );
-    await saveDrafts(db, drafts);
-    await markFetched(db, completed, asOf);
 
     const weekCutoff = new Date(
       `${addDaysToDateString(asOf, -7)}T00:00:00+09:00`

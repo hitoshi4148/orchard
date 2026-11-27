@@ -127,7 +127,7 @@ function buildApiJsonError(status, text) {
       hint = `果樹園しごとは ${ORCHARD_PAGES_ORIGIN}/portal/lab/ で開いてください（turf-tools.jp には果樹用ラボがありません）。病害リスクは ${ORCHARD_PAGES_ORIGIN}/portal/risk/ です。`;
     } else if (isOrchardHost()) {
       hint =
-        "サーバーが HTML を返しました。地点未設定なら右上の設定で緯度・経度を保存し、数十秒後に再読み込みしてください。";
+        "サーバーが一時的に HTML を返しました。数十秒後に再読み込みしてください。続く場合は地点（緯度・経度）を設定し直すか、ニュース読み込み後に再度お試しください。";
     } else {
       hint = `サーバーが HTML を返しました。実験ラボは ${ORCHARD_PAGES_ORIGIN}/portal/lab/ 、病害リスクは ${ORCHARD_PAGES_ORIGIN}/portal/risk/ を利用してください。`;
     }
@@ -809,17 +809,20 @@ async function fetchLightPortalWeatherBundle(lat, lon) {
     maxRetries: DASHBOARD_API_MAX_RETRIES,
     timeoutMs: DASHBOARD_API_TIMEOUT_MS,
   };
-  const sprayPromise = SHOW_WEATHER
-    ? fetchApiJson(`${SPRAY_FORECAST_API}?${q}`, fetchOpts).catch(() => null)
-    : Promise.resolve(null);
   const weather = await fetchApiJson(`${WEATHER_API}?${q}`, fetchOpts);
   if (!weather.success) {
     throw new Error(weather.error || "気象データの取得に失敗しました");
   }
-  let sprayForecast = null;
-  const spray = await sprayPromise;
-  if (spray?.success && Array.isArray(spray.results)) {
-    sprayForecast = spray.results;
+  let sprayForecast = Array.isArray(weather.sprayForecast)
+    ? weather.sprayForecast
+    : null;
+  if (!sprayForecast) {
+    const spray = await fetchApiJson(`${SPRAY_FORECAST_API}?${q}`, fetchOpts).catch(
+      () => null
+    );
+    if (spray?.success && Array.isArray(spray.results)) {
+      sprayForecast = spray.results;
+    }
   }
   const sprayDayStatus = buildSprayDayStatusesFromResults(sprayForecast);
   return {
@@ -858,16 +861,18 @@ async function loadPortalData() {
   }
   updatePortalTitle(settings);
 
-  if (SHOW_ORCHARD_NEWS) {
-    refreshOrchardNews(location);
-  }
-
   if (!portalNeedsDashboardData()) {
+    if (SHOW_ORCHARD_NEWS) {
+      refreshOrchardNews(location);
+    }
     document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
     return;
   }
 
   if (!hasLocation(settings)) {
+    if (SHOW_ORCHARD_NEWS) {
+      refreshOrchardNews(location);
+    }
     if (SHOW_WEATHER) {
       renderWeatherPlaceholder(LOCATION_NOT_SET_MESSAGE);
     }
@@ -880,6 +885,14 @@ async function loadPortalData() {
     }
     document.dispatchEvent(new CustomEvent("orchard-portal-ready"));
     return;
+  }
+
+  if (SHOW_ORCHARD_NEWS) {
+    document.addEventListener(
+      "orchard-portal-ready",
+      () => refreshOrchardNews(location),
+      { once: true }
+    );
   }
 
   const weatherLoading = document.getElementById("weather-loading");
