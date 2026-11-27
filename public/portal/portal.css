@@ -2927,23 +2927,222 @@ footer p {
     }
 }
 
-.orchard-news-section.portal-news-panel {
+.portal-news-row.orchard-news-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: stretch;
+    height: min(70vh, 520px);
+}
+
+.portal-news-panel,
+.portal-sns-panel {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    margin: 0 0 12px;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
     background: #f8f9fa;
     border-radius: 12px;
     padding: 12px;
-    max-height: min(70vh, 520px);
 }
 
-.orchard-news-section #portal-news-root {
+.portal-news-panel .disease-risk-title,
+.portal-sns-panel .disease-risk-title {
+    flex-shrink: 0;
+    margin: 0 0 6px 0;
+    border-bottom: 2px solid #E5E7EB;
+    padding-bottom: 4px;
+}
+
+#portal-news-root {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+.portal-sns-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 6px 0;
+    border-bottom: 2px solid #E5E7EB;
+    padding-bottom: 4px;
+    flex-shrink: 0;
+}
+
+.portal-sns-title-row .disease-risk-title {
+    margin: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+    white-space: nowrap;
+}
+
+.portal-sns-title-row .portal-sns-alias-form {
+    flex: 1;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+}
+
+.portal-sns-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.portal-sns-facility,
+.portal-sns-empty {
+    margin: 0;
+    font-size: 0.78em;
+    line-height: 1.4;
+    color: #1f2937;
+}
+
+.portal-sns-empty {
+    color: #6b7280;
+}
+
+.portal-sns-alias-form {
+    display: flex;
+    gap: 4px;
+}
+
+.portal-sns-alias-form input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    padding: 4px 8px;
+    font-size: 0.75em;
+    color: #1f2937;
+}
+
+.portal-sns-alias-form button,
+.portal-sns-alias button {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.72em;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+.portal-sns-aliases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    list-style: none;
+}
+
+.portal-sns-alias {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 1px 4px 1px 8px;
+    font-size: 0.68em;
+    line-height: 1.3;
+    color: #1f2937;
+}
+
+.portal-sns-alias button {
+    border: none;
+    background: transparent;
+    padding: 0 4px;
+    font-size: 1em;
+    line-height: 1.2;
+}
+
+.portal-sns-list {
+    list-style: none;
+    min-width: 0;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.portal-sns-item {
+    list-style: none;
+}
+
+.portal-sns-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 5px 2px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+    text-decoration: none;
+    font-size: 0.82em;
+    line-height: 1.35;
+    font-weight: 600;
+}
+
+.portal-sns-row:hover {
+    background: #fff;
+}
+
+.portal-sns-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+}
+
+.portal-sns-logo svg {
+    width: 16px;
+    height: 16px;
+}
+
+.portal-sns-logo--x {
+    background: #111827;
+}
+
+.portal-sns-logo--instagram {
+    background: linear-gradient(135deg, #f9ce34 0%, #ee2a7b 52%, #6228d7 100%);
+}
+
+.portal-sns-logo--youtube {
+    background: #e11d1d;
+}
+
+.portal-sns-row-text {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .portal-news-row.orchard-news-row {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+    }
+
+    .portal-news-row.orchard-news-row .portal-news-panel,
+    .portal-news-row.orchard-news-row .portal-sns-panel {
+        height: min(70vh, 420px);
+    }
 }
 
 .portal-news-tabs {

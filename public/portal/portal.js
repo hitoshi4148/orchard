@@ -1056,6 +1056,9 @@ async function handleSaveSettings() {
   if (SHOW_WORK_MEMO) {
     WorkMemoUI.updateFacilityName(settings.facilityName);
   }
+  if (window.SnsCheckUI) {
+    SnsCheckUI.refresh();
+  }
   showLocationStatus(
     location.locationName
       ? `設定を保存しました（${location.locationName}）`
@@ -1963,7 +1966,7 @@ function applyPortalFeatureVisibility() {
   setPortalBlockVisibility("ai-advisor-section", SHOW_AI_ADVISOR);
   setPortalBlockVisibility("weather-section", SHOW_WEATHER);
   setPortalBlockVisibility("weather-more-link", SHOW_WEATHER);
-  setPortalBlockVisibility("orchard-news-section", SHOW_ORCHARD_NEWS);
+  setPortalBlockVisibility("orchard-news-row", SHOW_ORCHARD_NEWS);
   setPortalBlockVisibility("disease-risk-section", SHOW_DISEASE_RISK_SECTION);
   setPortalBlockVisibility("portal-insights-row", SHOW_PORTAL_INSIGHTS);
   setPortalBlockVisibility("portal-work-memo-row", SHOW_WORK_MEMO);
@@ -2016,6 +2019,9 @@ function initPortalApp() {
   initGddInfoPopovers();
   if (SHOW_AI_ADVISOR) {
     initAdvisorChat();
+  }
+  if (SHOW_ORCHARD_NEWS && window.SnsCheckUI) {
+    SnsCheckUI.refresh();
   }
 }
 

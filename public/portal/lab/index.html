@@ -99,10 +99,22 @@
             </div>
         </section>
 
-        <section class="orchard-news-section portal-news-panel" id="orchard-news-section" aria-labelledby="orchard-news-heading">
-            <h2 id="orchard-news-heading" class="fruit-disease-risk-nav-title">果樹園ニュース</h2>
-            <div id="portal-news-root">読み込み中...</div>
-        </section>
+        <div class="portal-news-row orchard-news-row" id="orchard-news-row">
+            <section class="portal-news-panel" aria-labelledby="orchard-news-heading">
+                <h2 id="orchard-news-heading" class="disease-risk-title">果樹園ニュース</h2>
+                <div id="portal-news-root">読み込み中...</div>
+            </section>
+            <section class="portal-sns-panel" aria-labelledby="portal-orchard-sns-heading">
+                <div class="portal-sns-title-row">
+                    <h2 id="portal-orchard-sns-heading" class="disease-risk-title">果樹園の評判</h2>
+                    <form id="portal-sns-alias-form" class="portal-sns-alias-form">
+                        <input id="portal-sns-alias-input" type="text" name="alias" maxlength="80" placeholder="果樹園名の略称" aria-label="果樹園名の略称">
+                        <button type="submit">追加</button>
+                    </form>
+                </div>
+                <div id="portal-sns-body" class="portal-sns-body"></div>
+            </section>
+        </div>
 
         <section class="fruit-disease-risk-nav" id="fruit-disease-risk-nav" aria-labelledby="fruit-disease-risk-nav-heading">
             <h2 id="fruit-disease-risk-nav-heading" class="fruit-disease-risk-nav-title">病害リスク予報</h2>
@@ -245,7 +257,8 @@
     <script src="/portal/orchard-location-cookie.js?v=20251110set"></script>
     <script src="/portal/disease-risk-ui.js?v=20250727v007"></script>
     <script src="/portal/work-memo-ui.js?v=20250807v001"></script>
-    <script src="/portal/orchard-news-ui.js?v=20251127agnews"></script>
-    <script src="/portal/portal.js?v=20251127agnews"></script>
+    <script src="/portal/orchard-news-ui.js?v=20251127reputation"></script>
+    <script src="/portal/orchard-sns-ui.js?v=20251127reputation"></script>
+    <script src="/portal/portal.js?v=20251127reputation"></script>
 </body>
 </html>
